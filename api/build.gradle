@@ -1,0 +1,63 @@
+plugins {
+    id 'java-library'
+    id 'com.github.johnrengelman.shadow' version '8.1.1'
+}
+
+ext {
+    artifactName = 'chatMod-api'
+    projectDescription = 'Minecraft World Protection Mod'
+    userbase = 'AMPZNetwork'
+}
+
+group = 'com.ampznetwork.chatmod'
+sourceCompatibility = '17'
+targetCompatibility = '17'
+
+sourceSets {
+    main.java.srcDirs = files("${parent.projectDir}/src/$project.name/main/java")
+    main.resources.srcDirs = files("${parent.projectDir}/src/$project.name/main/resources")
+    test.java.srcDirs = files("${parent.projectDir}/src/$project.name/test/java")
+    test.resources.srcDirs = files("${parent.projectDir}/src/$project.name/test/java")
+}
+
+apply from: "$parent.projectDir/gradle/publishing.gradle"
+
+repositories {
+    maven { url 'https://maven.comroid.org' }
+    mavenLocal()
+    mavenCentral()
+    maven { url 'https://jitpack.io' }
+}
+
+dependencies {
+    api project(":LibMod:api")
+
+    // json
+    api 'com.fasterxml.jackson.core:jackson-databind:2.+'
+
+    // persistence
+    api 'javax.persistence:javax.persistence-api:2.2'
+
+    // kyori
+    api 'net.kyori:adventure-api:4.11.+'
+
+    //todo: move db dependencies to LibMod
+    compileOnly 'org.hibernate:hibernate-core:5.6.0.Final'
+    compileOnly 'org.jboss:jandex:2.4.5.Final'
+    compileOnly 'com.zaxxer:HikariCP:4.0.3'
+    compileOnly 'org.mariadb.jdbc:mariadb-java-client:3.4.0'
+    compileOnly 'com.mysql:mysql-connector-j:8.4.0'
+    compileOnly 'com.h2database:h2:2.2.224'
+
+    // utility
+    compileOnly 'org.projectlombok:lombok:+'
+    annotationProcessor 'org.projectlombok:lombok:+'
+}
+
+task simplifyArtifact(type: Copy) {
+    // api module should be slim, and only contain chatMod's own api
+    dependsOn test, jar
+    from jar.outputs.files.singleFile
+    into "$rootDir/build/libs/"
+    rename { n -> "ChatMod-api.jar" }
+}
