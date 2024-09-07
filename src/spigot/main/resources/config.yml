@@ -1,0 +1,42 @@
+# basic configuration
+server:
+  name: §eMC
+# rabbitmq configuration
+rabbitmq:
+  url: amqp://anonymous:anonymous@localhost:5672/chatmod
+# chat channel configuration; the first channel is default for all players, regardless of the permission property
+# each entry can be configured with all given properties (string:alias, bool:publish and string:permission)
+channels:
+  # an example global channel, which is accessible throughout all servers
+  - global:
+      alias: g
+  # an example local channel, which will not be sent to rabbitmq
+  - local:
+      alias: l
+      publish: false
+  # an example staff channel, which requires permission 'chat.channel.staff' to join
+  - staff:
+      alias: s
+      permission: chat.channel.staff
+# formatter configuration; these formatters are applied in configured order to each message's content
+formatters:
+  # a markdown parser. supports features: 'bold', 'cursive', 'underline', 'strikethrough', 'hidden_links', 'verbatim'
+  - markdown_parser:
+      style: standard # markdown style. supports 'standard' or 'discord'
+      # disable some features
+      disable:
+      - hidden_links
+      # convert verbatim markdown strings to obfuscated minecraft style
+      verbatim_to_obfuscated: true
+  # a regex replacer. each pattern match will be replaced with the string defined in the 'replace' property
+  - regex_replace:
+      lowercase: true # default
+      patterns:
+        - "n[i1]*[g9]+[a4e3]*[rh]*" # pattern for the n-word including leetspeak alternatives
+      replace: "[bad word]"
+  # make URLs clickable todo: shouldn't this occur by default?
+  - url_encoder:
+      force_https: true
+  # changes the basic format of the message
+  - formatter:
+      scheme: %server% %prefix% %message%
