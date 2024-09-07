@@ -39,4 +39,4 @@ formatters:
       force_https: true
   # changes the basic format of the message
   - formatter:
-      scheme: %server% %prefix% %message%
+      scheme: %server% %displayname% %message%
