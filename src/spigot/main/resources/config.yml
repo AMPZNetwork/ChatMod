@@ -25,7 +25,7 @@ formatters:
       style: standard # markdown style. supports 'standard' or 'discord'
       # disable some features
       disable:
-      - hidden_links
+        - hidden_links
       # convert verbatim markdown strings to obfuscated minecraft style
       verbatim_to_obfuscated: true
   # a regex replacer. each pattern match will be replaced with the string defined in the 'replace' property
