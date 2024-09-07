@@ -5,7 +5,7 @@ server:
 rabbitmq:
   url: amqp://anonymous:anonymous@localhost:5672/chatmod
 # chat channel configuration; the first channel is default for all players, regardless of the permission property
-# each entry can be configured with all given properties (string:alias, bool:publish and string:permission)
+# each entry can be configured with all given properties (alias:string, formatters:obj, publish:bool and permission:string)
 channels:
   # an example global channel, which is accessible throughout all servers
   - global:
@@ -38,5 +38,7 @@ formatters:
   - url_encoder:
       force_https: true
   # changes the basic format of the message
+  # "%username%" and "%message%" are special format strings that will be formatted using vanilla methods
   - formatter:
-      scheme: %server% %displayname% %message%
+      # scheme: "<%username%> %message%" # vanilla scheme
+      scheme: "[%servername%] %username%: %message%"
