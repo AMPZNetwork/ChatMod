@@ -40,5 +40,5 @@ formatters:
   # changes the basic format of the message
   # "%username%" and "%message%" are special format strings that will be formatted using vanilla methods
   - formatter:
-      # scheme: "<%username%> %message%" # vanilla scheme
+      #scheme: "<%username%> %message%" # vanilla scheme
       scheme: "[%servername%] %username%: %message%"
