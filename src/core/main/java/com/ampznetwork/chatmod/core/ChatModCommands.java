@@ -1,19 +1,14 @@
 package com.ampznetwork.chatmod.core;
 
 import com.ampznetwork.chatmod.api.ChatMod;
-import com.ampznetwork.chatmod.api.model.ChannelConfiguration;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.format.TextDecoration;
 import org.comroid.annotations.Alias;
 import org.comroid.api.func.util.Command;
 import org.comroid.api.text.StringMode;
 
 import java.util.Arrays;
 import java.util.Objects;
-import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Stream;
 
 import static net.kyori.adventure.text.Component.*;
 import static net.kyori.adventure.text.format.NamedTextColor.*;
@@ -102,20 +97,26 @@ public class ChatModCommands {
         }
 
         @Command(permission = "chatmod.channel.spy")
-        public static Component spy(ChatMod mod, @Command.Arg String channelName, UUID playerId) {
+        public static Component spy(ChatMod mod, @Command.Arg(autoFill = {"*"}) String channelName, UUID playerId) {
             var channels = mod.getChannels();
-            var targetChannel = channels.stream()
-                    .filter(it -> Arrays.asList(it.getName(), it.getAlias()).contains(channelName))
-                    .findAny().orElseThrow(() -> new Command.Error("No such channel: " + channelName));
-            var ids = targetChannel.getSpyIDs();
-            if (ids.contains(playerId)) {
-                ids.remove(playerId);
-                return text("Stopped spying channel ")
-                        .append(text(targetChannel.getName()).color(AQUA));
+            if ("*".equals(channelName)) {
+                channels.forEach(config -> config.getSpyIDs().add(playerId));
+                return text("Now spying ")
+                        .append(text("all channels").color(AQUA));
             } else {
-                ids.add(playerId);
-                return text("Now spying channel ")
-                        .append(text(targetChannel.getName()).color(AQUA));
+                var targetChannel = channels.stream()
+                        .filter(it -> Arrays.asList(it.getName(), it.getAlias()).contains(channelName))
+                        .findAny().orElseThrow(() -> new Command.Error("No such channel: " + channelName));
+                var ids = targetChannel.getSpyIDs();
+                if (ids.contains(playerId)) {
+                    ids.remove(playerId);
+                    return text("Stopped spying channel ")
+                            .append(text(targetChannel.getName()).color(AQUA));
+                } else {
+                    ids.add(playerId);
+                    return text("Now spying channel ")
+                            .append(text(targetChannel.getName()).color(AQUA));
+                }
             }
         }
     }
