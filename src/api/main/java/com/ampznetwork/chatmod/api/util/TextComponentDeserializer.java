@@ -9,6 +9,10 @@ import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.TextDecoration;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static com.fasterxml.jackson.core.JsonToken.*;
 import static net.kyori.adventure.text.Component.*;
@@ -95,10 +99,9 @@ public class TextComponentDeserializer extends JsonDeserializer<TextComponent> {
                     text.hoverEvent(hoverEvent);
                     break;
                 default:
-                    for (var decor : TextDecoration.values()) {
-                        if (decor.toString().equals(p.currentName()))
+                    for (var decor : TextDecoration.values())
+                        if (decor.toString().equals(p.currentName()) && p.nextBooleanValue())
                             text.decorate(decor);
-                    }
             }
         return text.build();
     }

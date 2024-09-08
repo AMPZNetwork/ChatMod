@@ -1,6 +1,7 @@
 package com.ampznetwork.chatmod.core;
 
 import com.ampznetwork.chatmod.api.ChatMod;
+import com.ampznetwork.chatmod.core.util.AutoFill;
 import net.kyori.adventure.text.Component;
 import org.comroid.annotations.Alias;
 import org.comroid.api.func.util.Command;
@@ -16,10 +17,9 @@ import static net.kyori.adventure.text.format.TextDecoration.*;
 
 public class ChatModCommands {
     @Command(permission = "chatmod.shout")
-    @Alias("shout")
     public static Component shout(
             ChatMod mod,
-            @Command.Arg String channelName,
+            @Command.Arg(autoFillProvider = AutoFill.ChannelNames.class) String channelName,
             @Command.Arg(stringMode = StringMode.GREEDY) String message,
             UUID playerId
     ) {
@@ -61,7 +61,7 @@ public class ChatModCommands {
         }
 
         @Command(permission = "chatmod.channel.info")
-        public static Component info(ChatMod mod, @Command.Arg String channelName) {
+        public static Component info(ChatMod mod, @Command.Arg(autoFillProvider = AutoFill.ChannelNames.class) String channelName) {
             var channel = mod.getChannels().stream()
                     .filter(it -> Arrays.asList(it.getName(), it.getAlias()).contains(channelName))
                     .findAny().orElseThrow(() -> new Command.Error("No such channel: " + channelName));
@@ -81,7 +81,7 @@ public class ChatModCommands {
         }
 
         @Command(permission = "chatmod.channel.join")
-        public static Component join(ChatMod mod, @Command.Arg String channelName, UUID playerId) {
+        public static Component join(ChatMod mod, @Command.Arg(autoFillProvider = AutoFill.ChannelNames.class) String channelName, UUID playerId) {
             var channels = mod.getChannels();
             var currentChannel = channels.stream()
                     .filter(it -> it.getPlayerIDs().contains(playerId))
@@ -97,7 +97,7 @@ public class ChatModCommands {
         }
 
         @Command(permission = "chatmod.channel.spy")
-        public static Component spy(ChatMod mod, @Command.Arg(autoFill = {"*"}) String channelName, UUID playerId) {
+        public static Component spy(ChatMod mod, @Command.Arg(autoFillProvider = AutoFill.ChannelNames.class, autoFill = {"*"}) String channelName, UUID playerId) {
             var channels = mod.getChannels();
             if ("*".equals(channelName)) {
                 channels.forEach(config -> config.getSpyIDs().add(playerId));

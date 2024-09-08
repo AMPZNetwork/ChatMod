@@ -16,9 +16,13 @@ import com.ampznetwork.libmod.spigot.SubMod$Spigot;
 import lombok.Getter;
 import lombok.experimental.NonFinal;
 import lombok.extern.slf4j.Slf4j;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.comroid.api.Polyfill;
 import org.comroid.api.func.util.Command;
 import org.comroid.api.net.Rabbit;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -48,7 +52,7 @@ public class ChatMod$Spigot extends SubMod$Spigot implements ChatMod {
     }
 
     @Command
-    public void reload() {
+    public @NotNull TextComponent reload() {
         // reload channel configuration
         channels.clear();
         loadChannels();
@@ -58,6 +62,8 @@ public class ChatMod$Spigot extends SubMod$Spigot implements ChatMod {
         getLib().getPlayerAdapter().getCurrentPlayers()
                 .map(DbObject::getId)
                 .forEach(mainChannel.getPlayerIDs()::add);
+
+        return Component.text("Reloading ChatMod configuration complete").color(NamedTextColor.GREEN);
     }
 
     @Override
