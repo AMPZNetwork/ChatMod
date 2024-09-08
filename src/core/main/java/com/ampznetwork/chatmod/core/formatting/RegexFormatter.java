@@ -1,11 +1,10 @@
-package com.ampznetwork.chatmod.api.formatting.impl;
+package com.ampznetwork.chatmod.core.formatting;
 
 import com.ampznetwork.chatmod.api.formatting.MessageFormatter;
 import com.ampznetwork.chatmod.api.model.ChatMessage;
 import lombok.Builder;
 import lombok.Singular;
 import lombok.Value;
-import org.intellij.lang.annotations.Language;
 
 import java.util.List;
 import java.util.Map;

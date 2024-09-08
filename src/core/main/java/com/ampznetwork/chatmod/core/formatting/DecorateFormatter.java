@@ -1,4 +1,4 @@
-package com.ampznetwork.chatmod.api.formatting.impl;
+package com.ampznetwork.chatmod.core.formatting;
 
 import com.ampznetwork.chatmod.api.formatting.MessageFormatter;
 import com.ampznetwork.chatmod.api.model.ChatMessage;

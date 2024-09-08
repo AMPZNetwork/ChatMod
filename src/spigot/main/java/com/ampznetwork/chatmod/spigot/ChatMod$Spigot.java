@@ -2,10 +2,10 @@ package com.ampznetwork.chatmod.spigot;
 
 import com.ampznetwork.chatmod.api.ChatMod;
 import com.ampznetwork.chatmod.api.formatting.MessageFormatter;
-import com.ampznetwork.chatmod.api.formatting.impl.DecorateFormatter;
-import com.ampznetwork.chatmod.api.formatting.impl.MarkdownFormatter;
-import com.ampznetwork.chatmod.api.formatting.impl.RegexFormatter;
-import com.ampznetwork.chatmod.api.formatting.impl.UrlFormatter;
+import com.ampznetwork.chatmod.core.formatting.DecorateFormatter;
+import com.ampznetwork.chatmod.core.formatting.MarkdownFormatter;
+import com.ampznetwork.chatmod.core.formatting.RegexFormatter;
+import com.ampznetwork.chatmod.core.formatting.UrlFormatter;
 import com.ampznetwork.chatmod.api.model.ChannelConfiguration;
 import com.ampznetwork.chatmod.api.model.ChatMessage;
 import com.ampznetwork.chatmod.api.model.ChatMessagePacket;

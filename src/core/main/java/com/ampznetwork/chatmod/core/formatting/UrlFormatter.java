@@ -1,10 +1,8 @@
-package com.ampznetwork.chatmod.api.formatting.impl;
+package com.ampznetwork.chatmod.core.formatting;
 
 import com.ampznetwork.chatmod.api.formatting.MessageFormatter;
 import com.ampznetwork.chatmod.api.model.ChatMessage;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.NoArgsConstructor;
 import lombok.Value;
 import net.kyori.adventure.text.format.TextDecoration;
 
