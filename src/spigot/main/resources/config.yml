@@ -3,7 +3,7 @@ server:
   name: §eMC
 # rabbitmq configuration
 rabbitmq:
-  url: amqp://anonymous:anonymous@localhost:5672/chatmod
+  url: amqp://guest:guest@localhost:5672
 # chat channel configuration; the first channel is default for all players, regardless of the permission property
 # each entry can be configured with all given properties (alias:string, formatters:obj, publish:bool and permission:string)
 channels:

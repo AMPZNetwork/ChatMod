@@ -8,4 +8,9 @@ public interface ChatMod {
     String getServerName();
 
     Rabbit.Exchange.Route<ChatMessagePacket> getRabbit();
+
+    interface Strings {
+        String AddonName = "ChatMod";
+        String AddonId = "chatmod";
+    }
 }

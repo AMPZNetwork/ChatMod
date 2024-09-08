@@ -21,6 +21,8 @@ public abstract class EventDispatchBase<Mod extends ChatMod> {
         for (var formatter : formatterChain)
             formatter.accept(message);
 
+        var channel = "global"; // todo
+
         var packet = new ChatMessagePacket(mod.getServerName(), channel, message);
         mod.getRabbit().send(packet);
     }

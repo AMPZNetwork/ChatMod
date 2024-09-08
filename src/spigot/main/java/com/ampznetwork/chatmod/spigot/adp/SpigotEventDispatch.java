@@ -37,5 +37,11 @@ public class SpigotEventDispatch extends EventDispatchBase<ChatMod$Spigot> imple
     }
 
     private static MessageFormatter[] buildFormatterChain(ChatMod$Spigot mod) {
+        var cfg = mod.getConfig();
+        var ls = cfg.getStringList("formatters");
+        var keys0 = cfg.getKeys(false);
+        var keys1 = cfg.getKeys(true);
+        var ls0 = cfg.getList("formatters");
+        return null;
     }
 }
