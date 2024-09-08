@@ -12,6 +12,11 @@ import net.kyori.adventure.text.TextComponent;
 public class ChatMessage {
     Player sender;
     String inputString;
-    String        plaintext;
+    String plaintext;
     @JsonSerialize(using = TextComponentSerializer.class) @JsonDeserialize(using = TextComponentDeserializer.class) TextComponent text;
+
+    @Override
+    public String toString() {
+        return plaintext;
+    }
 }
