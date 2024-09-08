@@ -11,11 +11,13 @@ import com.ampznetwork.chatmod.api.model.ChatMessage;
 import com.ampznetwork.chatmod.api.model.ChatMessagePacket;
 import com.ampznetwork.chatmod.core.ChatModCommands;
 import com.ampznetwork.chatmod.spigot.adp.SpigotEventDispatch;
+import com.ampznetwork.libmod.api.entity.DbObject;
 import com.ampznetwork.libmod.spigot.SubMod$Spigot;
 import lombok.Getter;
 import lombok.experimental.NonFinal;
 import lombok.extern.slf4j.Slf4j;
 import org.comroid.api.Polyfill;
+import org.comroid.api.func.util.Command;
 import org.comroid.api.net.Rabbit;
 
 import java.util.ArrayList;
@@ -45,13 +47,27 @@ public class ChatMod$Spigot extends SubMod$Spigot implements ChatMod {
         rabbit.send(packet);
     }
 
+    @Command
+    public void reload() {
+        // reload channel configuration
+        channels.clear();
+        loadChannels();
+
+        // rejoin current players
+        var mainChannel = channels.getFirst();
+        getLib().getPlayerAdapter().getCurrentPlayers()
+                .map(DbObject::getId)
+                .forEach(mainChannel.getPlayerIDs()::add);
+    }
+
     @Override
     public void onLoad() {
         cmdr.register(ChatModCommands.class);
+        cmdr.register(this);
 
         super.onLoad();
 
-        loadChannels();
+        reload();
     }
 
     private void loadChannels() {
