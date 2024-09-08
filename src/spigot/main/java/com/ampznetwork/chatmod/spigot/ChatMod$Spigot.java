@@ -12,6 +12,11 @@ public class ChatMod$Spigot extends SubMod$Spigot implements ChatMod {
     }
 
     @Override
+    public String getServerName() {
+        return getConfig().getString("server.name", "&eMC");
+    }
+
+    @Override
     public void onEnable() {
         super.onEnable();
 
