@@ -33,7 +33,7 @@ formatters:
       verbatim_to_obfuscated: true
   # a regex replacer. each pattern match will be replaced with the string defined in the 'replace' property
   - regex:
-      lowercase: true # default
+      case_insensitive: true # default
       patterns:
         - "n[i1]*[g9]+[a4e3]*[rh]*" # pattern for the n-word including leetspeak alternatives
       replace: "[bad word]"

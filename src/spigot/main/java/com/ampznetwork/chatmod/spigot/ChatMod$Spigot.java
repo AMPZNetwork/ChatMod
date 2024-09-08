@@ -9,6 +9,7 @@ import lombok.Getter;
 import lombok.Value;
 import lombok.experimental.NonFinal;
 import lombok.extern.slf4j.Slf4j;
+import org.comroid.api.func.util.Event;
 import org.comroid.api.net.Rabbit;
 
 import java.util.Set;
@@ -34,11 +35,17 @@ public class ChatMod$Spigot extends SubMod$Spigot implements ChatMod {
         rabbit = Rabbit.of(getConfig().getString("rabbitmq.url"))
                 .map(rabbit -> rabbit.bind("chat","",ChatMessagePacket.CONVERTER))
                 .orElseThrow();
+        rabbit.listen().subscribeData(this::handle);
         getServer().getPluginManager().registerEvents(new SpigotEventDispatch(this), this);
     }
 
     @Override
     public Class<?> getModuleType() {
         return ChatMod.class;
+    }
+
+    public void handle(ChatMessagePacket packet) {
+        System.out.println(packet);
+        // todo
     }
 }

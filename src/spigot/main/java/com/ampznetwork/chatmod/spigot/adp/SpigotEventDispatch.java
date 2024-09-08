@@ -1,6 +1,10 @@
 package com.ampznetwork.chatmod.spigot.adp;
 
 import com.ampznetwork.chatmod.api.formatting.MessageFormatter;
+import com.ampznetwork.chatmod.api.formatting.impl.DecorateFormatter;
+import com.ampznetwork.chatmod.api.formatting.impl.MarkdownFormatter;
+import com.ampznetwork.chatmod.api.formatting.impl.RegexFormatter;
+import com.ampznetwork.chatmod.api.formatting.impl.UrlFormatter;
 import com.ampznetwork.chatmod.api.model.ChatMessage;
 import com.ampznetwork.chatmod.core.EventDispatchBase;
 import com.ampznetwork.chatmod.spigot.ChatMod$Spigot;
@@ -10,6 +14,11 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
+import org.comroid.api.Polyfill;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 import static net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.*;
 
@@ -38,10 +47,19 @@ public class SpigotEventDispatch extends EventDispatchBase<ChatMod$Spigot> imple
 
     private static MessageFormatter[] buildFormatterChain(ChatMod$Spigot mod) {
         var cfg = mod.getConfig();
-        var ls = cfg.getStringList("formatters");
-        var keys0 = cfg.getKeys(false);
-        var keys1 = cfg.getKeys(true);
-        var ls0 = cfg.getList("formatters");
-        return null;
+        var ls = Polyfill.<List<Map<String,?>>>uncheckedCast(cfg.getList("formatters"));
+        var out = new ArrayList<MessageFormatter>();
+        for (var $0 : ls) {
+            var type = $0.keySet().stream().findAny().orElseThrow();
+            var config = Polyfill.<Map<String,?>>uncheckedCast($0.get(type));
+            switch (type) {
+                case "urls":out.add(UrlFormatter.of(config));break;
+                case "markdown":out.add(MarkdownFormatter.of(config));break;
+                case "regex":out.add(RegexFormatter.of(config));break;
+                case "decorate":out.add(DecorateFormatter.of(config));break;
+                default: throw new IllegalStateException("Unexpected value: " + type);
+            }
+        }
+        return out.toArray(MessageFormatter[]::new);
     }
 }

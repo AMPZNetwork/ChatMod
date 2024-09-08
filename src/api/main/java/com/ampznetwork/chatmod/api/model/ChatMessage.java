@@ -1,6 +1,7 @@
 package com.ampznetwork.chatmod.api.model;
 
 import com.ampznetwork.libmod.api.entity.Player;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.Value;
 import net.kyori.adventure.text.TextComponent;
 
@@ -9,5 +10,5 @@ public class ChatMessage {
     Player sender;
     String inputString;
     String        plaintext;
-    TextComponent text;
+    @JsonDeserialize() TextComponent text;
 }
