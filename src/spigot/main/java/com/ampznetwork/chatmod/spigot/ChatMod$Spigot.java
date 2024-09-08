@@ -1,6 +1,7 @@
 package com.ampznetwork.chatmod.spigot;
 
 import com.ampznetwork.chatmod.api.ChatMod;
+import com.ampznetwork.chatmod.api.formatting.MessageFormatter;
 import com.ampznetwork.chatmod.api.formatting.impl.DecorateFormatter;
 import com.ampznetwork.chatmod.api.formatting.impl.MarkdownFormatter;
 import com.ampznetwork.chatmod.api.formatting.impl.RegexFormatter;
@@ -8,14 +9,13 @@ import com.ampznetwork.chatmod.api.formatting.impl.UrlFormatter;
 import com.ampznetwork.chatmod.api.model.ChannelConfiguration;
 import com.ampznetwork.chatmod.api.model.ChatMessage;
 import com.ampznetwork.chatmod.api.model.ChatMessagePacket;
+import com.ampznetwork.chatmod.core.ChatModCommands;
 import com.ampznetwork.chatmod.spigot.adp.SpigotEventDispatch;
 import com.ampznetwork.libmod.spigot.SubMod$Spigot;
 import lombok.Getter;
-import lombok.Value;
 import lombok.experimental.NonFinal;
 import lombok.extern.slf4j.Slf4j;
 import org.comroid.api.Polyfill;
-import org.comroid.api.func.util.Event;
 import org.comroid.api.net.Rabbit;
 
 import java.util.ArrayList;
@@ -40,7 +40,15 @@ public class ChatMod$Spigot extends SubMod$Spigot implements ChatMod {
     }
 
     @Override
+    public void send(String channelName, ChatMessage message) {
+        var packet = new ChatMessagePacket(getServerName(), channelName, message);
+        rabbit.send(packet);
+    }
+
+    @Override
     public void onLoad() {
+        cmdr.register(ChatModCommands.class);
+
         super.onLoad();
 
         loadChannels();
@@ -76,6 +84,34 @@ public class ChatMod$Spigot extends SubMod$Spigot implements ChatMod {
     @Override
     public Class<?> getModuleType() {
         return ChatMod.class;
+    }
+    
+    @Override
+    public MessageFormatter[] buildFormatterChain() {
+        var cfg = getConfig();
+        var ls  = Polyfill.<List<Map<String, ?>>>uncheckedCast(cfg.getList("formatters"));
+        var out = new ArrayList<MessageFormatter>();
+        for (var $0 : ls) {
+            var type   = $0.keySet().stream().findAny().orElseThrow();
+            var config = Polyfill.<Map<String, ?>>uncheckedCast($0.get(type));
+            switch (type) {
+                case "urls":
+                    out.add(UrlFormatter.of(config));
+                    break;
+                case "markdown":
+                    out.add(MarkdownFormatter.of(config));
+                    break;
+                case "regex":
+                    out.add(RegexFormatter.of(config));
+                    break;
+                case "decorate":
+                    out.add(DecorateFormatter.of(config));
+                    break;
+                default:
+                    throw new IllegalStateException("Unexpected value: " + type);
+            }
+        }
+        return out.toArray(MessageFormatter[]::new);
     }
 
     public void handle(ChatMessagePacket packet) {

@@ -35,8 +35,7 @@ public abstract class EventDispatchBase<Mod extends ChatMod> {
         for (var formatter : formatterChain)
             formatter.accept(message);
 
-        var packet = new ChatMessagePacket(mod.getServerName(), optChannel.get(), message);
-        mod.getRabbit().send(packet);
+        mod.send(optChannel.get(), message);
     }
 
     protected boolean playerJoin(UUID playerId) {

@@ -14,10 +14,9 @@ commands:
   channel:
     aliases: ch
     description: Select Channel
-    usage: channel <info/list/join/leave/spy> <channel>
-    permission: chatmod.selection
+    usage: channel <info/list/join/leave/spy> [channel]
   shout:
     aliases: sh
     description: Shout into a specific channel
     usage: shout <channel> <message>
-    permission: worldmod.selection
+    permission: chatmod.shout
