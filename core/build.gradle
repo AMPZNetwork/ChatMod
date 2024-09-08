@@ -4,8 +4,8 @@ plugins {
 }
 
 ext {
-    artifactName = 'chatMod-core'
-    projectDescription = 'Minecraft World Protection Mod'
+    artifactName = 'chatmod-core'
+    projectDescription = 'Minecraft cross-server-chat Mod'
     userbase = 'AMPZNetwork'
 }
 

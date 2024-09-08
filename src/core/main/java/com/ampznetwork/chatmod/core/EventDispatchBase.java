@@ -16,8 +16,7 @@ import java.util.UUID;
 @Value
 @NonFinal
 public abstract class EventDispatchBase<Mod extends ChatMod> {
-    protected Mod                mod;
-    protected MessageFormatter[] formatterChain;
+    protected Mod mod;
 
     @SneakyThrows
     protected void dispatch(ChatMessage message) {
@@ -32,9 +31,7 @@ public abstract class EventDispatchBase<Mod extends ChatMod> {
             return;
         }
 
-        for (var formatter : formatterChain)
-            formatter.accept(message);
-
+        mod.getFormatter().accept(mod, message);
         mod.send(optChannel.get(), message);
     }
 

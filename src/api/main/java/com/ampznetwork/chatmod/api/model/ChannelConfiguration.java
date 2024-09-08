@@ -25,8 +25,7 @@ public class ChannelConfiguration implements Named {
 
     public ChatMessage formatMessage(ChatMod mod, Player sender, String message) {
         var msg = new ChatMessage(sender, message, message, Component.text(message));
-        for (var formatter : mod.buildFormatterChain())
-            formatter.accept(msg);
+        mod.getFormatter().accept(mod, msg);
         return msg;
     }
 }

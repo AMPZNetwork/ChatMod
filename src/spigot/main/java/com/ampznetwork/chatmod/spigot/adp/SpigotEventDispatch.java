@@ -16,7 +16,7 @@ import org.bukkit.event.player.PlayerQuitEvent;
 @Value
 public class SpigotEventDispatch extends EventDispatchBase<ChatMod$Spigot> implements Listener {
     public SpigotEventDispatch(ChatMod$Spigot mod) {
-        super(mod, mod.buildFormatterChain());
+        super(mod);
     }
 
     @EventHandler(priority = EventPriority.MONITOR)

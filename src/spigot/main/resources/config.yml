@@ -19,26 +19,26 @@ channels:
       alias: s
       permission: chat.channel.staff
 # formatter configuration; these formatters are applied in configured order to each message's content
-formatters:
+formatting:
   # make URLs clickable todo: shouldn't this occur by default?
-  - urls:
-      force_https: true
+  urls:
+    force_https: true
   # a markdown parser. supports features: 'bold', 'cursive', 'underline', 'strikethrough', 'hidden_links', 'verbatim'
-  - markdown:
-      style: standard # markdown style. supports 'standard' or 'discord'
-      # disable some features
-      disable:
-        - hidden_links
-      # convert verbatim markdown strings to obfuscated minecraft style
-      verbatim_to_obfuscated: true
+  markdown:
+    style: standard # markdown style. supports 'standard' or 'discord'
+    # disable some features
+    disable:
+      - hidden_links
+    # convert verbatim markdown strings to obfuscated minecraft style
+    verbatim_to_obfuscated: true
   # a regex replacer. each pattern match will be replaced with the string defined in the 'replace' property
-  - regex:
-      case_insensitive: true # default
-      patterns:
-        - "n[i1]*[g9]+[a4e3]*[rh]*" # pattern for the n-word including leetspeak alternatives
-      replace: "[bad word]"
+  regex:
+    case_insensitive: true # default
+    patterns:
+      - "n[i1]*[g9]+[a4e3]*[rh]*" # pattern for the n-word including leetspeak alternatives
+    replace: "[bad word]"
   # changes the basic format of the message
   # "%username%" and "%message%" are special format strings that will be formatted using vanilla methods
-  - decorate:
-      #scheme: "<%username%> %message%" # vanilla scheme
-      scheme: "[%servername%] %username%: %message%"
+  decorate:
+    #scheme: "<%username%> %message%" # vanilla scheme
+    scheme: "[%server_name%] %player_name%: %message%"

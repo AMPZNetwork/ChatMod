@@ -7,6 +7,8 @@ load: STARTUP
 website: https://github.com/AMPZNetwork/ChatMod
 depend:
   - LibMod
+softdepend:
+  - PlaceholderAPI
 commands:
   reload:
     description: Reloads Configuration

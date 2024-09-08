@@ -5,15 +5,20 @@ import com.ampznetwork.chatmod.api.util.TextComponentSerializer;
 import com.ampznetwork.libmod.api.entity.Player;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import lombok.Setter;
 import lombok.Value;
+import lombok.experimental.NonFinal;
 import net.kyori.adventure.text.TextComponent;
 
 @Value
+@Setter
 public class ChatMessage {
     Player sender;
-    String inputString;
-    String plaintext;
-    @JsonSerialize(using = TextComponentSerializer.class) @JsonDeserialize(using = TextComponentDeserializer.class) TextComponent text;
+    String messageString;
+    @NonFinal String plaintext;
+    @JsonSerialize(using = TextComponentSerializer.class)
+    @JsonDeserialize(using = TextComponentDeserializer.class)
+    @NonFinal TextComponent text;
 
     @Override
     public String toString() {
