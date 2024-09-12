@@ -156,6 +156,9 @@ public class ChatMessageFormatter implements MessageFormatter {
             }
 
             void flush(boolean clearFeatures) {
+                if (buffer.isBlank() && url == null)
+                    return;
+
                 Stream.concat(
                                 // apply MD features
                                 Arrays.stream(MarkdownFeature.values())
