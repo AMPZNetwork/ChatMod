@@ -107,7 +107,7 @@ dependencies {
     implementation 'net.kyori:adventure-platform-bungeecord:4.3.3'
 
     // placeholderapi
-    compileOnly 'me.clip:placeholderapi:2.9.+'
+    compileOnly 'me.clip:placeholderapi:2.+'
 }
 
 def targetJavaVersion = 21
