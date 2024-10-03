@@ -37,6 +37,8 @@ formatting:
     patterns:
       - "n[i1]*[g9]+[a4e3]*[rh]*" # pattern for the n-word including leetspeak alternatives
     replace: "[bad word]"
+    # requires BanMod: punishes occurrences with the given punishment expression
+    punish-by: 'mute:5m'
   # changes the basic format of the message
   # "%username%" and "%message%" are special format strings that will be formatted using vanilla methods
   decorate:
