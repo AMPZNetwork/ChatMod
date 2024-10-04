@@ -1,0 +1,28 @@
+name: ChatMod
+version: '0.1.0'
+description: Cross-server chat linker mod using RabbitMQ
+main: com.ampznetwork.chatmod.spigot.ChatMod$Spigot
+api-version: '1.18'
+load: STARTUP
+website: https://github.com/AMPZNetwork/ChatMod
+depend:
+  - LibMod
+softdepend:
+  - BanMod
+  - PlaceholderAPI
+libraries:
+  - com.google.code.gson:gson:2.11.0
+  - net.kyori:adventure-text-serializer-gson:4.17.0
+commands:
+  reload:
+    description: Reloads Configuration
+    permission: chatmod.reload
+  channel:
+    aliases: ch
+    description: Select Channel
+    usage: channel <info/list/join/leave/spy> [channel]
+  shout:
+    aliases: sh
+    description: Shout into a specific channel
+    usage: shout <channel> <message>
+    permission: chatmod.shout

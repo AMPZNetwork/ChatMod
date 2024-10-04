@@ -10,8 +10,8 @@ ext {
 }
 
 group = 'com.ampznetwork.chatmod'
-sourceCompatibility = '17'
-targetCompatibility = '17'
+sourceCompatibility = 21
+targetCompatibility = 21
 
 sourceSets {
     main.java.srcDirs = files("${parent.projectDir}/src/$project.name/main/java")
@@ -24,6 +24,7 @@ apply from: "$parent.projectDir/gradle/publishing.gradle"
 
 repositories {
     maven { url 'https://maven.comroid.org' }
+    maven { url 'https://repo.extendedclip.com/content/repositories/placeholderapi/' }
     mavenLocal()
     mavenCentral()
     maven { url 'https://jitpack.io' }
@@ -39,9 +40,9 @@ dependencies {
     api 'javax.persistence:javax.persistence-api:2.2'
 
     // kyori
-    api 'net.kyori:adventure-api:4.11.+'
+    api 'net.kyori:adventure-api:4.+'
+    api 'net.kyori:adventure-text-serializer-legacy:4.+'
 
-    //todo: move db dependencies to LibMod
     compileOnly 'org.hibernate:hibernate-core:5.6.0.Final'
     compileOnly 'org.jboss:jandex:2.4.5.Final'
     compileOnly 'com.zaxxer:HikariCP:4.0.3'
