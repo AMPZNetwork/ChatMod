@@ -39,7 +39,7 @@ import static net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializ
 @Builder
 public class ChatMessageFormatter implements MessageFormatter {
     public static final     boolean               DEFAULT_CASE_INSENSITIVE = true;
-    @lombok.Builder.Default String                format                   = "[%server_name%] <%player_name%> %message%";
+    @lombok.Builder.Default String                format                   = "§7[%server_name%§7] §f%player_name%§f: %message%";
     @lombok.Builder.Default boolean               verbatimToObfuscated     = false;
     @lombok.Builder.Default boolean               caseInsensitive          = DEFAULT_CASE_INSENSITIVE;
     @lombok.Builder.Default String                replace                  = "***";
@@ -52,16 +52,16 @@ public class ChatMessageFormatter implements MessageFormatter {
     public static ChatMessageFormatter of(Map<String, ?> config) {
         var builder = builder();
         if (config.get("scheme") instanceof String s) builder.format(s);
-        if (config.get("verbatim_to_obfuscated") instanceof Boolean b) builder.verbatimToObfuscated(b);
+        if (config.get("markdown.verbatim_to_obfuscated") instanceof Boolean b) builder.verbatimToObfuscated(b);
         boolean caseInsensitive = DEFAULT_CASE_INSENSITIVE;
-        if (config.get("case_insensitive") instanceof Boolean b) builder.caseInsensitive(caseInsensitive = b);
-        if (config.get("replace") instanceof String s) builder.replace(s);
-        if (config.get("force_https") instanceof Boolean b) builder.forceHttps(b);
-        if (config.get("domain_only") instanceof Boolean b) builder.showDomainOnly(b);
-        if (config.get("decorate") instanceof String s) builder.decorate(TextDecoration.valueOf(s.toUpperCase()));
-        if (config.get("disable") instanceof List<?> ls)
+        if (config.get("regex.case_insensitive") instanceof Boolean b) builder.caseInsensitive(caseInsensitive = b);
+        if (config.get("regex.replace") instanceof String s) builder.replace(s);
+        if (config.get("urls.force_https") instanceof Boolean b) builder.forceHttps(b);
+        if (config.get("urls.domain_only") instanceof Boolean b) builder.showDomainOnly(b);
+        if (config.get("urls.decorate") instanceof String s) builder.decorate(TextDecoration.valueOf(s.toUpperCase()));
+        if (config.get("markdown.disable") instanceof List<?> ls)
             for (var s : ls) builder.disableMarkdownFeature(MarkdownFeature.valueOf(s.toString().toUpperCase()));
-        if (config.get("patterns") instanceof List<?> ls)
+        if (config.get("regex.patterns") instanceof List<?> ls)
             for (var s : ls) builder.pattern(Pattern.compile(s.toString(), caseInsensitive ? Pattern.CASE_INSENSITIVE : 0));
         return builder.build();
     }

@@ -10,6 +10,9 @@ depend:
 softdepend:
   - BanMod
   - PlaceholderAPI
+libraries:
+  - com.google.code.gson:gson:2.11.0
+  - net.kyori:adventure-text-serializer-gson:4.17.0
 commands:
   reload:
     description: Reloads Configuration

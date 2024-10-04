@@ -7,6 +7,7 @@ import com.ampznetwork.chatmod.api.model.ChatMessage;
 import com.ampznetwork.chatmod.api.model.ChatMessagePacket;
 import com.ampznetwork.chatmod.core.ChatModCommands;
 import com.ampznetwork.chatmod.spigot.adp.SpigotEventDispatch;
+import com.ampznetwork.chatmod.spigot.serialization.ChatMessagePacketByteConverter;
 import com.ampznetwork.libmod.api.entity.DbObject;
 import com.ampznetwork.libmod.spigot.SubMod$Spigot;
 import lombok.Getter;
@@ -93,7 +94,7 @@ public class ChatMod$Spigot extends SubMod$Spigot implements ChatMod {
 
         formatter = ChatMessageFormatter.of(Polyfill.<MemorySection>uncheckedCast(getConfig().get("formatting")).getValues(true));
         rabbit = Rabbit.of(getConfig().getString("rabbitmq.url"))
-                .map(rabbit -> rabbit.bind("chat", "", ChatMessagePacket.CONVERTER))
+                .map(rabbit -> rabbit.bind("chat", "", new ChatMessagePacketByteConverter(this)))
                 .orElseThrow();
         rabbit.listen().subscribeData(this::handle);
         getServer().getPluginManager().registerEvents(new SpigotEventDispatch(this), this);

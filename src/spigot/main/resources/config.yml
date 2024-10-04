@@ -25,7 +25,6 @@ formatting:
     force_https: true
   # a markdown parser. supports features: 'bold', 'cursive', 'underline', 'strikethrough', 'hidden_links', 'verbatim'
   markdown:
-    style: standard # markdown style. supports 'standard' or 'discord'
     # disable some features
     disable:
       - hidden_links
@@ -40,7 +39,6 @@ formatting:
     # requires BanMod: punishes occurrences with the given punishment expression
     punish-by: 'mute:5m'
   # changes the basic format of the message
-  # "%username%" and "%message%" are special format strings that will be formatted using vanilla methods
-  decorate:
-    #scheme: "<%username%> %message%" # vanilla scheme
-    scheme: "[%server_name%] %player_name%: %message%"
+  # "%player_name%" and "%message%" are special format strings that will be formatted using vanilla methods
+  #scheme: "<%player_name%> %message%" # vanilla scheme
+  scheme: "§7[%server_name%§7] §f%player_name%§f: %message%"
