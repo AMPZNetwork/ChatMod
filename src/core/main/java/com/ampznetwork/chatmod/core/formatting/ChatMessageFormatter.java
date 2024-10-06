@@ -18,6 +18,8 @@ import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.format.TextDecoration;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.comroid.api.Polyfill;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -33,6 +35,7 @@ import java.util.stream.Stream;
 
 import static net.kyori.adventure.text.Component.*;
 import static net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.*;
+import static net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.*;
 
 @Value
 @Builder
@@ -104,8 +107,10 @@ public class ChatMessageFormatter implements MessageFormatter {
                 .append(convertMessage(mod, chatMessage.getSender(), chatMessage.getMessageString()))
                 .append(legacyAmpersand().deserialize(format.substring(indexOf + message_placeholder.length())));
 
-        chatMessage.setPlaintext(format.replace(message_placeholder, legacyAmpersand().serialize(text)))
-                .setText(text);
+        var buf0 = legacySection().serialize(text);
+        var buf1 = legacySection().deserialize(buf0);
+        var buf2 = plainText().serialize(buf1);
+        chatMessage.setPlaintext(buf2).setText(text);
     }
 
     private @NotNull Component convertMessage(ChatMod mod, Player player, String message) {

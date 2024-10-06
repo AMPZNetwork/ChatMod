@@ -33,8 +33,9 @@ dependencies {
     api project("$prefix:api")
 
     // serialization
-    implementation 'net.kyori:adventure-api:4.17.0'
-    implementation 'net.kyori:adventure-text-serializer-gson:4.17.0'
+    implementation 'net.kyori:adventure-api:4.+'
+    implementation 'net.kyori:adventure-text-serializer-gson:4.+'
+    implementation 'net.kyori:adventure-text-serializer-plain:4.+'
     implementation 'com.google.code.gson:gson:2.11.0'
 
     // database

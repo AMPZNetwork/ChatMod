@@ -18,7 +18,6 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
-import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.configuration.MemorySection;
 import org.comroid.api.Polyfill;
 import org.comroid.api.func.util.Command;
@@ -36,7 +35,6 @@ import java.util.stream.Stream;
 @Getter
 @Slf4j(topic = ChatMod.Strings.AddonName)
 public class ChatMod$Spigot extends SubMod$Spigot implements ChatMod {
-    private static final @NotNull PlainTextComponentSerializer CONSOLE_COMPONENT_SERIALIZER = PlainTextComponentSerializer.plainText();
     List<ChannelConfiguration> channels = new ArrayList<>();
     @NonFinal ChatMessageFormatter formatter;
     @NonFinal           Rabbit.Exchange.Route<ChatMessagePacket> rabbit;
@@ -109,7 +107,7 @@ public class ChatMod$Spigot extends SubMod$Spigot implements ChatMod {
     }
 
     public void handle(ChatMessagePacket packet) {
-        getLogger().info(CONSOLE_COMPONENT_SERIALIZER.serialize(packet.getMessage().getText()));
+        getLogger().info(packet.getMessage().getPlaintext());
         var targetChannel = packet.getChannel();
         channels.stream()
                 .filter(channel -> channel.getName().equals(targetChannel))
