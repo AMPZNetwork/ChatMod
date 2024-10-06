@@ -34,7 +34,7 @@ formatting:
   regex:
     case_insensitive: true # default
     patterns:
-      - "n[i1]*[g9]+[a4e3]*[rh]*" # pattern for the n-word including leetspeak alternatives
+      - "n[i1Ιιe]*[qg9]+[a4e3rh]+" # pattern for the n-word including leetspeak alternatives
     replace: "[bad word]"
     # requires BanMod: punishes occurrences with the given punishment expression
     punish-by: 'mute:5m'
