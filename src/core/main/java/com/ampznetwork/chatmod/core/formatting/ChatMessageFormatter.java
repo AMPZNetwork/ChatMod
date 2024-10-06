@@ -29,7 +29,6 @@ import java.util.Map;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import static net.kyori.adventure.text.Component.*;
@@ -38,50 +37,8 @@ import static net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializ
 @Value
 @Builder
 public class ChatMessageFormatter implements MessageFormatter {
-    public static final     boolean               DEFAULT_CASE_INSENSITIVE = true;
-    @lombok.Builder.Default String                format                   = "§7[%server_name%§7] §f%player_name%§f: %message%";
-    @lombok.Builder.Default boolean               verbatimToObfuscated     = false;
-    @lombok.Builder.Default boolean               caseInsensitive          = DEFAULT_CASE_INSENSITIVE;
-    @lombok.Builder.Default String                replace                  = "***";
-    @lombok.Builder.Default boolean               forceHttps               = false;
-    @lombok.Builder.Default boolean               showDomainOnly           = false;
-    @lombok.Builder.Default TextDecoration        decorate                 = TextDecoration.UNDERLINED;
-    @Singular               List<MarkdownFeature> disableMarkdownFeatures;
-    @Singular               List<Pattern>         patterns;
-
-    public static ChatMessageFormatter of(Map<String, ?> config) {
-        var builder = builder();
-        if (config.get("scheme") instanceof String s) builder.format(s);
-        if (config.get("markdown.verbatim_to_obfuscated") instanceof Boolean b) builder.verbatimToObfuscated(b);
-        boolean caseInsensitive = DEFAULT_CASE_INSENSITIVE;
-        if (config.get("regex.case_insensitive") instanceof Boolean b) builder.caseInsensitive(caseInsensitive = b);
-        if (config.get("regex.replace") instanceof String s) builder.replace(s);
-        if (config.get("urls.force_https") instanceof Boolean b) builder.forceHttps(b);
-        if (config.get("urls.domain_only") instanceof Boolean b) builder.showDomainOnly(b);
-        if (config.get("urls.decorate") instanceof String s) builder.decorate(TextDecoration.valueOf(s.toUpperCase()));
-        if (config.get("markdown.disable") instanceof List<?> ls)
-            for (var s : ls) builder.disableMarkdownFeature(MarkdownFeature.valueOf(s.toString().toUpperCase()));
-        if (config.get("regex.patterns") instanceof List<?> ls)
-            for (var s : ls) builder.pattern(Pattern.compile(s.toString(), caseInsensitive ? Pattern.CASE_INSENSITIVE : 0));
-        return builder.build();
-    }
-
-    private static final String message_placeholder = "%message%";
-
-    @Override
-    public void accept(ChatMod mod, ChatMessage chatMessage) {
-        var format  = mod.applyPlaceholders(chatMessage.getSender().getId(), this.format);
-        var indexOf = format.indexOf(message_placeholder);
-
-        var text = legacyAmpersand().deserialize(format.substring(0, indexOf))
-                .append(convertMessage(mod, chatMessage.getSender(), chatMessage.getMessageString()))
-                .append(legacyAmpersand().deserialize(format.substring(indexOf + message_placeholder.length())));
-
-        chatMessage.setPlaintext(format.replace(message_placeholder, legacyAmpersand().serialize(text)))
-                .setText(text);
-    }
-
-    private static final Map<@NotNull Character, NamedTextColor> McColorCodes  = Map.ofEntries(
+    private static final String                                  message_placeholder      = "%message%";
+    private static final Map<@NotNull Character, NamedTextColor> McColorCodes             = Map.ofEntries(
             Map.entry('0', NamedTextColor.BLACK),
             Map.entry('1', NamedTextColor.DARK_BLUE),
             Map.entry('2', NamedTextColor.DARK_GREEN),
@@ -98,17 +55,58 @@ public class ChatMessageFormatter implements MessageFormatter {
             Map.entry('d', NamedTextColor.LIGHT_PURPLE),
             Map.entry('e', NamedTextColor.YELLOW),
             Map.entry('f', NamedTextColor.WHITE));
-    private static final Map<@NotNull Character, TextDecoration> McFormatCodes = Map.of(
+    private static final Map<@NotNull Character, TextDecoration> McFormatCodes            = Map.of(
             'k', TextDecoration.OBFUSCATED,
             'l', TextDecoration.BOLD,
             'm', TextDecoration.STRIKETHROUGH,
             'n', TextDecoration.UNDERLINED,
             'o', TextDecoration.ITALIC);
-    private static final Map<@NotNull String, MarkdownFeature>   MdLetterCodes = Map.of(
+    private static final Map<@NotNull String, MarkdownFeature>   MdLetterCodes            = Map.of(
             "_", MarkdownFeature.ITALIC,
             "*", MarkdownFeature.BOLD,
             "~", MarkdownFeature.STRIKETHROUGH,
             "__", MarkdownFeature.UNDERLINE);
+    public static final  boolean                                 DEFAULT_CASE_INSENSITIVE = true;
+
+    public static ChatMessageFormatter of(Map<String, ?> config) {
+        var builder = builder();
+        if (config.get("scheme") instanceof String s) builder.format(s);
+        if (config.get("markdown.verbatim_to_obfuscated") instanceof Boolean b) builder.verbatimToObfuscated(b);
+        boolean caseInsensitive = DEFAULT_CASE_INSENSITIVE;
+        if (config.get("regex.case_insensitive") instanceof Boolean b) builder.caseInsensitive(caseInsensitive = b);
+        if (config.get("regex.replace") instanceof String s) builder.replace(s);
+        if (config.get("urls.force_https") instanceof Boolean b) builder.forceHttps(b);
+        if (config.get("urls.domain_only") instanceof Boolean b) builder.showDomainOnly(b);
+        if (config.get("urls.decorate") instanceof String s) builder.decorate(TextDecoration.valueOf(s.toUpperCase()));
+        if (config.get("markdown.disable") instanceof List<?> ls)
+            for (var s : ls) builder.disableMarkdownFeature(MarkdownFeature.valueOf(s.toString().toUpperCase()));
+        if (config.get("regex.patterns") instanceof List<?> ls)
+            for (var s : ls) builder.pattern(Pattern.compile((caseInsensitive?"(?i)":"")+s, caseInsensitive ? Pattern.CASE_INSENSITIVE : 0));
+        return builder.build();
+    }
+
+    @lombok.Builder.Default String                format               = "§7[%server_name%§7] §f%player_name%§f: %message%";
+    @lombok.Builder.Default boolean               verbatimToObfuscated = false;
+    @lombok.Builder.Default boolean               caseInsensitive      = DEFAULT_CASE_INSENSITIVE;
+    @lombok.Builder.Default String                replace              = "***";
+    @lombok.Builder.Default boolean               forceHttps           = false;
+    @lombok.Builder.Default boolean               showDomainOnly       = false;
+    @lombok.Builder.Default TextDecoration        decorate             = TextDecoration.UNDERLINED;
+    @Singular               List<MarkdownFeature> disableMarkdownFeatures;
+    @Singular               List<Pattern>         patterns;
+
+    @Override
+    public void accept(ChatMod mod, ChatMessage chatMessage) {
+        var format  = mod.applyPlaceholders(chatMessage.getSender().getId(), this.format);
+        var indexOf = format.indexOf(message_placeholder);
+
+        var text = legacyAmpersand().deserialize(format.substring(0, indexOf))
+                .append(convertMessage(mod, chatMessage.getSender(), chatMessage.getMessageString()))
+                .append(legacyAmpersand().deserialize(format.substring(indexOf + message_placeholder.length())));
+
+        chatMessage.setPlaintext(format.replace(message_placeholder, legacyAmpersand().serialize(text)))
+                .setText(text);
+    }
 
     private @NotNull Component convertMessage(ChatMod mod, Player player, String message) {
         var text = text();
@@ -156,7 +154,7 @@ public class ChatMessageFormatter implements MessageFormatter {
             }
 
             void flush(boolean clearFeatures) {
-                if (buffer.isBlank() && url == null)
+                if (buffer.isEmpty() && url == null)
                     return;
 
                 Stream.concat(
@@ -237,38 +235,41 @@ public class ChatMessageFormatter implements MessageFormatter {
                     helper.flush(true);
                 helper.toggle(MarkdownFeature.STRIKETHROUGH);
             } else if (c == '[') {
+                helper.flush(false);
                 helper.toggle(MarkdownFeature.HIDDEN_LINKS);
             } else if ((urlStart || helper.activeMd.getOrDefault(MarkdownFeature.HIDDEN_LINKS, false)) && helper.url == null) {
                 // delimit display string
-                if (c == ']' && n == '(') {
-                    // format is valid
-                    helper.toggle(MarkdownFeature.HIDDEN_LINKS);
-                    helper.url = "";
-                    i += 1;
-                } else if (urlStart) {
-                    // starts with "https://"
-                    helper.flush(false);
-                    helper.url = String.valueOf(c);
-                } else
-                    // append to display string
+                // append to display string
+                if (c == ']') {
+                    if (n == '(') {
+                        // format is valid
+                        helper.activeMd.remove(MarkdownFeature.HIDDEN_LINKS);
+                        helper.url = "";
+                        i += 1;
+                        //} else if (urlStart) {
+                        //    // starts with "https://"
+                        //    helper.flush(false);
+                        //    helper.url = String.valueOf(c);
+                    } else {
+                        helper.buffer = '[' + helper.buffer + c;
+                        helper.activeMd.remove(MarkdownFeature.HIDDEN_LINKS);
+                    }
+                } else {
                     helper.buffer += c;
+                }
             } else if (helper.activeMd.getOrDefault(MarkdownFeature.HIDDEN_LINKS, false) || helper.url != null) {
                 // validate format
                 if (c == ' ') {
-                    if (helper.activeMd.getOrDefault(MarkdownFeature.HIDDEN_LINKS, false)) {
-                        // invalid format
-                        helper.buffer += helper.url + ' ';
-                        helper.url = null;
-                    } else {
-                        // delimit normal url
-                        helper.activeDecor.put(TextDecoration.UNDERLINED, true);
-                        helper.buffer += c;
-                        helper.flush(false);
-                    }
+                    // invalid format
+                    helper.buffer = '[' + helper.buffer + "](" + c;
+                    helper.url = null;
                 } else if (c == ')') {
                     // delimit url
                     helper.flush(false);
                 } else helper.url += c;
+            } else if (helper.url != null && c == ')') {
+                helper.flush(false);
+                helper.activeMd.remove(MarkdownFeature.HIDDEN_LINKS);
             } else if (c == '&') {
                 if (i <= 1 || chars[i - 2] != '&')
                     helper.flush(false);

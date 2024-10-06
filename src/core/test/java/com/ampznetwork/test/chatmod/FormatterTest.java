@@ -21,11 +21,12 @@ import java.util.UUID;
 import static org.easymock.EasyMock.*;
 
 public class FormatterTest {
-    private final String FORMAT = "[%server_name%] <%player_name%> %message%";
+    private final String FORMAT = "§7[%server_name%§7] §f%player_name%§f: %message%";
 
     @Test
     void test() {
         var string    = "&cThis is red and &nthis is only underlined. **Google is at https://google.com**";
+        //var string    = "_&atest inga [a](b) [a]( ) [link test?](https://google.com)_";
         var sender    = Player.builder().id(UUID.randomUUID()).name("Steve").build();
         var formatter = ChatMessageFormatter.builder().build();
 
@@ -47,10 +48,5 @@ public class FormatterTest {
         formatter.accept(mod, msg);
         var json = GsonComponentSerializer.gson().serialize(msg.getText());
         System.out.println("json = " + json);
-    }
-
-    @Test
-    void test2() {
-        var input = "_&atest [link test?](https://google.com)_";
     }
 }
