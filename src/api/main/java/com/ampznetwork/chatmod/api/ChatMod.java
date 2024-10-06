@@ -22,7 +22,7 @@ public interface ChatMod extends SubMod {
     default String applyPlaceholders(UUID playerId, String input) {
         var player = getLib().getPlayerAdapter().getPlayer(playerId).orElseThrow();
         return input.replace("%server_name%", getServerName())
-                .replace("%player_name%", player.getName());
+                .replace("%player_name%", getLib().getPlayerAdapter().getDisplayName(playerId));
     }
 
     void send(String channelName, ChatMessage message);

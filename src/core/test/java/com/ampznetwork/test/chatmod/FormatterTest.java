@@ -48,4 +48,9 @@ public class FormatterTest {
         var json = GsonComponentSerializer.gson().serialize(msg.getText());
         System.out.println("json = " + json);
     }
+
+    @Test
+    void test2() {
+        var input = "_&atest [link test?](https://google.com)_";
+    }
 }
