@@ -17,6 +17,7 @@ import me.clip.placeholderapi.PlaceholderAPI;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.configuration.MemorySection;
 import org.comroid.api.Polyfill;
 import org.comroid.api.func.util.Command;
@@ -106,6 +107,7 @@ public class ChatMod$Spigot extends SubMod$Spigot implements ChatMod {
     }
 
     public void handle(ChatMessagePacket packet) {
+        getLogger().info(LegacyComponentSerializer.legacyAmpersand().serialize(packet.getMessage().getText()));
         var targetChannel = packet.getChannel();
         channels.stream()
                 .filter(channel -> channel.getName().equals(targetChannel))
