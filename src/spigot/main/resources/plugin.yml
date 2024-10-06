@@ -26,3 +26,19 @@ commands:
     description: Shout into a specific channel
     usage: shout <channel> <message>
     permission: chatmod.shout
+permissions:
+  chatmod.format:
+    description: Required for advanced formatting
+    children:
+      chatmod.format.italic:
+        description: Required for using format codes for italic text
+        default: true
+      chatmod.format.bold:
+        description: Required for using format codes for bold text
+        default: true
+      chatmod.format.strikethrough:
+        description: Required for using format codes for strikethrough text
+        default: true
+      chatmod.format.hidden_links:
+        description: Required for using hidden links
+        default: false
