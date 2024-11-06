@@ -35,7 +35,7 @@ formatting:
     case_insensitive: true # default
     patterns:
       - "(^| )n+[i1Ιιe]*[qg9]+[a4e3rh]+" # pattern for the n-word including leetspeak alternatives
-      - "(^| )[a4]+[s5]+(h+[o0]+[li17]+[e3]*)?" # pattern for 'ass' and 'asshole" including leetspeak alternatives
+      - "(^| )[a4]+[s5]{2,}(h+[o0]+[li17]+[e3]*)?" # pattern for 'ass' and 'asshole" including leetspeak alternatives
     replace: "$1[bad word]" # $1 to retain leading whitespace
     # requires BanMod: punishes occurrences with the given punishment expression
     punish-by: 'mute:5m'
