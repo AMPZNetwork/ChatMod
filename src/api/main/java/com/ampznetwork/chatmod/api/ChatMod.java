@@ -5,6 +5,8 @@ import com.ampznetwork.chatmod.api.model.ChannelConfiguration;
 import com.ampznetwork.chatmod.api.model.ChatMessage;
 import com.ampznetwork.chatmod.api.model.ChatMessagePacket;
 import com.ampznetwork.libmod.api.SubMod;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextColor;
 import org.comroid.api.net.Rabbit;
 
 import java.util.List;
@@ -18,6 +20,11 @@ public interface ChatMod extends SubMod {
     List<ChannelConfiguration> getChannels();
 
     Rabbit.Exchange.Route<ChatMessagePacket> getRabbit();
+
+    @Override
+    default TextColor getThemeColor() {
+        return NamedTextColor.GREEN;
+    }
 
     default String applyPlaceholders(UUID playerId, String input) {
         var player = getLib().getPlayerAdapter().getPlayer(playerId).orElseThrow();
