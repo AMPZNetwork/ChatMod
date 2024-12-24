@@ -78,7 +78,7 @@ dependencies {
     include(modImplementation('me.lucko:fabric-permissions-api:0.3.1'))
 
     // chatMod
-    include project(":japi")
+    include 'org.comroid:japi:+'
 
     if (findProject(':LibMod') != null)
         compileOnly project(":LibMod:fabric")
