@@ -2,6 +2,7 @@ package com.ampznetwork.chatmod.core;
 
 import com.ampznetwork.chatmod.api.ChatMod;
 import com.ampznetwork.chatmod.core.util.AutoFill;
+import com.ampznetwork.chatmod.generated.PluginYml.Permission.chatmod;
 import net.kyori.adventure.text.Component;
 import org.comroid.annotations.Alias;
 import org.comroid.api.func.util.Command;
@@ -16,7 +17,7 @@ import static net.kyori.adventure.text.format.NamedTextColor.*;
 import static net.kyori.adventure.text.format.TextDecoration.*;
 
 public class ChatModCommands {
-    @Command(permission = "chatmod.shout")
+    @Command(permission = chatmod.SHOUT)
     public static Component shout(
             ChatMod mod,
             @Command.Arg(autoFillProvider = AutoFill.ChannelNames.class) String channelName,
@@ -37,7 +38,7 @@ public class ChatModCommands {
     @Command
     @Alias("ch")
     public static class channel {
-        @Command(permission = "chatmod.channel.list")
+        @Command(permission = chatmod.channel.LIST)
         public static Component list(ChatMod mod, UUID playerId) {
             var text = text().append(text("Available Channels:").decorate(BOLD));
             if (mod.getChannels().isEmpty())
@@ -60,7 +61,7 @@ public class ChatModCommands {
             return text.build();
         }
 
-        @Command(permission = "chatmod.channel.info")
+        @Command(permission = chatmod.channel.INFO)
         public static Component info(ChatMod mod, @Command.Arg(autoFillProvider = AutoFill.ChannelNames.class) String channelName) {
             var channel = mod.getChannels().stream()
                     .filter(it -> Arrays.asList(it.getName(), it.getAlias()).contains(channelName))
@@ -80,7 +81,7 @@ public class ChatModCommands {
                     .build();
         }
 
-        @Command(permission = "chatmod.channel.join")
+        @Command(permission = chatmod.channel.JOIN)
         public static Component join(ChatMod mod, @Command.Arg(autoFillProvider = AutoFill.ChannelNames.class) String channelName, UUID playerId) {
             var channels = mod.getChannels();
             var currentChannel = channels.stream()
@@ -96,8 +97,9 @@ public class ChatModCommands {
                     .append(text(targetChannel.getName()).color(AQUA));
         }
 
-        @Command(permission = "chatmod.channel.spy")
-        public static Component spy(ChatMod mod, @Command.Arg(autoFillProvider = AutoFill.ChannelNames.class, autoFill = {"*"}) String channelName, UUID playerId) {
+        @Command(permission = chatmod.channel.SPY)
+        public static Component spy(
+                ChatMod mod, @Command.Arg(autoFillProvider = AutoFill.ChannelNames.class, autoFill = { "*" }) String channelName, UUID playerId) {
             var channels = mod.getChannels();
             if ("*".equals(channelName)) {
                 channels.forEach(config -> config.getSpyIDs().add(playerId));

@@ -28,18 +28,41 @@ commands:
     usage: shout <channel> <message>
     permission: chatmod.shout
 permissions:
-  chatmod.format:
-    description: Required for advanced formatting
+  chatmod:
+    description: Root permission node
+    default: false
     children:
-      chatmod.format.italic:
-        description: Required for using format codes for italic text
+      chatmod.shout:
+        description: Permission for the /chatmod:shout command
         default: true
-      chatmod.format.bold:
-        description: Required for using format codes for bold text
+      chatmod.channel:
+        description: Permission for the /chatmod:channel command
         default: true
-      chatmod.format.strikethrough:
-        description: Required for using format codes for strikethrough text
-        default: true
-      chatmod.format.hidden_links:
-        description: Required for using hidden links
-        default: false
+        children:
+          chatmod.channel.list:
+            description: Permission for the /chatmod:channel command
+            default: true
+          chatmod.channel.info:
+            description: Permission for the /chatmod:channel command
+            default: true
+          chatmod.channel.join:
+            description: Permission for the /chatmod:channel command
+            default: true
+          chatmod.channel.spy:
+            description: Permission for the /chatmod:channel command
+            default: true
+      chatmod.format:
+        description: Required for advanced formatting
+        children:
+          chatmod.format.italic:
+            description: Required for using format codes for italic text
+            default: true
+          chatmod.format.bold:
+            description: Required for using format codes for bold text
+            default: true
+          chatmod.format.strikethrough:
+            description: Required for using format codes for strikethrough text
+            default: true
+          chatmod.format.hidden_links:
+            description: Required for using hidden links
+            default: false
