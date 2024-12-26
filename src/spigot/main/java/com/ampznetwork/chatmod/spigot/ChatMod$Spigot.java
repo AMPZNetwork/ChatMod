@@ -21,7 +21,6 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.configuration.MemorySection;
 import org.comroid.api.Polyfill;
 import org.comroid.api.func.util.Command;
-import org.comroid.api.java.StackTraceUtils;
 import org.comroid.api.net.Rabbit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -112,7 +111,7 @@ public class ChatMod$Spigot extends SubMod$Spigot implements ChatMod {
                     .orElseThrow();
             rabbit.listen().subscribeData(this::handle);
         } catch (Throwable t) {
-            getLogger().warning("Failed to set up RabbitMQ connection; " + StackTraceUtils.toString(t) + " - to retry, run command /chatmod:reconnect");
+            getLogger().warning("Failed to set up RabbitMQ connection; " + t + " - to retry, run command /chatmod:reconnect");
         }
     }
 
