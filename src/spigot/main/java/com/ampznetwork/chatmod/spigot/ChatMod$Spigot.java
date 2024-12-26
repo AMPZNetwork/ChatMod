@@ -1,11 +1,12 @@
 package com.ampznetwork.chatmod.spigot;
 
 import com.ampznetwork.chatmod.api.ChatMod;
-import com.ampznetwork.chatmod.core.formatting.ChatMessageFormatter;
 import com.ampznetwork.chatmod.api.model.ChannelConfiguration;
 import com.ampznetwork.chatmod.api.model.ChatMessage;
 import com.ampznetwork.chatmod.api.model.ChatMessagePacket;
 import com.ampznetwork.chatmod.core.ChatModCommands;
+import com.ampznetwork.chatmod.core.formatting.ChatMessageFormatter;
+import com.ampznetwork.chatmod.generated.PluginYml;
 import com.ampznetwork.chatmod.spigot.adp.SpigotEventDispatch;
 import com.ampznetwork.chatmod.spigot.serialization.ChatMessagePacketByteConverter;
 import com.ampznetwork.libmod.api.entity.DbObject;
@@ -17,10 +18,10 @@ import me.clip.placeholderapi.PlaceholderAPI;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.configuration.MemorySection;
 import org.comroid.api.Polyfill;
 import org.comroid.api.func.util.Command;
+import org.comroid.api.java.StackTraceUtils;
 import org.comroid.api.net.Rabbit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -36,9 +37,9 @@ import java.util.stream.Stream;
 @Slf4j(topic = ChatMod.Strings.AddonName)
 public class ChatMod$Spigot extends SubMod$Spigot implements ChatMod {
     List<ChannelConfiguration> channels = new ArrayList<>();
-    @NonFinal ChatMessageFormatter formatter;
+    @NonFinal           ChatMessageFormatter formatter;
     @NonFinal           Rabbit.Exchange.Route<ChatMessagePacket> rabbit;
-    @NonFinal @Nullable boolean hasPlaceholderApi;
+    @NonFinal @Nullable boolean              hasPlaceholderApi;
 
     public ChatMod$Spigot() {
         super(Set.of(), Set.of());
@@ -63,6 +64,11 @@ public class ChatMod$Spigot extends SubMod$Spigot implements ChatMod {
         rabbit.send(packet);
     }
 
+    @Override
+    public Class<?> getModuleType() {
+        return ChatMod.class;
+    }
+
     @Command
     public @NotNull TextComponent reload() {
         // reload channel configuration
@@ -75,6 +81,8 @@ public class ChatMod$Spigot extends SubMod$Spigot implements ChatMod {
                 .map(DbObject::getId)
                 .forEach(mainChannel.getPlayerIDs()::add);
 
+        formatter = ChatMessageFormatter.of(Polyfill.<MemorySection>uncheckedCast(getConfig().get("formatting")).getValues(true));
+
         return Component.text("Reloading ChatMod configuration complete").color(NamedTextColor.GREEN);
     }
 
@@ -84,26 +92,28 @@ public class ChatMod$Spigot extends SubMod$Spigot implements ChatMod {
         cmdr.register(this);
 
         super.onLoad();
-
         reload();
+
         hasPlaceholderApi = getServer().getPluginManager().getPlugin("PlaceholderAPI") != null;
     }
 
     @Override
     public void onEnable() {
         super.onEnable();
-
-        formatter = ChatMessageFormatter.of(Polyfill.<MemorySection>uncheckedCast(getConfig().get("formatting")).getValues(true));
-        rabbit = Rabbit.of(getConfig().getString("rabbitmq.url"))
-                .map(rabbit -> rabbit.bind("chat", "", new ChatMessagePacketByteConverter(this)))
-                .orElseThrow();
-        rabbit.listen().subscribeData(this::handle);
         getServer().getPluginManager().registerEvents(new SpigotEventDispatch(this), this);
+        reconnect();
     }
 
-    @Override
-    public Class<?> getModuleType() {
-        return ChatMod.class;
+    @Command(permission = PluginYml.Permission.chatmod.RECONNECT)
+    public void reconnect() {
+        try {
+            rabbit = Rabbit.of(getConfig().getString("rabbitmq.url"))
+                    .map(rabbit -> rabbit.bind("chat", "", new ChatMessagePacketByteConverter(this)))
+                    .orElseThrow();
+            rabbit.listen().subscribeData(this::handle);
+        } catch (Throwable t) {
+            getLogger().warning("Failed to set up RabbitMQ connection; " + StackTraceUtils.toString(t) + " - to retry, run command /chatmod:reconnect");
+        }
     }
 
     public void handle(ChatMessagePacket packet) {

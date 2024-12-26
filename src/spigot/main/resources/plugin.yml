@@ -18,6 +18,9 @@ commands:
   reload:
     description: Reloads Configuration
     permission: chatmod.reload
+  reconnect:
+    description: Retry connnecting to RabbitMQ
+    permission: chatmod.reconnect
   channel:
     aliases: ch
     description: Select Channel
@@ -32,6 +35,12 @@ permissions:
     description: Root permission node
     default: false
     children:
+      chatmod.reload:
+        description: Permission for the /chatmod:reload command
+        default: false
+      chatmod.reconnect:
+        description: Permission for the /chatmod:reconnect command
+        default: false
       chatmod.shout:
         description: Permission for the /chatmod:shout command
         default: true
