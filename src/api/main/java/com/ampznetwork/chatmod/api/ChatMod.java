@@ -20,6 +20,8 @@ public interface ChatMod extends SubMod, ChatModCompatibilityLayerAdapter {
         return SubMod.super.getPlayerAdapter();
     }
 
+    boolean isListenerCompatibilityMode();
+
     MessageFormatter getFormatter();
 
     List<ChannelConfiguration> getChannels();

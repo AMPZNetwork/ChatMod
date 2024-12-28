@@ -8,10 +8,10 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.Setter;
 import lombok.Value;
 import lombok.experimental.NonFinal;
+import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import org.jetbrains.annotations.Nullable;
 
-import static net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.*;
 import static net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.*;
 
 @Value
@@ -22,10 +22,40 @@ public class ChatMessage {
     String messageString;
     @JsonSerialize(using = TextComponentSerializer.class)
     @JsonDeserialize(using = TextComponentDeserializer.class)
+    @NonFinal TextComponent prefix;
     @NonFinal TextComponent text;
+    @NonFinal TextComponent suffix;
+
+    public ChatMessage(@Nullable Player sender, String senderName, String messageString, TextComponent text) {
+        this(sender, senderName, messageString, null, text);
+    }
+
+    public ChatMessage(@Nullable Player sender, String senderName, String messageString, TextComponent prefix, TextComponent text) {
+        this(sender, senderName, messageString, prefix, text, null);
+    }
+
+    public ChatMessage(
+            @Nullable Player sender, String senderName, String messageString, @Nullable TextComponent prefix, TextComponent text,
+            @Nullable TextComponent suffix
+    ) {
+        this.sender        = sender;
+        this.senderName    = senderName;
+        this.messageString = messageString;
+        this.prefix        = prefix != null ? prefix : Component.text("");
+        this.text          = text;
+        this.suffix        = suffix != null ? suffix : Component.text("");
+    }
+
+    public TextComponent getFullText() {
+        return Component.text()
+                .append(prefix)
+                .append(text)
+                .append(suffix)
+                .build();
+    }
 
     public String getPlaintext() {
-        return plainText().serialize(legacySection().deserialize(plainText().serialize(text)));
+        return plainText().serialize(getFullText());
     }
 
     @Override

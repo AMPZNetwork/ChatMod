@@ -42,7 +42,7 @@ public class FormatterTest {
 
         replay(playerAdapter, lib, mod);
 
-        var msg = new ChatMessage(sender, sender.getName(), string, string, Component.text(string));
+        var msg = new ChatMessage(sender, sender.getName(), string, Component.text(string));
         formatter.accept(mod, msg);
         var json = GsonComponentSerializer.gson().serialize(msg.getText());
         System.out.println("json = " + json);

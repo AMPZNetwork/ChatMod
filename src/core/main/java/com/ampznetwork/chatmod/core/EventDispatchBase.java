@@ -32,7 +32,6 @@ public abstract class EventDispatchBase<Mod extends ChatMod> {
             return;
         }
 
-        mod.getFormatter().accept(mod, message);
         mod.send(optChannel.get(), message);
     }
 

@@ -12,7 +12,6 @@ import lombok.Singular;
 import lombok.Value;
 import lombok.experimental.FieldDefaults;
 import net.kyori.adventure.key.Key;
-import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -101,18 +100,15 @@ public class ChatMessageFormatter implements MessageFormatter {
         assert sender != null : "Outbound from Minecraft should always have a Sender";
 
         var format = mod.applyPlaceholders(sender.getId(), this.format);
-        var indexOf = format.indexOf(message_placeholder);
+        var split = format.split(message_placeholder);
 
-        var text = legacyAmpersand().deserialize(format.substring(0, indexOf))
-                .append(convertMessage(mod, sender, chatMessage.getMessageString()))
-                .append(legacyAmpersand().deserialize(format.substring(indexOf + message_placeholder.length())));
-
-        var buf0 = legacySection().serialize(text);
-        var buf1 = legacySection().deserialize(buf0);
-        chatMessage.setText(text);
+        chatMessage.setPrefix(legacyAmpersand().deserialize(split[0]));
+        chatMessage.setText(convertMessage(mod, sender, chatMessage.getMessageString()));
+        if (split.length > 1)
+            chatMessage.setSuffix(legacyAmpersand().deserialize(split[1]));
     }
 
-    private @NotNull Component convertMessage(ChatMod mod, Player player, String message) {
+    private @NotNull TextComponent convertMessage(ChatMod mod, Player player, String message) {
         var text = text();
 
         // apply regex

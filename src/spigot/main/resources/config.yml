@@ -57,6 +57,10 @@ formatting:
   scheme: "§7[%server_name%§7] §f%player_name%§f: %message%"
 # compatibility layers configuration
 compatibility:
+  # enhanced listener compatibility mode
+  # enable this only if you are experiencing issues with moderation plugins
+  # enabling this will partially break clickable urls and similar features
+  listeners: false
   # configure compatibility with AurionChat plugin
   # reference: https://github.com/Mineaurion/Aurionchat
   # this will convert ChatMod packets to AurionChat packets on the specified RabbitMQ uri

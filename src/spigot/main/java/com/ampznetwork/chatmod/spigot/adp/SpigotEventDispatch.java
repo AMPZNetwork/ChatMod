@@ -13,6 +13,8 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerKickEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
+import static net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.*;
+
 @Value
 public class SpigotEventDispatch extends EventDispatchBase<ChatMod$Spigot> implements Listener {
     public SpigotEventDispatch(ChatMod$Spigot mod) {
@@ -43,8 +45,12 @@ public class SpigotEventDispatch extends EventDispatchBase<ChatMod$Spigot> imple
                 .getPlayer(event.getPlayer().getUniqueId())
                 .orElseThrow();
         var message = new ChatMessage(player, player.getName(), event.getMessage(), Component.text(event.getMessage()));
+        mod.getFormatter().accept(mod, message);
 
+        if (mod.isListenerCompatibilityMode()) {
+            event.setFormat(legacySection().serialize(message.getPrefix()) + "%2$s" + legacySection().serialize(message.getSuffix()));
+            event.setMessage(legacySection().serialize(message.getText()));
+        } else event.setCancelled(true);
         dispatch(message);
-        event.setCancelled(true);
     }
 }

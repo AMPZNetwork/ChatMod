@@ -37,7 +37,7 @@ public class ChatMessagePacketTypeAdapter extends TypeAdapter<ChatMessagePacket>
 
     @Override
     public ChatMessagePacket read(JsonReader in) throws IOException {
-        String source = null;
+        String source  = null;
         String channel = null;
         ChatMessage message = null;
 
@@ -74,13 +74,12 @@ public class ChatMessagePacketTypeAdapter extends TypeAdapter<ChatMessagePacket>
         // Serialize the messageString
         out.name("messageString").value(message.getMessageString());
 
-        // Serialize the plaintext
-        out.name("plaintext").value(message.getPlaintext());
-
         // Serialize the TextComponent using GsonComponentSerializer
         //todo: should not be json in json, but gson is weird af
         //out.name("text").jsonValue(componentSerializer.serialize(message.getText()));
+        out.name("prefix").value(componentSerializer.serialize(message.getPrefix()));
         out.name("text").value(componentSerializer.serialize(message.getText()));
+        out.name("suffix").value(componentSerializer.serialize(message.getSuffix()));
 
         out.endObject();
     }
@@ -89,8 +88,9 @@ public class ChatMessagePacketTypeAdapter extends TypeAdapter<ChatMessagePacket>
         Player        sender        = null;
         String        senderName    = null;
         String        messageString = null;
-        String        plaintext     = null;
+        TextComponent prefix = null;
         TextComponent text          = null;
+        TextComponent suffix = null;
 
         in.beginObject();
         while (in.hasNext()) {
@@ -107,13 +107,16 @@ public class ChatMessagePacketTypeAdapter extends TypeAdapter<ChatMessagePacket>
                 case "messageString":
                     messageString = in.nextString();
                     break;
-                case "plaintext":
-                    plaintext = in.nextString();
+                // Deserialize TextComponent using GsonComponentSerializer
+                // todo: how to properly decompose jsonValue here?
+                case "prefix":
+                    prefix = (TextComponent) componentSerializer.deserialize(in.nextString());
                     break;
                 case "text":
-                    // Deserialize TextComponent using GsonComponentSerializer
-                    // todo: how to properly decompose jsonValue here?
                     text = (TextComponent) componentSerializer.deserialize(in.nextString());
+                    break;
+                case "suffix":
+                    suffix = (TextComponent) componentSerializer.deserialize(in.nextString());
                     break;
                 default:
                     in.skipValue();
@@ -123,6 +126,6 @@ public class ChatMessagePacketTypeAdapter extends TypeAdapter<ChatMessagePacket>
         in.endObject();
 
         // Create and return ChatMessage object
-        return new ChatMessage(sender, senderName, messageString, text);
+        return new ChatMessage(sender, senderName, messageString, prefix, text, suffix);
     }
 }

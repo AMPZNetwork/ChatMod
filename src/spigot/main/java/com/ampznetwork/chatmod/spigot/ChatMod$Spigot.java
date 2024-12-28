@@ -70,13 +70,8 @@ public class ChatMod$Spigot extends SubMod$Spigot implements ChatMod {
     }
 
     @Override
-    public void relayInbound(ChatMessagePacket packet) {
-        getLogger().info(packet.getMessage().getPlaintext());
-        var targetChannel = packet.getChannel();
-        channels.stream()
-                .filter(channel -> channel.getName().equals(targetChannel))
-                .flatMap(channel -> Stream.concat(channel.getPlayerIDs().stream(), channel.getSpyIDs().stream()))
-                .forEach(id -> lib.getPlayerAdapter().send(id, packet.getMessage().getText()));
+    public boolean isListenerCompatibilityMode() {
+        return getConfig().getBoolean("compatibility.listeners", false);
     }
 
     @Override
@@ -98,6 +93,17 @@ public class ChatMod$Spigot extends SubMod$Spigot implements ChatMod {
         return hasPlaceholderApi
                ? PlaceholderAPI.setPlaceholders(player, input)
                : ChatMod.super.applyPlaceholders(playerId, input);
+    }
+
+    @Override
+    public void relayInbound(ChatMessagePacket packet) {
+        if (isListenerCompatibilityMode() && getSourceName().equals(packet.getSource())) return;
+        getLogger().info(packet.getMessage().getPlaintext());
+        var targetChannel = packet.getChannel();
+        channels.stream()
+                .filter(channel -> channel.getName().equals(targetChannel))
+                .flatMap(channel -> Stream.concat(channel.getPlayerIDs().stream(), channel.getSpyIDs().stream()))
+                .forEach(id -> lib.getPlayerAdapter().send(id, packet.getMessage().getFullText()));
     }
 
     @Command

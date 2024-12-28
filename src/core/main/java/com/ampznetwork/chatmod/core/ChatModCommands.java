@@ -31,7 +31,7 @@ public class ChatModCommands {
                 .map(channel -> {
                     var msg = channel.formatMessage(mod, player, message);
                     mod.send(channel.getName(), msg);
-                    return msg.getText();
+                    return msg.getFullText();
                 }).orElseThrow(() -> new Command.Error("Could not shout to channel " + channelName));
     }
 
