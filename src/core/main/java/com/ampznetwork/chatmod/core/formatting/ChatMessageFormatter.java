@@ -14,6 +14,7 @@ import lombok.experimental.FieldDefaults;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.event.ClickEvent;
+import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.format.TextDecoration;
@@ -193,7 +194,7 @@ public class ChatMessageFormatter implements MessageFormatter {
                         url = url.replaceAll("http://", "https://");
                     else if (buffer.isBlank())
                         buffer = showDomainOnly ? Polyfill.url(url).getHost() : url;
-                    builder.clickEvent(ClickEvent.openUrl(url));
+                    builder.clickEvent(ClickEvent.openUrl(url)).hoverEvent(HoverEvent.showText(text("Open Link in Browser...")));
                 }
 
                 // text content

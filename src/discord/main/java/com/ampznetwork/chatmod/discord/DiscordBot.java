@@ -13,7 +13,6 @@ import com.ampznetwork.libmod.api.entity.Player;
 import com.ampznetwork.libmod.api.interop.game.PlayerIdentifierAdapter;
 import com.ampznetwork.libmod.core.adapter.HeadlessPlayerAdapter;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import emoji4j.EmojiUtils;
 import lombok.EqualsAndHashCode;
 import lombok.SneakyThrows;
 import lombok.Value;
@@ -25,6 +24,8 @@ import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.EventListener;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.kyori.adventure.text.event.ClickEvent;
+import net.kyori.adventure.text.event.HoverEvent;
+import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
 import org.comroid.annotations.Alias;
 import org.comroid.api.func.util.Command;
@@ -184,20 +185,22 @@ public class DiscordBot extends Component.Base implements ChatModCompatibilityLa
     }
 
     private ChatMessage convertMessage(MessageReceivedEvent event, Config.DiscordChannelMapping channel) {
-        var discord   = text(/*'#' + event.getChannel().getName() + " : */"DISCORD ", TextColor.color(86, 98, 246));
+        var discord = text("DISCORD ", TextColor.color(86, 98, 246));
         var inviteUrl = channel.getDiscordInviteUrl();
         if (inviteUrl != null)
-            discord = discord.clickEvent(ClickEvent.openUrl(inviteUrl));
+            discord = discord.clickEvent(ClickEvent.openUrl(inviteUrl))
+                    .hoverEvent(HoverEvent.showText(text("Click for Invite link...")));
         var str = event.getMessage().getContentDisplay();
         var component = text()
                 .append(discord)
-                .append(text(EmojiUtils.removeAllEmojis(event.getAuthor().getEffectiveName()).trim(),
+                .append(text(event.getAuthor().getEffectiveName().trim(),
                         Optional.ofNullable(event.getMember())
                                 .map(Member::getColorRaw)
                                 .map(TextColor::color)
-                                .orElse(TextColor.color(0xffffff))))
-                .append(text(": " + str, TextColor.color(0xFF_FF_FF))
-                        .clickEvent(ClickEvent.openUrl(event.getJumpUrl())));
+                                .orElse(NamedTextColor.WHITE)))
+                .append(text(": " + str, NamedTextColor.WHITE)
+                        .clickEvent(ClickEvent.openUrl(event.getJumpUrl()))
+                        .hoverEvent(HoverEvent.showText(text("Jump to Message..."))));
         return new ChatMessage(null, event.getAuthor().getName(), str, component.build());
     }
 }
