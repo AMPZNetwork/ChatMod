@@ -55,7 +55,7 @@ public class AurionChatCompatibilityLayer extends RabbitMqCompatibilityLayer<Aur
                 .or(() -> player.map(AurionPlayer::getName)
                         .flatMap(mod.getPlayerAdapter()::getPlayer))
                 .orElseThrow(() -> new NoSuchElementException("Player not found for packet " + packet));
-        var message = new ChatMessage(sender, sender.getName(), packet.getDisplayString(), packet.getDisplayString(), (TextComponent) packet.getComponent());
+        var message = new ChatMessage(sender, sender.getName(), packet.getDisplayString(), (TextComponent) packet.getComponent());
         return new ChatMessagePacket(packet.getSource(), packet.getChannel(), message);
     }
 

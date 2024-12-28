@@ -33,7 +33,6 @@ import java.util.stream.Stream;
 
 import static net.kyori.adventure.text.Component.*;
 import static net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.*;
-import static net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.*;
 
 @Value
 @Builder
@@ -82,7 +81,7 @@ public class ChatMessageFormatter implements MessageFormatter {
         if (config.get("markdown.disable") instanceof List<?> ls)
             for (var s : ls) builder.disableMarkdownFeature(MarkdownFeature.valueOf(s.toString().toUpperCase()));
         if (config.get("regex.patterns") instanceof List<?> ls)
-            for (var s : ls) builder.pattern(Pattern.compile((caseInsensitive?"(?i)":"")+s, caseInsensitive ? Pattern.CASE_INSENSITIVE : 0));
+            for (var s : ls) builder.pattern(Pattern.compile((caseInsensitive ? "(?i)" : "") + s, caseInsensitive ? Pattern.CASE_INSENSITIVE : 0));
         return builder.build();
     }
 
@@ -110,8 +109,7 @@ public class ChatMessageFormatter implements MessageFormatter {
 
         var buf0 = legacySection().serialize(text);
         var buf1 = legacySection().deserialize(buf0);
-        var buf2 = plainText().serialize(buf1);
-        chatMessage.setPlaintext(buf2).setText(text);
+        chatMessage.setText(text);
     }
 
     private @NotNull Component convertMessage(ChatMod mod, Player player, String message) {

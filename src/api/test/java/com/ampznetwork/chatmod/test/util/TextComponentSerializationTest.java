@@ -24,7 +24,6 @@ public class TextComponentSerializationTest {
                 Player.builder().name("Kaleidox").id(UUID.randomUUID()).build(),
                 "Kaleidox",
                 "arschlöoch",
-                "arschlöoch",
                 text);
         var pkt = new ChatMessagePacket(
                 "MC",

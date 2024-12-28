@@ -198,6 +198,6 @@ public class DiscordBot extends Component.Base implements ChatModCompatibilityLa
                                 .orElse(TextColor.color(0xffffff))))
                 .append(text(": " + str, TextColor.color(0xFF_FF_FF))
                         .clickEvent(ClickEvent.openUrl(event.getJumpUrl())));
-        return new ChatMessage(null, event.getAuthor().getName(), str, event.getMessage().getContentRaw(), component.build());
+        return new ChatMessage(null, event.getAuthor().getName(), str, component.build());
     }
 }

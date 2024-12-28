@@ -11,20 +11,26 @@ import lombok.experimental.NonFinal;
 import net.kyori.adventure.text.TextComponent;
 import org.jetbrains.annotations.Nullable;
 
+import static net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.*;
+import static net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.*;
+
 @Value
 @Setter
 public class ChatMessage {
     @Nullable Player sender;
     String senderName;
     String messageString;
-    @NonFinal String plaintext;
     @JsonSerialize(using = TextComponentSerializer.class)
     @JsonDeserialize(using = TextComponentDeserializer.class)
     @NonFinal TextComponent text;
 
+    public String getPlaintext() {
+        return plainText().serialize(legacySection().deserialize(plainText().serialize(text)));
+    }
+
     @Override
     public String toString() {
-        return plaintext;
+        return getPlaintext();
     }
 
     public void validateMutualExclusivity() {

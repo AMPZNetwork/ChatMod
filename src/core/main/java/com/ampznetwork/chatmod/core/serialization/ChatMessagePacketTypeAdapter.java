@@ -123,6 +123,6 @@ public class ChatMessagePacketTypeAdapter extends TypeAdapter<ChatMessagePacket>
         in.endObject();
 
         // Create and return ChatMessage object
-        return new ChatMessage(sender, senderName, messageString, plaintext, text);
+        return new ChatMessage(sender, senderName, messageString, text);
     }
 }
