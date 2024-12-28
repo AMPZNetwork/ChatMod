@@ -1,0 +1,3 @@
+[submodule "thirdparty/AurionChat"]
+	path = thirdparty/AurionChat
+	url = https://github.com/Mineaurion/Aurionchat
