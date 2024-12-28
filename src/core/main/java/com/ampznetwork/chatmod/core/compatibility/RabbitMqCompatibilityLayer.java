@@ -1,12 +1,12 @@
 package com.ampznetwork.chatmod.core.compatibility;
 
-import com.ampznetwork.chatmod.api.ChatMod;
+import com.ampznetwork.chatmod.api.ChatModCompatibilityLayerAdapter;
 import com.ampznetwork.chatmod.api.model.CompatibilityLayer;
+import lombok.EqualsAndHashCode;
 import lombok.RequiredArgsConstructor;
 import lombok.Value;
 import lombok.experimental.NonFinal;
 import org.comroid.api.ByteConverter;
-import org.comroid.api.func.util.Streams;
 import org.comroid.api.net.Rabbit;
 import org.comroid.api.tree.Component;
 import org.jetbrains.annotations.Nullable;
@@ -16,10 +16,11 @@ import java.util.Optional;
 @Value
 @NonFinal
 @RequiredArgsConstructor
+@EqualsAndHashCode(of = "route")
 public abstract class RabbitMqCompatibilityLayer<P> extends Component.Base implements CompatibilityLayer<P> {
-    protected ChatMod                  mod;
-    @NonFinal Rabbit                   rabbit = null;
-    @NonFinal Rabbit.Exchange.Route<P> route  = null;
+    protected ChatModCompatibilityLayerAdapter mod;
+    @NonFinal Rabbit                           rabbit = null;
+    @NonFinal Rabbit.Exchange.Route<P>         route  = null;
 
     protected abstract String getUri();
 
@@ -27,6 +28,16 @@ public abstract class RabbitMqCompatibilityLayer<P> extends Component.Base imple
 
     protected @Nullable String getExchangeType() {
         return null;
+    }
+
+    @Override
+    public boolean isDefault() {
+        return false;
+    }
+
+    @Override
+    public final void doSend(P packet) {
+        if (route != null) route.send(packet);
     }
 
     protected abstract ByteConverter<P> createByteConverter();
@@ -37,10 +48,7 @@ public abstract class RabbitMqCompatibilityLayer<P> extends Component.Base imple
 
         this.rabbit = Optional.ofNullable(getUri())
                 .flatMap(uri -> "inherit".equalsIgnoreCase(uri)
-                                ? mod.getCompatibilityLayers().stream()
-                                        .flatMap(Streams.cast(DefaultCompatibilityLayer.class))
-                                        .map(DefaultCompatibilityLayer::getRabbit)
-                                        .findAny()
+                                ? Optional.of(((DefaultCompatibilityLayer) mod.getDefaultCompatibilityLayer()).getRabbit())
                                 : Rabbit.of(uri).wrap())
                 .orElse(null);
         this.route  = Optional.ofNullable(rabbit)
@@ -50,10 +58,5 @@ public abstract class RabbitMqCompatibilityLayer<P> extends Component.Base imple
 
         if (route != null)
             addChild(route.listen().subscribeData(this::handle));
-    }
-
-    @Override
-    public final void send(P packet) {
-        if (route != null) route.send(packet);
     }
 }

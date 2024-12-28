@@ -1,6 +1,6 @@
 package com.ampznetwork.chatmod.core.compatibility;
 
-import com.ampznetwork.chatmod.api.ChatMod;
+import com.ampznetwork.chatmod.api.ChatModCompatibilityLayerAdapter;
 import com.ampznetwork.chatmod.api.model.ChatMessagePacket;
 import com.ampznetwork.chatmod.core.serialization.ChatMessagePacketByteConverter;
 import lombok.Value;
@@ -8,7 +8,7 @@ import org.comroid.api.ByteConverter;
 
 @Value
 public class DefaultCompatibilityLayer extends RabbitMqCompatibilityLayer<ChatMessagePacket> {
-    public DefaultCompatibilityLayer(ChatMod mod) {
+    public DefaultCompatibilityLayer(ChatModCompatibilityLayerAdapter mod) {
         super(mod);
     }
 
@@ -29,6 +29,11 @@ public class DefaultCompatibilityLayer extends RabbitMqCompatibilityLayer<ChatMe
 
     @Override
     public boolean isEnabled() {
+        return true;
+    }
+
+    @Override
+    public boolean isDefault() {
         return true;
     }
 

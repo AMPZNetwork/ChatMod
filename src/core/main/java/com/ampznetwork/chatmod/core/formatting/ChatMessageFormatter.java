@@ -18,8 +18,6 @@ import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.format.TextDecoration;
-import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
-import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.comroid.api.Polyfill;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -100,11 +98,14 @@ public class ChatMessageFormatter implements MessageFormatter {
 
     @Override
     public void accept(ChatMod mod, ChatMessage chatMessage) {
-        var format  = mod.applyPlaceholders(chatMessage.getSender().getId(), this.format);
+        var sender = chatMessage.getSender();
+        assert sender != null : "Outbound from Minecraft should always have a Sender";
+
+        var format = mod.applyPlaceholders(sender.getId(), this.format);
         var indexOf = format.indexOf(message_placeholder);
 
         var text = legacyAmpersand().deserialize(format.substring(0, indexOf))
-                .append(convertMessage(mod, chatMessage.getSender(), chatMessage.getMessageString()))
+                .append(convertMessage(mod, sender, chatMessage.getMessageString()))
                 .append(legacyAmpersand().deserialize(format.substring(indexOf + message_placeholder.length())));
 
         var buf0 = legacySection().serialize(text);

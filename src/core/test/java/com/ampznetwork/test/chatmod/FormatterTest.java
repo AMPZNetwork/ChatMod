@@ -10,8 +10,6 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import net.kyori.adventure.util.TriState;
-import org.easymock.EasyMock;
-import org.easymock.Mock;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
@@ -44,7 +42,7 @@ public class FormatterTest {
 
         replay(playerAdapter, lib, mod);
 
-        var msg = new ChatMessage(sender, string, string, Component.text(string));
+        var msg = new ChatMessage(sender, sender.getName(), string, string, Component.text(string));
         formatter.accept(mod, msg);
         var json = GsonComponentSerializer.gson().serialize(msg.getText());
         System.out.println("json = " + json);

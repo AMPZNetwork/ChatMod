@@ -1,10 +1,8 @@
 package com.ampznetwork.chatmod.core;
 
 import com.ampznetwork.chatmod.api.ChatMod;
-import com.ampznetwork.chatmod.api.formatting.MessageFormatter;
 import com.ampznetwork.chatmod.api.model.ChannelConfiguration;
 import com.ampznetwork.chatmod.api.model.ChatMessage;
-import com.ampznetwork.chatmod.api.model.ChatMessagePacket;
 import lombok.SneakyThrows;
 import lombok.Value;
 import lombok.experimental.NonFinal;
@@ -20,7 +18,10 @@ public abstract class EventDispatchBase<Mod extends ChatMod> {
 
     @SneakyThrows
     protected void dispatch(ChatMessage message) {
-        var playerId = message.getSender().getId();
+        var sender = message.getSender();
+        assert sender != null : "Outbound from Minecraft should always have a Sender";
+
+        var playerId = sender.getId();
         var optChannel = mod.getChannels().stream()
                 .filter(channel -> channel.getPlayerIDs().contains(playerId))
                 .findAny()

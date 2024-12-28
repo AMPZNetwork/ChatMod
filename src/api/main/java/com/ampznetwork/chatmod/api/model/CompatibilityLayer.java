@@ -1,13 +1,15 @@
 package com.ampznetwork.chatmod.api.model;
 
-import com.ampznetwork.chatmod.api.ChatMod;
+import com.ampznetwork.chatmod.api.ChatModCompatibilityLayerAdapter;
 import org.comroid.api.func.util.Debug;
 import org.comroid.api.tree.Reloadable;
 
 public interface CompatibilityLayer<P> extends Reloadable {
-    ChatMod getMod();
+    ChatModCompatibilityLayerAdapter getMod();
 
     boolean isEnabled();
+
+    boolean isDefault();
 
     ChatMessagePacket convertToChatModPacket(P packet);
 
@@ -21,13 +23,13 @@ public interface CompatibilityLayer<P> extends Reloadable {
         getMod().relayInbound(convert);
     }
 
-    void send(P packet);
+    void doSend(P packet);
 
     default void send(ChatMessagePacket packet) {
         if (!isEnabled()) return;
         var convert = convertToNativePacket(packet);
         if (skip(convert)) return;
-        send(convert);
+        doSend(convert);
     }
 
     @Override

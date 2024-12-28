@@ -1,9 +1,10 @@
 package com.ampznetwork.chatmod.core.compatibility.aurionchat;
 
-import com.ampznetwork.chatmod.api.ChatMod;
+import com.ampznetwork.chatmod.api.ChatModCompatibilityLayerAdapter;
 import com.ampznetwork.chatmod.api.model.ChatMessage;
 import com.ampznetwork.chatmod.api.model.ChatMessagePacket;
 import com.ampznetwork.chatmod.core.compatibility.RabbitMqCompatibilityLayer;
+import com.ampznetwork.libmod.api.entity.Player;
 import com.mineaurion.aurionchat.api.AurionPacket;
 import com.mineaurion.aurionchat.api.AurionPlayer;
 import lombok.Value;
@@ -17,7 +18,7 @@ import java.util.Set;
 
 @Value
 public class AurionChatCompatibilityLayer extends RabbitMqCompatibilityLayer<AurionPacket> {
-    public AurionChatCompatibilityLayer(ChatMod mod) {
+    public AurionChatCompatibilityLayer(ChatModCompatibilityLayerAdapter mod) {
         super(mod);
     }
 
@@ -38,7 +39,7 @@ public class AurionChatCompatibilityLayer extends RabbitMqCompatibilityLayer<Aur
 
     @Override
     public ByteConverter<AurionPacket> createByteConverter() {
-        return new AurionPacketByteConverter(mod);
+        return new AurionPacketByteConverter();
     }
 
     @Override
@@ -54,18 +55,18 @@ public class AurionChatCompatibilityLayer extends RabbitMqCompatibilityLayer<Aur
                 .or(() -> player.map(AurionPlayer::getName)
                         .flatMap(mod.getPlayerAdapter()::getPlayer))
                 .orElseThrow(() -> new NoSuchElementException("Player not found for packet " + packet));
-        var message = new ChatMessage(sender, packet.getDisplayString(), packet.getDisplayString(), (TextComponent) packet.getComponent());
+        var message = new ChatMessage(sender, sender.getName(), packet.getDisplayString(), packet.getDisplayString(), (TextComponent) packet.getComponent());
         return new ChatMessagePacket(packet.getSource(), packet.getChannel(), message);
     }
 
     @Override
     public AurionPacket convertToNativePacket(ChatMessagePacket packet) {
         var sender = packet.getMessage().getSender();
+        assert sender != null : "Outbound from Minecraft should always have a Sender";
         var player = new AurionPlayer(sender.getId(), sender.getName(), null, null);
-        var aurionPacket = new AurionPacket(AurionPacket.Type.CHAT, packet.getSource(), player, packet.getChannel(),
-                mod.getPlayerAdapter().getDisplayName(sender.getId()),
+        return new AurionPacket(AurionPacket.Type.CHAT, packet.getSource(), player, packet.getChannel(),
+                mod.getPlayerAdapter().getPlayer(sender.getId()).map(Player::getName).orElseThrow(),
                 GsonComponentSerializer.gson().serialize(packet.getMessage().getText()));
-        return aurionPacket;
     }
 
     @Override

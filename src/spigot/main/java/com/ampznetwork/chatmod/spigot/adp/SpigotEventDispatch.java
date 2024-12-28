@@ -42,10 +42,7 @@ public class SpigotEventDispatch extends EventDispatchBase<ChatMod$Spigot> imple
         var player = mod.getLib().getPlayerAdapter()
                 .getPlayer(event.getPlayer().getUniqueId())
                 .orElseThrow();
-        var message = new ChatMessage(player,
-                event.getMessage(),
-                event.getMessage(),
-                Component.text(event.getMessage()));
+        var message = new ChatMessage(player, player.getName(), event.getMessage(), event.getMessage(), Component.text(event.getMessage()));
 
         dispatch(message);
         event.setCancelled(true);

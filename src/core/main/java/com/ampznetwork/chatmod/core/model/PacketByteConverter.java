@@ -1,6 +1,5 @@
 package com.ampznetwork.chatmod.core.model;
 
-import com.ampznetwork.chatmod.api.ChatMod;
 import com.google.gson.Gson;
 import lombok.AccessLevel;
 import lombok.Value;
@@ -14,7 +13,6 @@ import java.nio.charset.StandardCharsets;
 @NonFinal
 @FieldDefaults(level = AccessLevel.PROTECTED, makeFinal = true)
 public abstract class PacketByteConverter<P> implements ByteConverter<P> {
-    ChatMod  mod;
     Gson     gson;
     Class<P> packetType;
 

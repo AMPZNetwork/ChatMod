@@ -22,6 +22,7 @@ public class TextComponentSerializationTest {
                 .clickEvent(ClickEvent.runCommand("help"));
         var msg = new ChatMessage(
                 Player.builder().name("Kaleidox").id(UUID.randomUUID()).build(),
+                "Kaleidox",
                 "arschlöoch",
                 "arschlöoch",
                 text);
