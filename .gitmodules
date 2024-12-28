@@ -1,7 +1,3 @@
-[submodule "ForwardMQ"]
-	path = thirdparty/ForwardMQ
-	url = https://github.com/comroid-git/ForwardMQ
-	branch = 'aurion-to-discord-link'
 [submodule "AurionChat"]
 	path = thirdparty/AurionChat
 	url = https://github.com/burdoto/Aurionchat
