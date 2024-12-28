@@ -1,4 +1,4 @@
-package com.ampznetwork.chatmod.spigot.serialization;
+package com.ampznetwork.chatmod.core.serialization;
 
 import com.ampznetwork.chatmod.api.ChatMod;
 import com.ampznetwork.chatmod.api.model.ChatMessage;

@@ -4,12 +4,13 @@ import com.ampznetwork.chatmod.api.formatting.MessageFormatter;
 import com.ampznetwork.chatmod.api.model.ChannelConfiguration;
 import com.ampznetwork.chatmod.api.model.ChatMessage;
 import com.ampznetwork.chatmod.api.model.ChatMessagePacket;
+import com.ampznetwork.chatmod.api.model.CompatibilityLayer;
 import com.ampznetwork.libmod.api.SubMod;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
-import org.comroid.api.net.Rabbit;
 
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 public interface ChatMod extends SubMod {
@@ -19,7 +20,13 @@ public interface ChatMod extends SubMod {
 
     List<ChannelConfiguration> getChannels();
 
-    Rabbit.Exchange.Route<ChatMessagePacket> getRabbit();
+    String getMainRabbitUri();
+
+    String getAurionChatRabbitUri();
+
+    Set<CompatibilityLayer<?>> getCompatibilityLayers();
+
+    void relayInbound(ChatMessagePacket packet);
 
     @Override
     default TextColor getThemeColor() {

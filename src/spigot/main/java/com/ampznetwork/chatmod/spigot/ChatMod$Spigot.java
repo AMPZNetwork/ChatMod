@@ -4,11 +4,13 @@ import com.ampznetwork.chatmod.api.ChatMod;
 import com.ampznetwork.chatmod.api.model.ChannelConfiguration;
 import com.ampznetwork.chatmod.api.model.ChatMessage;
 import com.ampznetwork.chatmod.api.model.ChatMessagePacket;
+import com.ampznetwork.chatmod.api.model.CompatibilityLayer;
 import com.ampznetwork.chatmod.core.ChatModCommands;
+import com.ampznetwork.chatmod.core.compatibility.DefaultCompatibilityLayer;
+import com.ampznetwork.chatmod.core.compatibility.aurionchat.AurionChatCompatibilityLayer;
 import com.ampznetwork.chatmod.core.formatting.ChatMessageFormatter;
 import com.ampznetwork.chatmod.generated.PluginYml;
 import com.ampznetwork.chatmod.spigot.adp.SpigotEventDispatch;
-import com.ampznetwork.chatmod.spigot.serialization.ChatMessagePacketByteConverter;
 import com.ampznetwork.libmod.api.entity.DbObject;
 import com.ampznetwork.libmod.spigot.SubMod$Spigot;
 import lombok.Getter;
@@ -21,7 +23,6 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.configuration.MemorySection;
 import org.comroid.api.Polyfill;
 import org.comroid.api.func.util.Command;
-import org.comroid.api.net.Rabbit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -35,9 +36,9 @@ import java.util.stream.Stream;
 @Getter
 @Slf4j(topic = ChatMod.Strings.AddonName)
 public class ChatMod$Spigot extends SubMod$Spigot implements ChatMod {
-    List<ChannelConfiguration> channels = new ArrayList<>();
+    List<ChannelConfiguration> channels            = new ArrayList<>();
+    Set<CompatibilityLayer<?>> compatibilityLayers = Set.of(new DefaultCompatibilityLayer(this), new AurionChatCompatibilityLayer(this));
     @NonFinal           ChatMessageFormatter formatter;
-    @NonFinal           Rabbit.Exchange.Route<ChatMessagePacket> rabbit;
     @NonFinal @Nullable boolean              hasPlaceholderApi;
 
     public ChatMod$Spigot() {
@@ -47,6 +48,26 @@ public class ChatMod$Spigot extends SubMod$Spigot implements ChatMod {
     @Override
     public String getServerName() {
         return getConfig().getString("server.name", "&eMC");
+    }
+
+    @Override
+    public String getMainRabbitUri() {
+        return getConfig().getString("rabbitmq.uri");
+    }
+
+    @Override
+    public String getAurionChatRabbitUri() {
+        return getConfig().getString("compatibility.aurionchat");
+    }
+
+    @Override
+    public void relayInbound(ChatMessagePacket packet) {
+        getLogger().info(packet.getMessage().getPlaintext());
+        var targetChannel = packet.getChannel();
+        channels.stream()
+                .filter(channel -> channel.getName().equals(targetChannel))
+                .flatMap(channel -> Stream.concat(channel.getPlayerIDs().stream(), channel.getSpyIDs().stream()))
+                .forEach(id -> lib.getPlayerAdapter().send(id, packet.getMessage().getText()));
     }
 
     @Override
@@ -60,7 +81,9 @@ public class ChatMod$Spigot extends SubMod$Spigot implements ChatMod {
     @Override
     public void send(String channelName, ChatMessage message) {
         var packet = new ChatMessagePacket(getServerName(), channelName, message);
-        rabbit.send(packet);
+        compatibilityLayers.stream()
+                .filter(CompatibilityLayer::isEnabled)
+                .forEach(layer -> layer.send(packet));
     }
 
     @Override
@@ -70,6 +93,8 @@ public class ChatMod$Spigot extends SubMod$Spigot implements ChatMod {
 
     @Command
     public @NotNull TextComponent reload() {
+        reloadConfig();
+
         // reload channel configuration
         channels.clear();
         loadChannels();
@@ -105,23 +130,7 @@ public class ChatMod$Spigot extends SubMod$Spigot implements ChatMod {
 
     @Command(permission = PluginYml.Permission.chatmod.RECONNECT)
     public void reconnect() {
-        try {
-            rabbit = Rabbit.of(getConfig().getString("rabbitmq.url"))
-                    .map(rabbit -> rabbit.bind("chat", "", new ChatMessagePacketByteConverter(this)))
-                    .orElseThrow();
-            rabbit.listen().subscribeData(this::handle);
-        } catch (Throwable t) {
-            getLogger().warning("Failed to set up RabbitMQ connection; " + t + " - to retry, run command /chatmod:reconnect");
-        }
-    }
-
-    public void handle(ChatMessagePacket packet) {
-        getLogger().info(packet.getMessage().getPlaintext());
-        var targetChannel = packet.getChannel();
-        channels.stream()
-                .filter(channel -> channel.getName().equals(targetChannel))
-                .flatMap(channel -> Stream.concat(channel.getPlayerIDs().stream(), channel.getSpyIDs().stream()))
-                .forEach(id -> lib.getPlayerAdapter().send(id, packet.getMessage().getText()));
+        compatibilityLayers.forEach(CompatibilityLayer::reload);
     }
 
     private void loadChannels() {
