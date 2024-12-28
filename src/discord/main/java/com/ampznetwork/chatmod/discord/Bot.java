@@ -74,6 +74,7 @@ public class Bot implements ChatModCompatibilityLayerAdapter, EventListener {
         this.cmdr   = new Command.Manager() {{
             register(Bot.this);
             this.new Adapter$JDA(jda);
+            this.new Adapter$StdIO();
         }};
 
         reload();
