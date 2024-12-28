@@ -20,8 +20,6 @@ public interface ChatMod extends SubMod, ChatModCompatibilityLayerAdapter {
         return SubMod.super.getPlayerAdapter();
     }
 
-    String getServerName();
-
     MessageFormatter getFormatter();
 
     List<ChannelConfiguration> getChannels();
@@ -44,7 +42,7 @@ public interface ChatMod extends SubMod, ChatModCompatibilityLayerAdapter {
 
     default String applyPlaceholders(UUID playerId, String input) {
         var player = getLib().getPlayerAdapter().getPlayer(playerId).orElseThrow();
-        return input.replace("%server_name%", getServerName())
+        return input.replace("%server_name%", getSourceName())
                 .replace("%player_name%", getLib().getPlayerAdapter().getDisplayName(playerId));
     }
 

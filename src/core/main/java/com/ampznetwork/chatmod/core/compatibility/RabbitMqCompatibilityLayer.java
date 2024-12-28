@@ -2,6 +2,7 @@ package com.ampznetwork.chatmod.core.compatibility;
 
 import com.ampznetwork.chatmod.api.ChatModCompatibilityLayerAdapter;
 import com.ampznetwork.chatmod.api.model.CompatibilityLayer;
+import com.ampznetwork.chatmod.core.compatibility.builtin.DefaultCompatibilityLayer;
 import lombok.EqualsAndHashCode;
 import lombok.RequiredArgsConstructor;
 import lombok.Value;
@@ -19,8 +20,9 @@ import java.util.Optional;
 @EqualsAndHashCode(of = "route")
 public abstract class RabbitMqCompatibilityLayer<P> extends Component.Base implements CompatibilityLayer<P> {
     protected ChatModCompatibilityLayerAdapter mod;
-    @NonFinal Rabbit                           rabbit = null;
-    @NonFinal Rabbit.Exchange.Route<P>         route  = null;
+    @NonFinal Rabbit                   rabbit  = null;
+    @NonFinal Rabbit.Exchange.Route<P> route   = null;
+    @NonFinal boolean                  started = false;
 
     protected abstract String getUri();
 
@@ -28,11 +30,6 @@ public abstract class RabbitMqCompatibilityLayer<P> extends Component.Base imple
 
     protected @Nullable String getExchangeType() {
         return null;
-    }
-
-    @Override
-    public boolean isDefault() {
-        return false;
     }
 
     @Override
@@ -44,7 +41,8 @@ public abstract class RabbitMqCompatibilityLayer<P> extends Component.Base imple
 
     @Override
     public final void start() {
-        if (!isEnabled()) return;
+        if (!isEnabled() || started) return;
+        started = true;
 
         this.rabbit = Optional.ofNullable(getUri())
                 .flatMap(uri -> "inherit".equalsIgnoreCase(uri)
@@ -58,5 +56,10 @@ public abstract class RabbitMqCompatibilityLayer<P> extends Component.Base imple
 
         if (route != null)
             addChild(route.listen().subscribeData(this::handle));
+    }
+
+    @Override
+    public void closeSelf() {
+        started = false;
     }
 }

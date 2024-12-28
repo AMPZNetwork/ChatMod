@@ -6,6 +6,8 @@ import com.ampznetwork.chatmod.api.model.CompatibilityLayer;
 import com.ampznetwork.libmod.api.interop.game.PlayerIdentifierAdapter;
 
 public interface ChatModCompatibilityLayerAdapter {
+    String getSourceName();
+
     PlayerIdentifierAdapter getPlayerAdapter();
 
     String getMainRabbitUri();

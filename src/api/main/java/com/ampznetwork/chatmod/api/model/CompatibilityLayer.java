@@ -7,15 +7,21 @@ import org.comroid.api.tree.Reloadable;
 public interface CompatibilityLayer<P> extends Reloadable {
     ChatModCompatibilityLayerAdapter getMod();
 
-    boolean isEnabled();
+    default boolean isEnabled() {
+        return true;
+    }
 
-    boolean isDefault();
+    default boolean isDefault() {
+        return false;
+    }
+
+    default boolean skip(P packet) {
+        return false;
+    }
 
     ChatMessagePacket convertToChatModPacket(P packet);
 
     P convertToNativePacket(ChatMessagePacket packet);
-
-    boolean skip(P packet);
 
     default void handle(P packet) {
         if (!isEnabled() || skip(packet)) return;

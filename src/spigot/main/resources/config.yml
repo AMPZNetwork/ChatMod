@@ -4,12 +4,24 @@ server:
 # rabbitmq configuration
 rabbitmq:
   uri: amqp://guest:guest@localhost:5672
+# insert token to enable to builtin discord bot to also mirror chat to a discord channel
+# this is only required once per network! the bot can be hosted standalone
+discord_bot_token: 'token'
 # chat channel configuration; the first channel is default for all players, regardless of the permission property
 # each entry can be configured with all given properties (alias:string, formatters:obj, publish:bool and permission:string)
 channels:
   # an example global channel, which is accessible throughout all servers
   - global:
       alias: g
+
+      # these options are only relevant if 'discord_bot_token' is set
+      # they can be applied to all channel configuration entries
+      # the id of the discord channel to mirror this channel to
+      discord_channel_id: 0
+      # url of the webhook to use. leave blank to auto populate
+      discord_webhook_url: ''
+      # invite url to provide inside in-game chat
+      discord_invite_url: ''
   # an example local channel, which will not be sent to rabbitmq
   - local:
       alias: l

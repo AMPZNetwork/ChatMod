@@ -4,7 +4,7 @@ apply plugin: 'com.github.johnrengelman.shadow'
 
 group 'com.ampznetwork.chatmod'
 version '0.1.0'
-mainClassName = 'com.ampznetwork.chatmod.discord.Bot'
+mainClassName = 'com.ampznetwork.chatmod.discord.DiscordBot'
 
 repositories {
     mavenLocal()

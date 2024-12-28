@@ -16,11 +16,14 @@ import java.util.UUID;
 @Builder
 public class ChannelConfiguration implements Named {
     String name;
-    @lombok.Builder.Default @Nullable String    alias      = null;
-    @lombok.Builder.Default @Nullable String    permission = null;
-    @lombok.Builder.Default           boolean   publish    = true;
-    @lombok.Builder.Default           Set<UUID> playerIDs  = new HashSet<>();
-    @lombok.Builder.Default           Set<UUID> spyIDs     = new HashSet<>();
+    @lombok.Builder.Default @Nullable String    alias             = null;
+    @lombok.Builder.Default @Nullable String    permission        = null;
+    @lombok.Builder.Default @Nullable Long      discordChannelId  = null;
+    @lombok.Builder.Default @Nullable String    discordWebhookUrl = null;
+    @lombok.Builder.Default @Nullable String    discordInviteUrl  = null;
+    @lombok.Builder.Default           boolean   publish           = true;
+    @lombok.Builder.Default           Set<UUID> playerIDs         = new HashSet<>();
+    @lombok.Builder.Default           Set<UUID> spyIDs            = new HashSet<>();
 
     public ChatMessage formatMessage(ChatMod mod, Player sender, String message) {
         var msg = new ChatMessage(sender, sender.getName(), message, message, Component.text(message));
