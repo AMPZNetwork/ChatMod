@@ -1,3 +1,6 @@
-[submodule "thirdparty/AurionChat"]
-	path = thirdparty/AurionChat
+[submodule "AurionChat"]
+	path = thirdparty/Aurionchat
 	url = https://github.com/Mineaurion/Aurionchat
+[submodule "ForwardMQ"]
+	path = thirdparty/ForwardMQ
+	url = https://github.com/comroid-git/ForwardMQ
