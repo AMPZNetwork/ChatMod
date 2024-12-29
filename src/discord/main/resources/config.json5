@@ -1,0 +1,46 @@
+/*
+this is an example config for the standalone chatmod discord bot
+for configuring the bot that is bundled with the plugin, please see the plugin config.yml
+*/
+{
+  // token for the Discord bot
+  discordToken: '<insert token>',
+  // authenticated uri for RabbitMQ
+  rabbitMqUri: '<insert uri>',
+  // discord channel configuration
+  channels: [
+    {
+      // the chatmod name of the channel to link
+      gameChannelName: 'global',
+      // the discord snowflake-id of the channel to link
+      discordChannelId: 1196871759283093555,
+      // (optional) configuring this webhook url will let the bot try to use this before attempting to find or create a webhook
+      //discordWebhookUrl: '<insert webhook url>',
+      // (optional) this invite url will be presented to in-game users
+      //discordInviteUrl: '<insert server invite url>',
+      /*
+      format settings for discord channel
+      supported placeholders:
+      - %server_name% = name of the server where the message originates from
+      - %channel_name% = name of the channel in which the message was sent
+      - %player_name% = username of a player
+      - %player_displayname% = displayname of a player
+      - %message% = full message contents
+      you can delete this block if you want to stick to defaults
+      */
+      format: {
+        // format for 'user joined the game' messages on discord, if enabled
+        discordJoinMessage: "> %player_name% has joined %server_name%",
+        // format for 'user left the game' messages on discord, if enabled
+        discordLeaveMessage: "> %player_name% has left %server_name%",
+        // format for webhook message author
+        webhookUsername: "%player_name%",
+        // format for webhook message content
+        webhookMessage: "%message%",
+        // if you want to use a custom service to provide user avatars, configure the avatar url format here
+        // - note: placeholders must use double % for this setting
+        webhookAvatar: "https://mc-heads.net/avatar/%%player_name%%",
+      }
+    }
+  ]
+}

@@ -13,6 +13,9 @@ import com.ampznetwork.chatmod.discord.model.Config;
 import com.ampznetwork.libmod.api.entity.Player;
 import com.ampznetwork.libmod.api.interop.game.PlayerIdentifierAdapter;
 import com.ampznetwork.libmod.core.adapter.HeadlessPlayerAdapter;
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.json.JsonReadFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.EqualsAndHashCode;
 import lombok.SneakyThrows;
@@ -31,15 +34,18 @@ import net.kyori.adventure.text.format.TextColor;
 import org.comroid.annotations.Alias;
 import org.comroid.api.func.util.Command;
 import org.comroid.api.func.util.Debug;
+import org.comroid.api.info.Log;
 import org.comroid.api.io.FileHandle;
 import org.comroid.api.tree.Component;
 import org.comroid.api.tree.Reloadable;
 import org.comroid.api.tree.UncheckedCloseable;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.InputStreamReader;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.logging.Level;
 
 import static net.kyori.adventure.text.Component.*;
 import static net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.*;
@@ -48,18 +54,37 @@ import static net.kyori.adventure.text.serializer.plain.PlainTextComponentSerial
 @EqualsAndHashCode(of = "config")
 public class DiscordBot extends Component.Base implements ChatModCompatibilityLayerAdapter, CompatibilityLayer<ChatMessagePacket> {
     public static final FileHandle DIR          = new FileHandle("/srv/chatmod", true);
-    public static final FileHandle CONFIG       = DIR.createSubFile("config.json");
+    public static final FileHandle CONFIG = DIR.createSubFile("config.json5");
     public static final String     WEBHOOK_NAME = "Minecraft Chat Link";
     public static final String     SOURCE       = "discord";
-    public static DiscordBot INSTANCE;
+    public static       DiscordBot INSTANCE;
 
     @SneakyThrows
     public static void main(String[] args) {
+        if (!CONFIG.exists())
+            try (
+                    var res = DiscordBot.class.getClassLoader().getResourceAsStream("config.json5");
+                    var isr = new InputStreamReader(Objects.requireNonNull(res, "Could not load default config resource"));
+                    var out = CONFIG.openWriter()
+            ) {
+                isr.transferTo(out);
+            } catch (Throwable t) {
+                Log.at(Level.WARNING, "Could not save default config file: " + t);
+            }
+
         try {
-            var config = new ObjectMapper().readValue(CONFIG, Config.class);
+            var config = new ObjectMapper(JsonFactory.builder()
+                    .enable(JsonReadFeature.ALLOW_TRAILING_COMMA)
+                    .build()
+                    .enable(JsonParser.Feature.ALLOW_COMMENTS)
+                    .enable(JsonParser.Feature.ALLOW_YAML_COMMENTS)
+                    .enable(JsonParser.Feature.ALLOW_SINGLE_QUOTES)
+                    .enable(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES)
+                    .enable(JsonParser.Feature.STRICT_DUPLICATE_DETECTION)
+            ).readValue(CONFIG, Config.class);
             INSTANCE = new DiscordBot(config);
         } catch (Throwable t) {
-            t.printStackTrace();
+            Log.at(Level.SEVERE, "Unable to initialize DiscordBot module", t);
             System.exit(1);
         }
     }
