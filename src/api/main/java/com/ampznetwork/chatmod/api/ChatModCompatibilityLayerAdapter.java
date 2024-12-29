@@ -25,6 +25,10 @@ public interface ChatModCompatibilityLayerAdapter {
 
     void relayOutbound(ChatMessagePacket packet);
 
+    default boolean skip(ChatMessagePacket packet) {
+        return false;
+    }
+
     default void sendChat(String channelName, ChatMessage message) {
         relayOutbound(new ChatMessagePacket(MessageType.CHAT, getSourceName(), channelName, message));
     }

@@ -4,6 +4,7 @@ import com.ampznetwork.chatmod.api.ChatMod;
 import com.ampznetwork.chatmod.api.model.ChannelConfiguration;
 import com.ampznetwork.chatmod.api.model.ChatMessage;
 import com.ampznetwork.chatmod.api.model.MessageType;
+import com.ampznetwork.libmod.api.model.delegate.EventDelegate;
 import lombok.SneakyThrows;
 import lombok.Value;
 import lombok.experimental.NonFinal;
@@ -14,7 +15,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
 import java.util.UUID;
-import java.util.function.Consumer;
 
 import static com.ampznetwork.chatmod.core.formatting.ChatMessageFormatter.*;
 import static net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.*;
@@ -44,25 +44,24 @@ public abstract class EventDispatchBase<Mod extends ChatMod> {
         mod.sendChat(optChannel.get(), message);
     }
 
-    protected boolean playerJoin(UUID playerId, @Nullable Consumer<TextComponent> messageModifier) {
-        var defaultChannel = mod.getChannels().getFirst();
-        handleJoinLeave(playerId, MessageType.JOIN, messageModifier);
-        return defaultChannel.getPlayerIDs().add(playerId);
+    protected void playerJoin(UUID playerId, @Nullable EventDelegate<TextComponent> event) {
+        mod.getChannels().getFirst().getPlayerIDs().add(playerId);
+        handleJoinLeave(playerId, MessageType.JOIN, event);
     }
 
-    protected void playerLeave(UUID playerId, @Nullable Consumer<TextComponent> messageModifier) {
+    protected void playerLeave(UUID playerId, @Nullable EventDelegate<TextComponent> event) {
         var channels = mod.getChannels();
         channels.stream()
                 .filter(channel -> channel.getPlayerIDs().contains(playerId))
                 .findAny()
-                .ifPresent(channel -> handleJoinLeave(playerId, MessageType.LEAVE, messageModifier));
+                .ifPresent(channel -> handleJoinLeave(playerId, MessageType.LEAVE, event));
         channels.forEach(channel -> {
             channel.getPlayerIDs().remove(playerId);
             channel.getSpyIDs().remove(playerId);
         });
     }
 
-    private void handleJoinLeave(UUID playerId, MessageType type, @Nullable Consumer<TextComponent> messageModifier) {
+    private void handleJoinLeave(UUID playerId, MessageType type, @Nullable EventDelegate<TextComponent> event) {
         if (!mod.isJoinLeaveEnabled()) return;
 
         var player = mod.getPlayerAdapter().getPlayer(playerId).orElseThrow();
@@ -80,7 +79,10 @@ public abstract class EventDispatchBase<Mod extends ChatMod> {
                 })
                 .orElseGet(() -> type.createDefaultText(player, null));
 
+        if ((mod.isListenerCompatibilityMode() || mod.isReplaceDefaultJoinLeaveMessages()) && event != null)
+            event.set(text);
+        if (!mod.isListenerCompatibilityMode() && event != null)
+            event.cancel();
         mod.getJoinLeaveChannels().forEach(channelName -> mod.sendEvent(channelName, player, type, text));
-        if (messageModifier != null && mod.isReplaceDefaultJoinLeaveMessages()) messageModifier.accept(text);
     }
 }

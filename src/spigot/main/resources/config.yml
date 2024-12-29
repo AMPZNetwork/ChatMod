@@ -1,36 +1,16 @@
 # basic configuration
 server:
   name: '&aMC'
+
 # rabbitmq configuration
 rabbitmq:
   uri: amqp://guest:guest@localhost:5672
+
 # insert token to enable to builtin discord bot to also mirror chat to a discord channel
 # this is only required once per network! the bot can be hosted standalone
 discord_bot_token: 'token'
-# chat channel configuration; the first channel is default for all players, regardless of the permission property
-# each entry can be configured with all given properties (alias:string, formatters:obj, publish:bool and permission:string)
-channels:
-  # an example global channel, which is accessible throughout all servers
-  - global:
-      alias: g
 
-      # these options are only relevant if 'discord_bot_token' is set
-      # they can be applied to all channel configuration entries
-      # the id of the discord channel to mirror this channel to
-      discord_channel_id: 0
-      # url of the webhook to use. leave blank to auto populate
-      discord_webhook_url: ''
-      # invite url to provide inside in-game chat
-      discord_invite_url: ''
-  # an example local channel, which will not be sent to rabbitmq
-  - local:
-      alias: l
-      publish: false
-  # an example staff channel, which requires permission 'chat.channel.staff' to join
-  - staff:
-      alias: s
-      permission: chat.channel.staff
-# configure other chat events
+# configure generic chat events
 events:
   # handles join/leave messages
   join_leave:
@@ -48,11 +28,61 @@ events:
     # otherwise there is optional PlaceholderAPI support
     format_join: '&a%player_name%&a has joined %server_name%'
     format_leave: '&c%player_name%&c has left %server_name%'
+
+# chat channel configuration; the first channel is default for all players, regardless of the permission property
+# each entry can be configured with all given properties (alias:string, formatters:obj, publish:bool and permission:string)
+channels:
+  # an example global channel, which is accessible throughout all servers
+  - global:
+      alias: g
+
+      # these options are only relevant if 'discord_bot_token' is set
+      # they can be applied to all channel configuration entries
+      discord:
+        # the discord snowflake-id of the channel to link
+        channel_id: 1142833435665256478
+        # (optional) this invite url will be presented to in-game users
+        #invite_url: '<insert server invite url>'
+        # (optional) configuring this webhook url will let the bot try to use this before attempting to find or create a webhook
+        #webhook_url: '<insert webhook url>'
+
+        # format settings for discord channel
+        # supported placeholders:
+        #  - %server_name% = name of the server where the message originates from
+        #  - %channel_name% = name of the channel in which the message was sent
+        #  - %player_id% = uuid4 of a player
+        #  - %player_name% = username of a player
+        #  - %player_displayname% = displayname of a player
+        #  - %message% = full message contents
+        # you can delete this block if you want to stick to defaults
+        format:
+          # format for 'user joined the game' messages on discord, if enabled
+          join_message: '> %player_name% has joined %server_name%'
+          # format for 'user left the game' messages on discord, if enabled
+          leave_message: '> %player_name% has left %server_name%'
+          # format for webhook message author
+          webhook_username: '%player_name%'
+          # format for webhook message content
+          webhook_message: '%message%'
+          # if you want to use a custom service to provide user avatars, configure the avatar url format here
+          webhook_avatar: 'https://mc-heads.net/avatar/%player_name%'
+
+  # an example local channel, which will not be sent to rabbitmq
+  - local:
+      alias: l
+      publish: false
+
+  # an example staff channel, which requires permission 'chat.channel.staff' to join
+  - staff:
+      alias: s
+      permission: chat.channel.staff
+
 # formatter configuration; these formatters are applied in configured order to each message's content
 formatting:
   # make URLs clickable todo: shouldn't this occur by default?
   urls:
     force_https: true
+
   # a markdown parser. supports features: 'bold', 'cursive', 'underline', 'strikethrough', 'hidden_links', 'verbatim'
   markdown:
     # disable some features
@@ -60,6 +90,7 @@ formatting:
       - hidden_links
     # convert verbatim markdown strings to obfuscated minecraft style
     verbatim_to_obfuscated: true
+
   # a regex replacer. each pattern match will be replaced with the string defined in the 'replace' property
   regex:
     case_insensitive: true # default
@@ -69,17 +100,20 @@ formatting:
     replace: "$1[bad word]" # $1 to retain leading whitespace
     # requires BanMod: punishes occurrences with the given punishment expression
     punish-by: 'mute:5m'
+
   # changes the basic format of the message
   # "%server_name%", "%player_name%" and "%message%" are special format strings that are always available
   # otherwise there is optional PlaceholderAPI support
   #scheme: "<%player_name%> %message%" # vanilla scheme
   scheme: "&7[%server_name%&7] &f%player_name%&f: %message%"
+
 # compatibility layers configuration
 compatibility:
   # enhanced listener compatibility mode
   # enable this only if you are experiencing issues with moderation plugins
   # enabling this will partially break clickable urls and similar features
   listeners: false
+
   # configure compatibility with AurionChat plugin
   # reference: https://github.com/Mineaurion/Aurionchat
   # this will convert ChatMod packets to AurionChat packets on the specified RabbitMQ uri

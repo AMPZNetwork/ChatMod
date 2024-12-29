@@ -9,7 +9,7 @@ import com.ampznetwork.chatmod.api.model.ChatMessagePacket;
 import com.ampznetwork.chatmod.api.model.CompatibilityLayer;
 import com.ampznetwork.chatmod.core.compatibility.builtin.DefaultCompatibilityLayer;
 import com.ampznetwork.chatmod.discord.config.Config;
-import com.ampznetwork.chatmod.discord.config.DiscordChannelMapping;
+import com.ampznetwork.chatmod.discord.config.DiscordChannelConfig;
 import com.ampznetwork.libmod.api.interop.game.PlayerIdentifierAdapter;
 import com.ampznetwork.libmod.core.adapter.HeadlessPlayerAdapter;
 import com.fasterxml.jackson.core.JsonFactory;
@@ -166,7 +166,7 @@ public class DiscordBot extends Component.Base implements ChatModCompatibilityLa
     public void relayInbound(ChatMessagePacket packet) {
         if (SOURCE.equals(packet.getSource())) return;
         config.getChannels().stream()
-                .filter(channel -> Objects.equals(packet.getChannel(), channel.getGameChannelName()))
+                .filter(channel -> Objects.equals(packet.getChannel(), channel.getChannelName()))
                 .forEach(channel -> {
                     var message = new WebhookMessageBuilder()
                             .setUsername(applyPlaceholders(channel.getFormat().getWebhookUsername(), packet))
@@ -177,7 +177,7 @@ public class DiscordBot extends Component.Base implements ChatModCompatibilityLa
                             }))
                             .setAvatarUrl(applyPlaceholders(channel.getFormat().getWebhookAvatar(), packet))
                             .build();
-                    obtainWebhook(channel, jda.getTextChannelById(channel.getDiscordChannelId()))
+                    obtainWebhook(channel, jda.getTextChannelById(channel.getChannelId()))
                             .thenCompose(wh -> wh.send(message))
                             .exceptionally(Debug.exceptionLogger("Could not send Message using Webhook"));
                 });
@@ -186,6 +186,11 @@ public class DiscordBot extends Component.Base implements ChatModCompatibilityLa
     @Override
     public void relayOutbound(ChatMessagePacket packet) {
         defaultCompatibilityLayer.send(packet);
+    }
+
+    @Override
+    public boolean skip(ChatMessagePacket packet) {
+        return false;
     }
 
     @Override
@@ -247,13 +252,13 @@ public class DiscordBot extends Component.Base implements ChatModCompatibilityLa
         if (event.getAuthor().isBot())
             return;
         config.getChannels().stream()
-                .filter(channel -> channel.getDiscordChannelId() == event.getChannel().getIdLong())
-                .forEach(channel -> sendChat(channel.getGameChannelName(), convertMessage(event, channel)));
+                .filter(channel -> channel.getChannelId() == event.getChannel().getIdLong())
+                .forEach(channel -> sendChat(channel.getChannelName(), convertMessage(event, channel)));
     }
 
-    private CompletableFuture<WebhookClient> obtainWebhook(DiscordChannelMapping config, TextChannel channel) {
+    private CompletableFuture<WebhookClient> obtainWebhook(DiscordChannelConfig config, TextChannel channel) {
         //noinspection DataFlowIssue -> we want the exception here for .exceptionallyCompose()
-        return CompletableFuture.supplyAsync(() -> WebhookClient.withUrl(config.getDiscordWebhookUrl()))
+        return CompletableFuture.supplyAsync(() -> WebhookClient.withUrl(config.getWebhookUrl()))
                 .exceptionallyCompose(
                         ignored -> channel.retrieveWebhooks().submit()
                                 .thenCompose(webhooks -> webhooks.stream()
@@ -265,9 +270,9 @@ public class DiscordBot extends Component.Base implements ChatModCompatibilityLa
                 .exceptionally(Debug.exceptionLogger("Internal Exception when obtaining Webhook"));
     }
 
-    private ChatMessage convertMessage(MessageReceivedEvent event, DiscordChannelMapping channel) {
-        var discord = text("DISCORD ", TextColor.color(86, 98, 246));
-        var inviteUrl = channel.getDiscordInviteUrl();
+    private ChatMessage convertMessage(MessageReceivedEvent event, DiscordChannelConfig channel) {
+        var discord   = text("DISCORD ", TextColor.color(86, 98, 246));
+        var inviteUrl = channel.getInviteUrl();
         if (inviteUrl != null)
             discord = discord.clickEvent(ClickEvent.openUrl(inviteUrl))
                     .hoverEvent(HoverEvent.showText(text("Click for Invite link...")));

@@ -11,13 +11,13 @@ for configuring the bot that is bundled with the plugin, please see the plugin c
   channels: [
     {
       // the chatmod name of the channel to link
-      gameChannelName: 'global',
+      channelName: 'global',
       // the discord snowflake-id of the channel to link
-      discordChannelId: 1196871759283093555,
-      // (optional) configuring this webhook url will let the bot try to use this before attempting to find or create a webhook
-      //discordWebhookUrl: '<insert webhook url>',
+      channelId: 1142833435665256478,
       // (optional) this invite url will be presented to in-game users
-      //discordInviteUrl: '<insert server invite url>',
+      //inviteUrl: '<insert server invite url>',
+      // (optional) configuring this webhook url will let the bot try to use this before attempting to find or create a webhook
+      //webhookUrl: '<insert webhook url>',
       /*
       format settings for discord channel
       supported placeholders:
@@ -31,9 +31,9 @@ for configuring the bot that is bundled with the plugin, please see the plugin c
       */
       format: {
         // format for 'user joined the game' messages on discord, if enabled
-        discordJoinMessage: "> %player_name% has joined %server_name%",
+        joinMessage: "> %player_name% has joined %server_name%",
         // format for 'user left the game' messages on discord, if enabled
-        discordLeaveMessage: "> %player_name% has left %server_name%",
+        leaveMessage: "> %player_name% has left %server_name%",
         // format for webhook message author
         webhookUsername: "%player_name%",
         // format for webhook message content

@@ -28,13 +28,14 @@ public interface CompatibilityLayer<P> extends Reloadable {
     default void handle(P packet) {
         if (!isEnabled() || skip(packet)) return;
         var convert = convertToChatModPacket(packet);
+        if (getMod().skip(convert)) return;
         getMod().relayInbound(convert);
     }
 
     void doSend(P packet);
 
     default void send(ChatMessagePacket packet) {
-        if (!isEnabled()) return;
+        if (!isEnabled() || getMod().skip(packet)) return;
         var convert = convertToNativePacket(packet);
         if (skip(convert)) return;
         doSend(convert);
