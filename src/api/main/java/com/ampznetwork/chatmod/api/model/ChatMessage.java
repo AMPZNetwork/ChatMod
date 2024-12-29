@@ -1,10 +1,6 @@
 package com.ampznetwork.chatmod.api.model;
 
-import com.ampznetwork.chatmod.api.util.TextComponentDeserializer;
-import com.ampznetwork.chatmod.api.util.TextComponentSerializer;
 import com.ampznetwork.libmod.api.entity.Player;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.Setter;
 import lombok.Value;
 import lombok.experimental.NonFinal;
@@ -20,37 +16,35 @@ public class ChatMessage {
     @Nullable Player sender;
     String senderName;
     String messageString;
-    @JsonSerialize(using = TextComponentSerializer.class)
-    @JsonDeserialize(using = TextComponentDeserializer.class)
-    @NonFinal TextComponent prefix;
-    @NonFinal TextComponent text;
-    @NonFinal TextComponent suffix;
+    @NonFinal           TextComponent text;
+    @Nullable @NonFinal TextComponent prepend;
+    @Nullable @NonFinal TextComponent append;
 
     public ChatMessage(@Nullable Player sender, String senderName, String messageString, TextComponent text) {
         this(sender, senderName, messageString, null, text);
     }
 
-    public ChatMessage(@Nullable Player sender, String senderName, String messageString, TextComponent prefix, TextComponent text) {
-        this(sender, senderName, messageString, prefix, text, null);
+    public ChatMessage(@Nullable Player sender, String senderName, String messageString, TextComponent prepend, TextComponent text) {
+        this(sender, senderName, messageString, prepend, text, null);
     }
 
     public ChatMessage(
-            @Nullable Player sender, String senderName, String messageString, @Nullable TextComponent prefix, TextComponent text,
-            @Nullable TextComponent suffix
+            @Nullable Player sender, String senderName, String messageString, @Nullable TextComponent prepend, TextComponent text,
+            @Nullable TextComponent append
     ) {
         this.sender        = sender;
         this.senderName    = senderName;
         this.messageString = messageString;
-        this.prefix        = prefix != null ? prefix : Component.text("");
+        this.prepend = prepend != null ? prepend : Component.text("");
         this.text          = text;
-        this.suffix        = suffix != null ? suffix : Component.text("");
+        this.append  = append != null ? append : Component.text("");
     }
 
     public TextComponent getFullText() {
         return Component.text()
-                .append(prefix)
+                .append(prepend)
                 .append(text)
-                .append(suffix)
+                .append(append)
                 .build();
     }
 

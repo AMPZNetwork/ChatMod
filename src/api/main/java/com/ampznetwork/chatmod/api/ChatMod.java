@@ -9,6 +9,7 @@ import com.ampznetwork.libmod.api.interop.game.IPlayerAdapter;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
 import org.comroid.api.Polyfill;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Set;
@@ -36,6 +37,14 @@ public interface ChatMod extends SubMod, ChatModCompatibilityLayerAdapter {
                 .map(Polyfill::<CompatibilityLayer<ChatMessagePacket>>uncheckedCast)
                 .orElseThrow();
     }
+
+    boolean isJoinLeaveEnabled();
+
+    Set<String> getJoinLeaveChannels();
+
+    @Nullable String getCustomJoinMessageFormat();
+
+    @Nullable String getCustomLeaveMessageFormat();
 
     @Override
     default TextColor getThemeColor() {

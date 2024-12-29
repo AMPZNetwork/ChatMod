@@ -32,6 +32,7 @@ import org.comroid.api.func.util.Command;
 import org.comroid.api.func.util.Debug;
 import org.comroid.api.io.FileHandle;
 import org.comroid.api.tree.Component;
+import org.comroid.api.tree.Reloadable;
 import org.comroid.api.tree.UncheckedCloseable;
 import org.jetbrains.annotations.Nullable;
 
@@ -132,8 +133,8 @@ public class DiscordBot extends Component.Base implements ChatModCompatibilityLa
     }
 
     @Override
-    public void send(String channelName, ChatMessage message) {
-        defaultCompatibilityLayer.send(new ChatMessagePacket(SOURCE, channelName, message));
+    public void relayOutbound(ChatMessagePacket packet) {
+        defaultCompatibilityLayer.send(packet);
     }
 
     @Override
@@ -159,7 +160,7 @@ public class DiscordBot extends Component.Base implements ChatModCompatibilityLa
     @Command
     @Alias("reconnect")
     public void reload() {
-        defaultCompatibilityLayer.reload();
+        child(CompatibilityLayer.class).ifPresent(Reloadable::reload);
     }
 
     public void relayOutbound(MessageReceivedEvent event) {
@@ -167,7 +168,7 @@ public class DiscordBot extends Component.Base implements ChatModCompatibilityLa
             return;
         config.getChannels().stream()
                 .filter(channel -> channel.getDiscordChannelId() == event.getChannel().getIdLong())
-                .forEach(channel -> send(channel.getGameChannelName(), convertMessage(event, channel)));
+                .forEach(channel -> sendChat(channel.getGameChannelName(), convertMessage(event, channel)));
     }
 
     private CompletableFuture<WebhookClient> obtainWebhook(Config.DiscordChannelMapping config, TextChannel channel) {

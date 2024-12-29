@@ -37,8 +37,7 @@ import static net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializ
 @Value
 @Builder
 public class ChatMessageFormatter implements MessageFormatter {
-    private static final String                                  message_placeholder      = "%message%";
-    private static final Map<@NotNull Character, NamedTextColor> McColorCodes             = Map.ofEntries(
+    private static final Map<@NotNull Character, NamedTextColor> McColorCodes            = Map.ofEntries(
             Map.entry('0', NamedTextColor.BLACK),
             Map.entry('1', NamedTextColor.DARK_BLUE),
             Map.entry('2', NamedTextColor.DARK_GREEN),
@@ -55,6 +54,9 @@ public class ChatMessageFormatter implements MessageFormatter {
             Map.entry('d', NamedTextColor.LIGHT_PURPLE),
             Map.entry('e', NamedTextColor.YELLOW),
             Map.entry('f', NamedTextColor.WHITE));
+    public static final  String                                  MESSAGE_PLACEHOLDER     = "%message%";
+    public static final  String                                  PLAYER_NAME_PLACEHOLDER = "%player_name%";
+    public static final  String                                  RESERVED_PLACEHOLDER    = "§reserved§";
     private static final Map<@NotNull Character, TextDecoration> McFormatCodes            = Map.of(
             'k', TextDecoration.OBFUSCATED,
             'l', TextDecoration.BOLD,
@@ -101,12 +103,12 @@ public class ChatMessageFormatter implements MessageFormatter {
         assert sender != null : "Outbound from Minecraft should always have a Sender";
 
         var format = mod.applyPlaceholders(sender.getId(), this.format);
-        var split = format.split(message_placeholder);
+        var split = format.split(MESSAGE_PLACEHOLDER);
 
-        chatMessage.setPrefix(legacyAmpersand().deserialize(split[0]));
+        chatMessage.setPrepend(legacyAmpersand().deserialize(split[0]));
         chatMessage.setText(convertMessage(mod, sender, chatMessage.getMessageString()));
         if (split.length > 1)
-            chatMessage.setSuffix(legacyAmpersand().deserialize(split[1]));
+            chatMessage.setAppend(legacyAmpersand().deserialize(split[1]));
     }
 
     private @NotNull TextComponent convertMessage(ChatMod mod, Player player, String message) {

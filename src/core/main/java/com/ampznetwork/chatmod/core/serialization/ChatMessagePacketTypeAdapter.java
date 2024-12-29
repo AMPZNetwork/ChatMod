@@ -3,6 +3,7 @@ package com.ampznetwork.chatmod.core.serialization;
 import com.ampznetwork.chatmod.api.ChatModCompatibilityLayerAdapter;
 import com.ampznetwork.chatmod.api.model.ChatMessage;
 import com.ampznetwork.chatmod.api.model.ChatMessagePacket;
+import com.ampznetwork.chatmod.api.model.MessageType;
 import com.ampznetwork.libmod.api.entity.Player;
 import com.google.gson.TypeAdapter;
 import com.google.gson.stream.JsonReader;
@@ -25,6 +26,7 @@ public class ChatMessagePacketTypeAdapter extends TypeAdapter<ChatMessagePacket>
         out.beginObject();
 
         // Serialize basic fields
+        out.name("type").value(packet.getType().name());
         out.name("source").value(packet.getSource());
         out.name("channel").value(packet.getChannel());
 
@@ -37,14 +39,18 @@ public class ChatMessagePacketTypeAdapter extends TypeAdapter<ChatMessagePacket>
 
     @Override
     public ChatMessagePacket read(JsonReader in) throws IOException {
-        String source  = null;
-        String channel = null;
+        MessageType type    = null;
+        String      source  = null;
+        String      channel = null;
         ChatMessage message = null;
 
         in.beginObject();
         while (in.hasNext()) {
             String name = in.nextName();
             switch (name) {
+                case "type":
+                    type = MessageType.valueOf(in.nextString());
+                    break;
                 case "source":
                     source = in.nextString();
                     break;
@@ -61,7 +67,7 @@ public class ChatMessagePacketTypeAdapter extends TypeAdapter<ChatMessagePacket>
         }
         in.endObject();
 
-        return new ChatMessagePacket(source, channel, message);
+        return new ChatMessagePacket(type, source, channel, message);
     }
 
     private void writeChatMessage(JsonWriter out, ChatMessage message) throws IOException {
@@ -77,9 +83,9 @@ public class ChatMessagePacketTypeAdapter extends TypeAdapter<ChatMessagePacket>
         // Serialize the TextComponent using GsonComponentSerializer
         //todo: should not be json in json, but gson is weird af
         //out.name("text").jsonValue(componentSerializer.serialize(message.getText()));
-        out.name("prefix").value(componentSerializer.serialize(message.getPrefix()));
+        out.name("prefix").value(componentSerializer.serialize(message.getPrepend()));
         out.name("text").value(componentSerializer.serialize(message.getText()));
-        out.name("suffix").value(componentSerializer.serialize(message.getSuffix()));
+        out.name("suffix").value(componentSerializer.serialize(message.getAppend()));
 
         out.endObject();
     }

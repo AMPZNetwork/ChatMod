@@ -1,8 +1,10 @@
 package com.ampznetwork.chatmod.api.model;
 
 import com.ampznetwork.chatmod.api.ChatModCompatibilityLayerAdapter;
-import org.comroid.api.func.util.Debug;
+import org.comroid.api.info.Log;
 import org.comroid.api.tree.Reloadable;
+
+import java.util.logging.Level;
 
 public interface CompatibilityLayer<P> extends Reloadable {
     ChatModCompatibilityLayerAdapter getMod();
@@ -42,11 +44,11 @@ public interface CompatibilityLayer<P> extends Reloadable {
     default void reload() {
         try {
             Reloadable.super.reload();
+            Log.at(Level.INFO, "Successfully reloaded " + getClass().getSimpleName());
         } catch (Throwable t) {
             // todo: proper LoggerAdapter of some sort
-            var string = "Failed to set up " + getClass().getSimpleName() + "; " + t + " - to retry, run command /chatmod:reconnect";
-            System.out.println(string);
-            Debug.log(string, t);
+            var string = "Failed to set up " + getClass().getSimpleName() + "; to retry, run command /chatmod:reconnect";
+            Log.at(Level.WARNING, string, t);
         }
     }
 }

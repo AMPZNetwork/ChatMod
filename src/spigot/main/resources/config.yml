@@ -30,6 +30,21 @@ channels:
   - staff:
       alias: s
       permission: chat.channel.staff
+# configure other chat events
+events:
+  # handles join/leave messages
+  join_leave:
+    enable: true
+    # list of channels to send join/leave messages to
+    # '*' is allowed and represents all channels
+    channels:
+      - '*'
+    # custom formats for join/leave messages
+    # set to blank '' for using default vanilla messages
+    # "%server_name%", "%player_name%" and "%message%" are special format strings that are always available
+    # otherwise there is optional PlaceholderAPI support
+    format_join: '&a%player_name%&a has joined %server_name%'
+    format_leave: '&c%player_name%&c has left %server_name%'
 # formatter configuration; these formatters are applied in configured order to each message's content
 formatting:
   # make URLs clickable todo: shouldn't this occur by default?
@@ -52,7 +67,8 @@ formatting:
     # requires BanMod: punishes occurrences with the given punishment expression
     punish-by: 'mute:5m'
   # changes the basic format of the message
-  # "%player_name%" and "%message%" are special format strings that will be formatted using vanilla methods
+  # "%server_name%", "%player_name%" and "%message%" are special format strings that are always available
+  # otherwise there is optional PlaceholderAPI support
   #scheme: "<%player_name%> %message%" # vanilla scheme
   scheme: "§7[%server_name%§7] §f%player_name%§f: %message%"
 # compatibility layers configuration

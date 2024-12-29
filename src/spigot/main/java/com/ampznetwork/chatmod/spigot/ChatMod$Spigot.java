@@ -2,7 +2,6 @@ package com.ampznetwork.chatmod.spigot;
 
 import com.ampznetwork.chatmod.api.ChatMod;
 import com.ampznetwork.chatmod.api.model.ChannelConfiguration;
-import com.ampznetwork.chatmod.api.model.ChatMessage;
 import com.ampznetwork.chatmod.api.model.ChatMessagePacket;
 import com.ampznetwork.chatmod.api.model.CompatibilityLayer;
 import com.ampznetwork.chatmod.core.ChatModCommands;
@@ -26,6 +25,7 @@ import org.bukkit.configuration.MemorySection;
 import org.comroid.api.Polyfill;
 import org.comroid.api.func.util.Command;
 import org.comroid.api.func.util.Streams;
+import org.comroid.api.info.Log;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -35,8 +35,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.logging.Level;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import static org.comroid.api.text.Word.*;
 
 @Getter
 @Slf4j(topic = ChatMod.Strings.AddonName)
@@ -47,7 +50,8 @@ public class ChatMod$Spigot extends SubMod$Spigot implements ChatMod {
         add(new AurionChatCompatibilityLayer(ChatMod$Spigot.this));
     }};
     @NonFinal           ChatMessageFormatter formatter;
-    @NonFinal @Nullable DiscordBot discordBot;
+    @NonFinal           Set<String> joinLeaveChannels;
+    @NonFinal @Nullable DiscordBot  discordBot;
     @NonFinal @Nullable boolean              hasPlaceholderApi;
 
     public ChatMod$Spigot() {
@@ -75,24 +79,23 @@ public class ChatMod$Spigot extends SubMod$Spigot implements ChatMod {
     }
 
     @Override
-    public void send(String channelName, ChatMessage message) {
-        var packet = new ChatMessagePacket(getSourceName(), channelName, message);
-        compatibilityLayers.stream()
-                .filter(CompatibilityLayer::isEnabled)
-                .forEach(layer -> layer.send(packet));
+    public boolean isJoinLeaveEnabled() {
+        return getConfig().getBoolean("events.join_leave.enable", false);
+    }
+
+    @Override
+    public @Nullable String getCustomJoinMessageFormat() {
+        return getConfig().getString("events.join_leave.format_join", null);
+    }
+
+    @Override
+    public @Nullable String getCustomLeaveMessageFormat() {
+        return getConfig().getString("events.join_leave.format_leave", null);
     }
 
     @Override
     public Class<?> getModuleType() {
         return ChatMod.class;
-    }
-
-    @Override
-    public String applyPlaceholders(UUID playerId, String input) {
-        var player = getServer().getOfflinePlayer(playerId);
-        return hasPlaceholderApi
-               ? PlaceholderAPI.setPlaceholders(player, input)
-               : ChatMod.super.applyPlaceholders(playerId, input);
     }
 
     @Override
@@ -106,9 +109,25 @@ public class ChatMod$Spigot extends SubMod$Spigot implements ChatMod {
                 .forEach(id -> lib.getPlayerAdapter().send(id, packet.getMessage().getFullText()));
     }
 
+    @Override
+    public String applyPlaceholders(UUID playerId, String input) {
+        var player = getServer().getOfflinePlayer(playerId);
+        return hasPlaceholderApi
+               ? PlaceholderAPI.setPlaceholders(player, input)
+               : ChatMod.super.applyPlaceholders(playerId, input);
+    }
+
+    @Override
+    public void relayOutbound(ChatMessagePacket packet) {
+        compatibilityLayers.stream()
+                .filter(CompatibilityLayer::isEnabled)
+                .forEach(layer -> layer.send(packet));
+    }
+
     @Command
     public @NotNull TextComponent reload() {
         reloadConfig();
+        var config = getConfig();
 
         // reload channel configuration
         channels.clear();
@@ -117,7 +136,7 @@ public class ChatMod$Spigot extends SubMod$Spigot implements ChatMod {
         // sync discord bot config
         if (discordBot != null) discordBot.close();
         compatibilityLayers.removeIf(DiscordBot.class::isInstance);
-        var token = getConfig().getString("discord_bot_token", null);
+        var token = config.getString("discord_bot_token", null);
         if (token != null && !token.isBlank() && !"none".equals(token)) {
             var botConfig = new Config(token, getMainRabbitUri(), channels.stream()
                     .flatMap(Streams.filter(channel -> channel.getDiscordChannelId() != null,
@@ -129,6 +148,8 @@ public class ChatMod$Spigot extends SubMod$Spigot implements ChatMod {
                     .collect(Collectors.toUnmodifiableSet()));
             discordBot = new DiscordBot(botConfig, getPlayerAdapter(), getDefaultCompatibilityLayer());
             compatibilityLayers.add(discordBot);
+            Log.at(Level.INFO, "Discord Bot module loaded and initialized with %s".formatted(
+                    plural("channel", "s", botConfig.getChannels().size())));
         }
 
         // rejoin current players
@@ -137,7 +158,22 @@ public class ChatMod$Spigot extends SubMod$Spigot implements ChatMod {
                 .map(DbObject::getId)
                 .forEach(mainChannel.getPlayerIDs()::add);
 
-        formatter = ChatMessageFormatter.of(Polyfill.<MemorySection>uncheckedCast(getConfig().get("formatting")).getValues(true));
+        this.formatter = ChatMessageFormatter.of(Polyfill.<MemorySection>uncheckedCast(config.get("formatting")).getValues(true));
+
+        var values = Stream.<String>empty();
+        var key    = "events.join_leave.channels";
+
+        if (config.isString(key))
+            values = Stream.ofNullable(config.getString(key, null));
+        if (config.isList(key))
+            values = config.getStringList(key).stream();
+
+        this.joinLeaveChannels = values
+                .flatMap(str -> "*".equals(str)
+                                ? getChannels().stream()
+                                        .map(ChannelConfiguration::getName)
+                                : Stream.of(str))
+                .collect(Collectors.toUnmodifiableSet());
 
         return Component.text("Reloading ChatMod configuration complete").color(NamedTextColor.GREEN);
     }

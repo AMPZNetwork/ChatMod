@@ -48,7 +48,7 @@ public class SpigotEventDispatch extends EventDispatchBase<ChatMod$Spigot> imple
         mod.getFormatter().accept(mod, message);
 
         if (mod.isListenerCompatibilityMode()) {
-            event.setFormat(legacySection().serialize(message.getPrefix()) + "%2$s" + legacySection().serialize(message.getSuffix()));
+            event.setFormat(legacySection().serialize(message.getPrepend()) + "%2$s" + legacySection().serialize(message.getAppend()));
             event.setMessage(legacySection().serialize(message.getText()));
         } else event.setCancelled(true);
         dispatch(message);

@@ -4,7 +4,8 @@ import lombok.Value;
 
 @Value
 public class ChatMessagePacket {
-    String source;
-    String channel;
+    MessageType type;
+    String      source;
+    String      channel;
     ChatMessage message;
 }
