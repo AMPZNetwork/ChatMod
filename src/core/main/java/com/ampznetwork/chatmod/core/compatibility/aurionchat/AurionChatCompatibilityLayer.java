@@ -61,7 +61,10 @@ public class AurionChatCompatibilityLayer extends RabbitMqCompatibilityLayer<Aur
                 .or(() -> player.map(AurionPlayer::getName)
                         .flatMap(mod.getPlayerAdapter()::getPlayer))
                 .orElseThrow(() -> new NoSuchElementException("Player not found for packet " + packet));
-        var message = new ChatMessage(sender, sender.getName(), packet.getDisplayString(), (TextComponent) packet.getComponent());
+        var message = new ChatMessage(sender,
+                mod.getPlayerAdapter().getDisplayName(sender.getId()),
+                packet.getDisplayString(),
+                (TextComponent) packet.getComponent());
         return new ChatMessagePacket(switch (packet.getType()) {
             case CHAT -> MessageType.CHAT;
             case AUTO_MESSAGE -> MessageType.CHAT;

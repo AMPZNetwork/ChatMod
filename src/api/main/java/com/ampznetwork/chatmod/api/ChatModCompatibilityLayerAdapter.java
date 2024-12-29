@@ -31,6 +31,6 @@ public interface ChatModCompatibilityLayerAdapter {
 
     default void sendEvent(String channelName, Player player, MessageType type, TextComponent text) {
         relayOutbound(new ChatMessagePacket(type, getSourceName(), channelName, new ChatMessage(player,
-                player.getName(), plainText().serialize(text), text)));
+                getPlayerAdapter().getDisplayName(player.getId()), plainText().serialize(text), text)));
     }
 }

@@ -26,7 +26,7 @@ public class ChannelConfiguration implements Named {
     @lombok.Builder.Default           Set<UUID> spyIDs            = new HashSet<>();
 
     public ChatMessage formatMessage(ChatMod mod, Player sender, String message) {
-        var msg = new ChatMessage(sender, sender.getName(), message, Component.text(message));
+        var msg = new ChatMessage(sender, mod.getPlayerAdapter().getDisplayName(sender.getId()), message, Component.text(message));
         mod.getFormatter().accept(mod, msg);
         return msg;
     }
