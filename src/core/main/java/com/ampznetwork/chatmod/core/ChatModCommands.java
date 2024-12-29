@@ -17,6 +17,7 @@ import static net.kyori.adventure.text.format.NamedTextColor.*;
 import static net.kyori.adventure.text.format.TextDecoration.*;
 
 public class ChatModCommands {
+    @Alias("sh")
     @Command(permission = chatmod.SHOUT)
     public static Component shout(
             ChatMod mod,
@@ -35,8 +36,8 @@ public class ChatModCommands {
                 }).orElseThrow(() -> new Command.Error("Could not shout to channel " + channelName));
     }
 
-    @Command
     @Alias("ch")
+    @Command(permission = chatmod.CHANNEL)
     public static class channel {
         @Command(permission = chatmod.channel.LIST)
         public static Component list(ChatMod mod, UUID playerId) {
