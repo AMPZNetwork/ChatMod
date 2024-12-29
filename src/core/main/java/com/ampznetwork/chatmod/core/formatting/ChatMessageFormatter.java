@@ -87,7 +87,7 @@ public class ChatMessageFormatter implements MessageFormatter {
         return builder.build();
     }
 
-    @lombok.Builder.Default String                format               = "§7[%server_name%§7] §f%player_name%§f: %message%";
+    @lombok.Builder.Default String format = "&7[%server_name%&7] &f%player_name%&f: %message%";
     @lombok.Builder.Default boolean               verbatimToObfuscated = false;
     @lombok.Builder.Default boolean               caseInsensitive      = DEFAULT_CASE_INSENSITIVE;
     @lombok.Builder.Default String                replace              = "***";

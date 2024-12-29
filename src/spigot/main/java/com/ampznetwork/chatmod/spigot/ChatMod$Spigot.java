@@ -82,6 +82,13 @@ public class ChatMod$Spigot extends SubMod$Spigot implements ChatMod {
     }
 
     @Override
+    public void relayOutbound(ChatMessagePacket packet) {
+        compatibilityLayers.stream()
+                .filter(CompatibilityLayer::isEnabled)
+                .forEach(layer -> layer.send(packet));
+    }
+
+    @Override
     public Class<?> getModuleType() {
         return ChatMod.class;
     }
@@ -89,20 +96,13 @@ public class ChatMod$Spigot extends SubMod$Spigot implements ChatMod {
     @Override
     public void relayInbound(ChatMessagePacket packet) {
         if (isListenerCompatibilityMode() && getSourceName().equals(packet.getSource())) return;
-        Log.get("Chat").info(packet.getMessage().getPlaintext());
+        Log.get("Chat #" + packet.getChannel()).info(packet.getMessage().getPlaintext());
         var targetChannel = packet.getChannel();
         channels.stream()
                 .filter(channel -> channel.getName().equals(targetChannel))
                 .flatMap(channel -> Stream.concat(channel.getPlayerIDs().stream(), channel.getSpyIDs().stream()))
                 .distinct()
                 .forEach(id -> lib.getPlayerAdapter().send(id, packet.getMessage().getFullText()));
-    }
-
-    @Override
-    public void relayOutbound(ChatMessagePacket packet) {
-        compatibilityLayers.stream()
-                .filter(CompatibilityLayer::isEnabled)
-                .forEach(layer -> layer.send(packet));
     }
 
     @Override
