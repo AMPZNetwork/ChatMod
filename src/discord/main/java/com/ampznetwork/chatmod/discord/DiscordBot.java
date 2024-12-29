@@ -7,6 +7,7 @@ import com.ampznetwork.chatmod.api.ChatModCompatibilityLayerAdapter;
 import com.ampznetwork.chatmod.api.model.ChatMessage;
 import com.ampznetwork.chatmod.api.model.ChatMessagePacket;
 import com.ampznetwork.chatmod.api.model.CompatibilityLayer;
+import com.ampznetwork.chatmod.api.model.MessageType;
 import com.ampznetwork.chatmod.core.compatibility.builtin.DefaultCompatibilityLayer;
 import com.ampznetwork.chatmod.discord.model.Config;
 import com.ampznetwork.libmod.api.entity.Player;
@@ -41,6 +42,7 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 import static net.kyori.adventure.text.Component.*;
+import static net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.*;
 
 @Value
 @EqualsAndHashCode(of = "config")
@@ -121,7 +123,7 @@ public class DiscordBot extends Component.Base implements ChatModCompatibilityLa
         var chatMessage = packet.getMessage();
         var sender      = chatMessage.getSender();
         var message = new WebhookMessageBuilder()
-                .setContent(chatMessage.getMessageString())
+                .setContent((packet.getType() == MessageType.CHAT ? "" : "> ") + plainText().serialize(chatMessage.getText()))
                 .setUsername(Optional.ofNullable(sender).map(Player::getName).orElseGet(chatMessage::getSenderName))
                 .setAvatarUrl(Optional.ofNullable(sender).map(Player::getHeadUrl).orElse(null))
                 .build();

@@ -84,6 +84,11 @@ public class ChatMod$Spigot extends SubMod$Spigot implements ChatMod {
     }
 
     @Override
+    public boolean isReplaceDefaultJoinLeaveMessages() {
+        return getConfig().getBoolean("events.join_leave.replace", false);
+    }
+
+    @Override
     public @Nullable String getCustomJoinMessageFormat() {
         return getConfig().getString("events.join_leave.format_join", null);
     }

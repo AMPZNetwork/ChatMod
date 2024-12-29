@@ -23,17 +23,17 @@ public class SpigotEventDispatch extends EventDispatchBase<ChatMod$Spigot> imple
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void dispatch(PlayerJoinEvent event) {
-        playerJoin(event.getPlayer().getUniqueId());
+        playerJoin(event.getPlayer().getUniqueId(), text -> event.setJoinMessage(legacySection().serialize(text)));
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void dispatch(PlayerQuitEvent event) {
-        playerLeave(event.getPlayer().getUniqueId());
+        playerLeave(event.getPlayer().getUniqueId(), text -> event.setQuitMessage(legacySection().serialize(text)));
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void dispatch(PlayerKickEvent event) {
-        playerLeave(event.getPlayer().getUniqueId());
+        playerLeave(event.getPlayer().getUniqueId(), text -> event.setLeaveMessage(legacySection().serialize(text)));
     }
 
     @EventHandler(priority = EventPriority.HIGH)

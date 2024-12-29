@@ -40,6 +40,8 @@ public interface ChatMod extends SubMod, ChatModCompatibilityLayerAdapter {
 
     boolean isJoinLeaveEnabled();
 
+    boolean isReplaceDefaultJoinLeaveMessages();
+
     Set<String> getJoinLeaveChannels();
 
     @Nullable String getCustomJoinMessageFormat();

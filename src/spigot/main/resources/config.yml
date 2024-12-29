@@ -1,6 +1,6 @@
 # basic configuration
 server:
-  name: §aMC
+  name: '&aMC'
 # rabbitmq configuration
 rabbitmq:
   uri: amqp://guest:guest@localhost:5672
@@ -34,7 +34,10 @@ channels:
 events:
   # handles join/leave messages
   join_leave:
+    # enable/disable handling
     enable: true
+    # when enabled, ChatMod replaces vanilla join/leave messages
+    replace: true
     # list of channels to send join/leave messages to
     # '*' is allowed and represents all channels
     channels:
@@ -70,7 +73,7 @@ formatting:
   # "%server_name%", "%player_name%" and "%message%" are special format strings that are always available
   # otherwise there is optional PlaceholderAPI support
   #scheme: "<%player_name%> %message%" # vanilla scheme
-  scheme: "§7[%server_name%§7] §f%player_name%§f: %message%"
+  scheme: "&7[%server_name%&7] &f%player_name%&f: %message%"
 # compatibility layers configuration
 compatibility:
   # enhanced listener compatibility mode
