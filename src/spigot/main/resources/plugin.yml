@@ -40,10 +40,10 @@ permissions:
     children:
       chatmod.reload:
         description: Permission for the /chatmod:reload command
-        default: false
+        default: op
       chatmod.reconnect:
         description: Permission for the /chatmod:reconnect command
-        default: false
+        default: op
       chatmod.shout:
         description: Permission for the /chatmod:shout command
         default: true
@@ -52,17 +52,25 @@ permissions:
         default: true
         children:
           chatmod.channel.list:
-            description: Permission for the /chatmod:channel command
+            description: Permission for the /chatmod:channel list command
             default: true
           chatmod.channel.info:
-            description: Permission for the /chatmod:channel command
+            description: Permission for the /chatmod:channel info command
             default: true
           chatmod.channel.join:
-            description: Permission for the /chatmod:channel command
+            description: Permission for the /chatmod:channel join command
             default: true
           chatmod.channel.spy:
-            description: Permission for the /chatmod:channel command
-            default: true
+            description: Permission for the /chatmod:channel spy command
+            default: op
+            children:
+              chatmod.channel.spy.auto:
+                description: Permission for automatic spying on channels
+                default: false
+                children:
+                  chatmod.channel.spy.auto.*:
+                    description: Permission for automatic spying on all channels
+                    default: op
       chatmod.format:
         description: Required for advanced formatting
         children:
@@ -77,4 +85,4 @@ permissions:
             default: true
           chatmod.format.hidden_links:
             description: Required for using hidden links
-            default: false
+            default: op
