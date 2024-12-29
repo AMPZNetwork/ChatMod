@@ -23,6 +23,7 @@ for configuring the bot that is bundled with the plugin, please see the plugin c
       supported placeholders:
       - %server_name% = name of the server where the message originates from
       - %channel_name% = name of the channel in which the message was sent
+      - %player_id% = uuid4 of a player
       - %player_name% = username of a player
       - %player_displayname% = displayname of a player
       - %message% = full message contents
@@ -38,8 +39,7 @@ for configuring the bot that is bundled with the plugin, please see the plugin c
         // format for webhook message content
         webhookMessage: "%message%",
         // if you want to use a custom service to provide user avatars, configure the avatar url format here
-        // - note: placeholders must use double % for this setting
-        webhookAvatar: "https://mc-heads.net/avatar/%%player_name%%",
+        webhookAvatar: "https://mc-heads.net/avatar/%player_name%"
       }
     }
   ]

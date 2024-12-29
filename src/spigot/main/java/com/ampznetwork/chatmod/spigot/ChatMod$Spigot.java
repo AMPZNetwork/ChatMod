@@ -9,7 +9,8 @@ import com.ampznetwork.chatmod.core.compatibility.aurionchat.AurionChatCompatibi
 import com.ampznetwork.chatmod.core.compatibility.builtin.DefaultCompatibilityLayer;
 import com.ampznetwork.chatmod.core.formatting.ChatMessageFormatter;
 import com.ampznetwork.chatmod.discord.DiscordBot;
-import com.ampznetwork.chatmod.discord.model.Config;
+import com.ampznetwork.chatmod.discord.config.Config;
+import com.ampznetwork.chatmod.discord.config.DiscordChannelMapping;
 import com.ampznetwork.chatmod.generated.PluginYml;
 import com.ampznetwork.chatmod.spigot.adp.SpigotEventDispatch;
 import com.ampznetwork.libmod.api.entity.DbObject;
@@ -148,8 +149,8 @@ public class ChatMod$Spigot extends SubMod$Spigot implements ChatMod {
                             channel -> getLogger().warning(
                                     "Cannot load discord integration for channel '%s' because it has no Discord Channel ID configured"
                                             .formatted(channel.getName()))))
-                    .map(channel -> new Config.DiscordChannelMapping(channel.getName(),
-                            channel.getDiscordChannelId(), channel.getDiscordWebhookUrl(), channel.getDiscordInviteUrl()))
+                    .map(channel -> new DiscordChannelMapping(channel.getName(),
+                            channel.getDiscordChannelId(), channel.getDiscordWebhookUrl(), channel.getDiscordInviteUrl(), null/*todo*/))
                     .collect(Collectors.toUnmodifiableSet()));
             discordBot = new DiscordBot(botConfig, getPlayerAdapter(), getDefaultCompatibilityLayer());
             compatibilityLayers.add(discordBot);

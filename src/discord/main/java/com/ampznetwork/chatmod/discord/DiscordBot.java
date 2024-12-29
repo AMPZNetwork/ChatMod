@@ -7,10 +7,9 @@ import com.ampznetwork.chatmod.api.ChatModCompatibilityLayerAdapter;
 import com.ampznetwork.chatmod.api.model.ChatMessage;
 import com.ampznetwork.chatmod.api.model.ChatMessagePacket;
 import com.ampznetwork.chatmod.api.model.CompatibilityLayer;
-import com.ampznetwork.chatmod.api.model.MessageType;
 import com.ampznetwork.chatmod.core.compatibility.builtin.DefaultCompatibilityLayer;
-import com.ampznetwork.chatmod.discord.model.Config;
-import com.ampznetwork.libmod.api.entity.Player;
+import com.ampznetwork.chatmod.discord.config.Config;
+import com.ampznetwork.chatmod.discord.config.DiscordChannelMapping;
 import com.ampznetwork.libmod.api.interop.game.PlayerIdentifierAdapter;
 import com.ampznetwork.libmod.core.adapter.HeadlessPlayerAdapter;
 import com.fasterxml.jackson.core.JsonFactory;
@@ -34,30 +33,51 @@ import net.kyori.adventure.text.format.TextColor;
 import org.comroid.annotations.Alias;
 import org.comroid.api.func.util.Command;
 import org.comroid.api.func.util.Debug;
+import org.comroid.api.func.util.Tuple;
 import org.comroid.api.info.Log;
 import org.comroid.api.io.FileHandle;
 import org.comroid.api.tree.Component;
 import org.comroid.api.tree.Reloadable;
 import org.comroid.api.tree.UncheckedCloseable;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.InputStreamReader;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Function;
 import java.util.logging.Level;
+import java.util.regex.Pattern;
 
 import static net.kyori.adventure.text.Component.*;
+import static net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.*;
 import static net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.*;
 
 @Value
 @EqualsAndHashCode(of = "config")
 public class DiscordBot extends Component.Base implements ChatModCompatibilityLayerAdapter, CompatibilityLayer<ChatMessagePacket> {
-    public static final FileHandle DIR          = new FileHandle("/srv/chatmod", true);
-    public static final FileHandle CONFIG = DIR.createSubFile("config.json5");
-    public static final String     WEBHOOK_NAME = "Minecraft Chat Link";
-    public static final String     SOURCE       = "discord";
-    public static       DiscordBot INSTANCE;
+    private static final Map<String, Function<ChatMessagePacket, @NotNull String>> PLACEHOLDERS = Map.of(
+            "server_name", pkt -> plainText().serialize(legacyAmpersand().deserialize(pkt.getSource())),
+            "channel_name", ChatMessagePacket::getChannel,
+            "player_id", pkt -> {
+                var player = pkt.getMessage().getSender();
+                return player == null ? "" : player.getId().toString();
+            },
+            "player_name", pkt -> {
+                var player = pkt.getMessage().getSender();
+                return player == null ? pkt.getMessage().getSenderName() : player.getName();
+            },
+            "player_displayname", pkt -> pkt.getMessage().getSenderName(),
+            "message", pkt -> plainText().serialize(pkt.getMessage().getText())
+    );
+    public static final  Pattern                                                   PLACEHOLDER  = Pattern.compile("%(?<key>[a-zA-Z0-9_]+)%");
+    public static final  FileHandle                                                DIR          = new FileHandle("/srv/chatmod", true);
+    public static final  FileHandle                                                CONFIG       = DIR.createSubFile("config.json5");
+    public static final  String                                                    WEBHOOK_NAME = "Minecraft Chat Link";
+    public static final  String                                                    SOURCE       = "discord";
+    public static        DiscordBot                                                INSTANCE;
 
     @SneakyThrows
     public static void main(String[] args) {
@@ -145,18 +165,22 @@ public class DiscordBot extends Component.Base implements ChatModCompatibilityLa
     @Override
     public void relayInbound(ChatMessagePacket packet) {
         if (SOURCE.equals(packet.getSource())) return;
-        var chatMessage = packet.getMessage();
-        var sender      = chatMessage.getSender();
-        var message = new WebhookMessageBuilder()
-                .setContent((packet.getType() == MessageType.CHAT ? "" : "> ") + plainText().serialize(chatMessage.getText()))
-                .setUsername(Optional.ofNullable(sender).map(Player::getName).orElseGet(chatMessage::getSenderName))
-                .setAvatarUrl(Optional.ofNullable(sender).map(Player::getHeadUrl).orElse(null))
-                .build();
         config.getChannels().stream()
-                .filter(mapping -> Objects.equals(packet.getChannel(), mapping.getGameChannelName()))
-                .map(mapping -> obtainWebhook(mapping, jda.getTextChannelById(mapping.getDiscordChannelId())))
-                .forEach(webhook -> webhook.thenCompose(wh -> wh.send(message))
-                        .exceptionally(Debug.exceptionLogger("Could not send Message using Webhook")));
+                .filter(channel -> Objects.equals(packet.getChannel(), channel.getGameChannelName()))
+                .forEach(channel -> {
+                    var message = new WebhookMessageBuilder()
+                            .setUsername(applyPlaceholders(channel.getFormat().getWebhookUsername(), packet))
+                            .setContent(applyPlaceholders(channel.getFormat().getWebhookMessage(), packet, switch (packet.getType()) {
+                                case CHAT -> plainText().serialize(packet.getMessage().getText());
+                                case JOIN -> applyPlaceholders(channel.getFormat().getDiscordJoinMessage(), packet);
+                                case LEAVE -> applyPlaceholders(channel.getFormat().getDiscordLeaveMessage(), packet);
+                            }))
+                            .setAvatarUrl(applyPlaceholders(channel.getFormat().getWebhookAvatar(), packet))
+                            .build();
+                    obtainWebhook(channel, jda.getTextChannelById(channel.getDiscordChannelId()))
+                            .thenCompose(wh -> wh.send(message))
+                            .exceptionally(Debug.exceptionLogger("Could not send Message using Webhook"));
+                });
     }
 
     @Override
@@ -184,6 +208,35 @@ public class DiscordBot extends Component.Base implements ChatModCompatibilityLa
         relayInbound(packet);
     }
 
+    private String applyPlaceholders(String format, ChatMessagePacket packet) {
+        return applyPlaceholders(format, packet, null);
+    }
+
+    private String applyPlaceholders(String format, ChatMessagePacket packet, @Nullable String message) {
+        var placeholders = PLACEHOLDERS.entrySet().stream()
+                .map(Tuple.N2::new)
+                .map(e -> !"message".equals(e.a) ? e : new Tuple.N2<String, Function<ChatMessagePacket, @NotNull String>>(e.a,
+                        pkt -> Objects.requireNonNullElseGet(message, () -> e.b.apply(pkt))))
+                .collect(Tuple.N2.toMap());
+        var matcher = PLACEHOLDER.matcher(format);
+        var buf     = new StringBuilder();
+        var lastEnd = 0;
+
+        while (matcher.find()) {
+            var value = placeholders.get(matcher.group("key")).apply(packet);
+            buf.append(format, lastEnd, matcher.start())
+                    .append(value);
+            lastEnd = matcher.end();
+        }
+
+        // if had no placeholders; use plain string
+        if (buf.isEmpty())
+            buf.append(format);
+        else buf.append(format, lastEnd, format.length());
+
+        return buf.toString();
+    }
+
     @Command
     @Alias("reconnect")
     public void reload() {
@@ -198,7 +251,7 @@ public class DiscordBot extends Component.Base implements ChatModCompatibilityLa
                 .forEach(channel -> sendChat(channel.getGameChannelName(), convertMessage(event, channel)));
     }
 
-    private CompletableFuture<WebhookClient> obtainWebhook(Config.DiscordChannelMapping config, TextChannel channel) {
+    private CompletableFuture<WebhookClient> obtainWebhook(DiscordChannelMapping config, TextChannel channel) {
         //noinspection DataFlowIssue -> we want the exception here for .exceptionallyCompose()
         return CompletableFuture.supplyAsync(() -> WebhookClient.withUrl(config.getDiscordWebhookUrl()))
                 .exceptionallyCompose(
@@ -212,7 +265,7 @@ public class DiscordBot extends Component.Base implements ChatModCompatibilityLa
                 .exceptionally(Debug.exceptionLogger("Internal Exception when obtaining Webhook"));
     }
 
-    private ChatMessage convertMessage(MessageReceivedEvent event, Config.DiscordChannelMapping channel) {
+    private ChatMessage convertMessage(MessageReceivedEvent event, DiscordChannelMapping channel) {
         var discord = text("DISCORD ", TextColor.color(86, 98, 246));
         var inviteUrl = channel.getDiscordInviteUrl();
         if (inviteUrl != null)
