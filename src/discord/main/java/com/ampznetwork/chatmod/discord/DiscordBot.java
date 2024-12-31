@@ -73,14 +73,17 @@ public class DiscordBot extends Component.Base implements ChatModCompatibilityLa
             "message", pkt -> plainText().serialize(pkt.getMessage().getText())
     );
     public static final  Pattern                                                   PLACEHOLDER  = Pattern.compile("%(?<key>[a-zA-Z0-9_]+)%");
-    public static final  FileHandle                                                DIR          = new FileHandle("/srv/chatmod", true);
-    public static final  FileHandle                                                CONFIG       = DIR.createSubFile("config.json5");
     public static final  String                                                    WEBHOOK_NAME = "Minecraft Chat Link";
     public static final  String                                                    SOURCE       = "discord";
+    public static FileHandle DIR;
+    public static FileHandle CONFIG;
     public static        DiscordBot                                                INSTANCE;
 
     @SneakyThrows
     public static void main(String[] args) {
+        DIR    = new FileHandle("/srv/chatmod", true);
+        CONFIG = DIR.createSubFile("config.json5");
+
         if (!CONFIG.exists())
             try (
                     var res = DiscordBot.class.getClassLoader().getResourceAsStream("config.json5");
