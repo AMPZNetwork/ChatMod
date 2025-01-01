@@ -1,4 +1,4 @@
-project(':ChatMod:AurionChatApi') {
+project(':ChatMod:AurionChat:api') {
     it.ext {
         apiVersion = 'SNAPSHOT'
     }
@@ -8,6 +8,6 @@ project(':ChatMod:AurionChatApi') {
 evaluationDependsOnChildren()
 
 subprojects { p ->
-    if (p.name != 'AurionChatApi')
-        p.dependencies.compileOnly project(':ChatMod:AurionChatApi')
+    if (!p.path.endsWith('AurionChat:api'))
+        p.dependencies.compileOnly project(':ChatMod:AurionChat:api')
 }
