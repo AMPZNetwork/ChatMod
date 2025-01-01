@@ -3,6 +3,7 @@ package com.ampznetwork.chatmod.core.compatibility.builtin;
 import com.ampznetwork.chatmod.api.ChatModCompatibilityLayerAdapter;
 import com.ampznetwork.chatmod.api.model.ChatMessagePacket;
 import com.ampznetwork.chatmod.core.compatibility.RabbitMqCompatibilityLayer;
+import com.ampznetwork.chatmod.core.compatibility.aurionchat.AurionChatCompatibilityLayer;
 import lombok.Value;
 import org.comroid.api.ByteConverter;
 
@@ -23,6 +24,11 @@ public class DefaultCompatibilityLayer extends RabbitMqCompatibilityLayer<ChatMe
     }
 
     @Override
+    public boolean isEnabled() {
+        return true;
+    }
+
+    @Override
     public ByteConverter<ChatMessagePacket> createByteConverter() {
         return new ChatMessagePacketByteConverter(mod);
     }
@@ -40,5 +46,18 @@ public class DefaultCompatibilityLayer extends RabbitMqCompatibilityLayer<ChatMe
     @Override
     public ChatMessagePacket convertToNativePacket(ChatMessagePacket packet) {
         return packet;
+    }
+
+    @Override
+    public void handle(ChatMessagePacket packet) {
+        if (!isEnabled() || skip(packet)) return;
+        var convert = convertToChatModPacket(packet);
+        if (getMod().skip(convert)) return;
+
+        // relay for other servers
+        child(AurionChatCompatibilityLayer.class)
+                .filter(AurionChatCompatibilityLayer::isEnabled)
+                .ifPresent(layer -> layer.send(convert));
+        getMod().relayInbound(convert);
     }
 }

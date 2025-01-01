@@ -183,6 +183,9 @@ public class ChatMod$Spigot extends SubMod$Spigot implements ChatMod {
             Log.at(Level.INFO, "Discord Bot module loaded and initialized with %s".formatted(plural("channel", "s", botConfig.getChannels().size())));
         }
 
+//        if (compatibilityLayers.stream().noneMatch(AurionChatCompatibilityLayer.class::isInstance))
+//            compatibilityLayers.add(new AurionChatCompatibilityLayer(this));
+
         // rejoin current players
         var mainChannel = channels.getFirst();
         getLib().getPlayerAdapter().getCurrentPlayers().map(DbObject::getId).forEach(mainChannel.getPlayerIDs()::add);

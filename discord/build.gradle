@@ -18,6 +18,7 @@ dependencies {
     implementation 'club.minnced:discord-webhooks:+'
     implementation 'com.rabbitmq:amqp-client:+'
     implementation 'com.kcthota:emoji4j:+'
+    implementation "ch.qos.logback:logback-classic:1.5.6"
 }
 
 tasks.register('simplifyArtifactName', Copy).configure {

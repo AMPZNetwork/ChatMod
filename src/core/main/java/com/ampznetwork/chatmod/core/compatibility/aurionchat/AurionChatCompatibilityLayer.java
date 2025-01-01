@@ -38,13 +38,13 @@ public class AurionChatCompatibilityLayer extends RabbitMqCompatibilityLayer<Aur
     }
 
     @Override
-    public ByteConverter<AurionPacket> createByteConverter() {
-        return new AurionPacketByteConverter();
+    public boolean isEnabled() {
+        return !"none".equalsIgnoreCase(getUri());
     }
 
     @Override
-    public boolean isEnabled() {
-        return !"none".equalsIgnoreCase(getUri());
+    public ByteConverter<AurionPacket> createByteConverter() {
+        return new AurionPacketByteConverter();
     }
 
     @Override
@@ -66,8 +66,7 @@ public class AurionChatCompatibilityLayer extends RabbitMqCompatibilityLayer<Aur
                 packet.getDisplayString(),
                 (TextComponent) packet.getComponent());
         return new ChatMessagePacket(switch (packet.getType()) {
-            case CHAT -> MessageType.CHAT;
-            case AUTO_MESSAGE -> MessageType.CHAT;
+            case CHAT, AUTO_MESSAGE -> MessageType.CHAT;
             case EVENT_JOIN -> MessageType.JOIN;
             default -> throw new UnsupportedOperationException("Unsupported packet type: " + packet.getType());
         }, packet.getSource(), packet.getChannel(), message);
@@ -80,6 +79,17 @@ public class AurionChatCompatibilityLayer extends RabbitMqCompatibilityLayer<Aur
         var player = new AurionPlayer(sender.getId(), sender.getName(), null, null);
         return new AurionPacket(AurionPacket.Type.CHAT, packet.getSource(), player, packet.getChannel(),
                 mod.getPlayerAdapter().getPlayer(sender.getId()).map(Player::getName).orElseThrow(),
-                GsonComponentSerializer.gson().serialize(packet.getMessage().getText()));
+                GsonComponentSerializer.gson().serialize(packet.getMessage().getFullText()));
+    }
+
+    @Override
+    public void handle(AurionPacket packet) {
+        if (!isEnabled() || skip(packet)) return;
+        var convert = convertToChatModPacket(packet);
+        if (getMod().skip(convert)) return;
+
+        // relay for other servers
+        getMod().relayOutbound(convert);
+        getMod().relayInbound(convert);
     }
 }

@@ -22,7 +22,6 @@ public abstract class RabbitMqCompatibilityLayer<P> extends Component.Base imple
     protected ChatModCompatibilityLayerAdapter mod;
     @NonFinal Rabbit                   rabbit  = null;
     @NonFinal Rabbit.Exchange.Route<P> route   = null;
-    @NonFinal boolean                  started = false;
 
     protected abstract String getUri();
 
@@ -37,12 +36,9 @@ public abstract class RabbitMqCompatibilityLayer<P> extends Component.Base imple
         if (route != null) route.send(packet);
     }
 
-    protected abstract ByteConverter<P> createByteConverter();
-
     @Override
     public final void start() {
-        if (!isEnabled() || started) return;
-        started = true;
+        if (!isEnabled() || (route != null && route.isActive())) return;
 
         this.rabbit = Optional.ofNullable(getUri())
                 .flatMap(uri -> "inherit".equalsIgnoreCase(uri)
@@ -58,8 +54,8 @@ public abstract class RabbitMqCompatibilityLayer<P> extends Component.Base imple
             addChild(route.listen().subscribeData(this::handle));
     }
 
+    protected abstract ByteConverter<P> createByteConverter();
+
     @Override
-    public void closeSelf() {
-        started = false;
-    }
+    public abstract boolean isEnabled();
 }
