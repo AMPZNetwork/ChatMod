@@ -1,0 +1,14 @@
+{
+  discordToken: '@/srv/cred/discord/mc-server-integration.txt',
+  rabbitMqUri: 'amqp://guest:guest@localhost:5672',
+  channels: [
+    {
+      channelName: 'global',
+      channelId: 1134168099164270693,
+    },
+    {
+      channelName: 'staff',
+      channelId: 1134168086346485870,
+    }
+  ]
+}

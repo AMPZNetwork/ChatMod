@@ -33,9 +33,11 @@ import net.kyori.adventure.text.format.TextColor;
 import org.comroid.annotations.Alias;
 import org.comroid.api.func.util.Command;
 import org.comroid.api.func.util.Debug;
+import org.comroid.api.func.util.DelegateStream;
 import org.comroid.api.func.util.Tuple;
 import org.comroid.api.info.Log;
 import org.comroid.api.io.FileHandle;
+import org.comroid.api.java.ResourceLoader;
 import org.comroid.api.tree.Component;
 import org.comroid.api.tree.Reloadable;
 import org.comroid.api.tree.UncheckedCloseable;
@@ -132,7 +134,8 @@ public class DiscordBot extends Component.Base implements ChatModCompatibilityLa
             this.defaultCompatibilityLayer = new DefaultCompatibilityLayer(this);
             addChildren(defaultCompatibilityLayer);
         }
-        this.jda  = JDABuilder.createLight(config.getDiscordToken())
+        var tokenResource = ResourceLoader.fromResourceString(config.getDiscordToken());
+        this.jda = JDABuilder.createLight(DelegateStream.readAll(tokenResource))
                 .enableIntents(GatewayIntent.getIntents(GatewayIntent.ALL_INTENTS))
                 .addEventListeners((EventListener) event -> {
                     if (event instanceof MessageReceivedEvent mre)
