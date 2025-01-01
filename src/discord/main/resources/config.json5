@@ -7,6 +7,8 @@ for configuring the bot that is bundled with the plugin, please see the plugin c
   discordToken: '<insert token>',
   // authenticated uri for RabbitMQ
   rabbitMqUri: '<insert uri>',
+  // automatic reconnection base delay in seconds, set to -1 or remove entirely to disable
+  autoReconnectDelay: 5,
   // discord channel configuration
   channels: [
     {

@@ -1,6 +1,7 @@
 {
   discordToken: '@/srv/cred/discord/mc-server-integration.txt',
   rabbitMqUri: 'amqp://guest:guest@localhost:5672',
+  autoReconnectDelay: 5,
   channels: [
     {
       channelName: 'global',

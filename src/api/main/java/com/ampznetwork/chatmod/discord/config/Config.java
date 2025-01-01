@@ -8,5 +8,6 @@ import java.util.Set;
 public class Config {
     String                    discordToken;
     String                    rabbitMqUri;
+    int autoReconnectDelay;
     Set<DiscordChannelConfig> channels;
 }

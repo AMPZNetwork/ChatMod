@@ -30,7 +30,6 @@ import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
-import org.comroid.annotations.Alias;
 import org.comroid.api.func.util.Command;
 import org.comroid.api.func.util.Debug;
 import org.comroid.api.func.util.DelegateStream;
@@ -43,6 +42,7 @@ import org.comroid.api.tree.Reloadable;
 import org.comroid.api.tree.UncheckedCloseable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.Range;
 
 import java.io.InputStreamReader;
 import java.util.Map;
@@ -169,6 +169,11 @@ public class DiscordBot extends Component.Base implements ChatModCompatibilityLa
     }
 
     @Override
+    public @Range(from = -1, to = Integer.MAX_VALUE) int getAutoReconnectDelaySeconds() {
+        return config.getAutoReconnectDelay();
+    }
+
+    @Override
     public void relayInbound(ChatMessagePacket packet) {
         if (SOURCE.equals(packet.getSource())) return;
         config.getChannels().stream()
@@ -249,7 +254,7 @@ public class DiscordBot extends Component.Base implements ChatModCompatibilityLa
     }
 
     @Command
-    @Alias("reconnect")
+    @Override
     public void reload() {
         child(CompatibilityLayer.class).ifPresent(Reloadable::reload);
     }

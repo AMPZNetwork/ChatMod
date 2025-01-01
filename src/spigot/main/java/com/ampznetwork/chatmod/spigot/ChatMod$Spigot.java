@@ -12,7 +12,6 @@ import com.ampznetwork.chatmod.discord.DiscordBot;
 import com.ampznetwork.chatmod.discord.config.Config;
 import com.ampznetwork.chatmod.discord.config.DiscordChannelConfig;
 import com.ampznetwork.chatmod.discord.config.Formats;
-import com.ampznetwork.chatmod.generated.PluginYml;
 import com.ampznetwork.chatmod.spigot.adp.SpigotEventDispatch;
 import com.ampznetwork.libmod.api.entity.DbObject;
 import com.ampznetwork.libmod.spigot.SubMod$Spigot;
@@ -30,6 +29,7 @@ import org.comroid.api.func.util.Tuple;
 import org.comroid.api.info.Log;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.Range;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -77,6 +77,11 @@ public class ChatMod$Spigot extends SubMod$Spigot implements ChatMod {
     }
 
     @Override
+    public @Range(from = -1, to = Integer.MAX_VALUE) int getAutoReconnectDelaySeconds() {
+        return getConfig().getInt("auto-reconnect-delay", -1);
+    }
+
+    @Override
     public void relayInbound(ChatMessagePacket packet) {
         if (isListenerCompatibilityMode() && getSourceName().equals(packet.getSource())) return;
         Log.get("Chat #" + packet.getChannel()).info(packet.getMessage().getPlaintext());
@@ -89,24 +94,23 @@ public class ChatMod$Spigot extends SubMod$Spigot implements ChatMod {
     }
 
     @Override
+    public void relayOutbound(ChatMessagePacket packet) {
+        compatibilityLayers.stream().filter(CompatibilityLayer::isEnabled).forEach(layer -> layer.send(packet));
+    }
+
+    @Override
+    public boolean skip(ChatMessagePacket packet) {
+        return isListenerCompatibilityMode() && getSourceName().equals(packet.getSource());
+    }
+
+    @Override
     public boolean isListenerCompatibilityMode() {
         return getConfig().getBoolean("compatibility.listeners", false);
     }
 
     @Override
-    public String applyPlaceholders(UUID playerId, String input) {
-        var player = getServer().getOfflinePlayer(playerId);
-        return hasPlaceholderApi ? PlaceholderAPI.setPlaceholders(player, input) : ChatMod.super.applyPlaceholders(playerId, input);
-    }
-
-    @Override
-    public Class<?> getModuleType() {
-        return ChatMod.class;
-    }
-
-    @Override
     public boolean isJoinLeaveEnabled() {
-        return getConfig().getBoolean("events.join_leave.enable", false);
+        return getConfig().getBoolean("events.join_leave.enable", true);
     }
 
     @Override
@@ -125,13 +129,14 @@ public class ChatMod$Spigot extends SubMod$Spigot implements ChatMod {
     }
 
     @Override
-    public void relayOutbound(ChatMessagePacket packet) {
-        compatibilityLayers.stream().filter(CompatibilityLayer::isEnabled).forEach(layer -> layer.send(packet));
+    public String applyPlaceholders(UUID playerId, String input) {
+        var player = getServer().getOfflinePlayer(playerId);
+        return hasPlaceholderApi ? PlaceholderAPI.setPlaceholders(player, input) : ChatMod.super.applyPlaceholders(playerId, input);
     }
 
     @Override
-    public boolean skip(ChatMessagePacket packet) {
-        return isListenerCompatibilityMode() && getSourceName().equals(packet.getSource());
+    public Class<?> getModuleType() {
+        return ChatMod.class;
     }
 
     @Override
@@ -140,7 +145,6 @@ public class ChatMod$Spigot extends SubMod$Spigot implements ChatMod {
         cmdr.register(this);
 
         super.onLoad();
-        reload();
 
         hasPlaceholderApi = getServer().getPluginManager().getPlugin("PlaceholderAPI") != null;
     }
@@ -149,13 +153,7 @@ public class ChatMod$Spigot extends SubMod$Spigot implements ChatMod {
     public void onEnable() {
         super.onEnable();
         getServer().getPluginManager().registerEvents(new SpigotEventDispatch(this), this);
-        reconnect();
-    }
-
-    @Command(permission = PluginYml.Permission.chatmod.RECONNECT)
-    public @NotNull TextComponent reconnect() {
-        compatibilityLayers.forEach(CompatibilityLayer::reload);
-        return Component.text("Successfully reconnected").color(NamedTextColor.GREEN);
+        reload();
     }
 
     @Command
@@ -172,8 +170,7 @@ public class ChatMod$Spigot extends SubMod$Spigot implements ChatMod {
         compatibilityLayers.removeIf(DiscordBot.class::isInstance);
         var token = config.getString("discord_bot_token", null);
         if (token != null && !token.isBlank() && !"none".equals(token)) {
-            var botConfig = new Config(token,
-                    getMainRabbitUri(),
+            var botConfig = new Config(token, getMainRabbitUri(), getAutoReconnectDelaySeconds(),
                     channels.stream()
                             .flatMap(cfg -> Stream.ofNullable(cfg.getDiscord()).map(dc -> new Tuple.N2<>(cfg.getName(), dc)))
                             .flatMap(filter(e -> e.b.getChannelId() != null,
@@ -194,14 +191,14 @@ public class ChatMod$Spigot extends SubMod$Spigot implements ChatMod {
 
         var values = Stream.<String>empty();
         var key    = "events.join_leave.channels";
-
         if (config.isString(key)) values = Stream.ofNullable(config.getString(key, null));
         if (config.isList(key)) values = config.getStringList(key).stream();
-
         this.joinLeaveChannels = values.flatMap(str -> "*".equals(str) ? getChannels().stream().map(ChannelConfiguration::getName) : Stream.of(str))
                 .collect(Collectors.toUnmodifiableSet());
 
-        return Component.text("Reloading ChatMod configuration complete").color(NamedTextColor.GREEN);
+        compatibilityLayers.forEach(CompatibilityLayer::reload);
+
+        return Component.text("Successfully reloaded ChatMod configurations").color(NamedTextColor.GREEN);
     }
 
     private void loadChannels() {

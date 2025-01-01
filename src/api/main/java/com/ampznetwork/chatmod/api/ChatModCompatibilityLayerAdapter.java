@@ -7,6 +7,7 @@ import com.ampznetwork.chatmod.api.model.MessageType;
 import com.ampznetwork.libmod.api.entity.Player;
 import com.ampznetwork.libmod.api.interop.game.PlayerIdentifierAdapter;
 import net.kyori.adventure.text.TextComponent;
+import org.jetbrains.annotations.Range;
 
 import static net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.*;
 
@@ -18,6 +19,9 @@ public interface ChatModCompatibilityLayerAdapter {
     String getMainRabbitUri();
 
     String getAurionChatRabbitUri();
+
+    @Range(from = -1, to = Integer.MAX_VALUE)
+    int getAutoReconnectDelaySeconds();
 
     CompatibilityLayer<ChatMessagePacket> getDefaultCompatibilityLayer();
 

@@ -6,6 +6,9 @@ server:
 rabbitmq:
   uri: amqp://guest:guest@localhost:5672
 
+# automatic reconnection base delay in seconds, set to -1 or remove entirely to disable
+auto-reconnect-delay: 5
+
 # insert token to enable to builtin discord bot to also mirror chat to a discord channel
 # this is only required once per network! the bot can be hosted standalone
 discord_bot_token: 'token'
