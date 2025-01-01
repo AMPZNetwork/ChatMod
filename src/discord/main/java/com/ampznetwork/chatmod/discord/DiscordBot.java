@@ -10,6 +10,7 @@ import com.ampznetwork.chatmod.api.model.CompatibilityLayer;
 import com.ampznetwork.chatmod.core.compatibility.builtin.DefaultCompatibilityLayer;
 import com.ampznetwork.chatmod.discord.config.Config;
 import com.ampznetwork.chatmod.discord.config.DiscordChannelConfig;
+import com.ampznetwork.libmod.api.interop.game.IPlayerAdapter;
 import com.ampznetwork.libmod.api.interop.game.PlayerIdentifierAdapter;
 import com.ampznetwork.libmod.core.adapter.HeadlessPlayerAdapter;
 import com.fasterxml.jackson.core.JsonFactory;
@@ -175,6 +176,8 @@ public class DiscordBot extends Component.Base implements ChatModCompatibilityLa
 
     @Override
     public void relayInbound(ChatMessagePacket packet) {
+        if (this.playerAdapter instanceof IPlayerAdapter)
+            Log.get("Chat").info(packet.getMessage().getPlaintext());
         if (SOURCE.equals(packet.getSource())) return;
         config.getChannels().stream()
                 .filter(channel -> Objects.equals(packet.getChannel(), channel.getChannelName()))
