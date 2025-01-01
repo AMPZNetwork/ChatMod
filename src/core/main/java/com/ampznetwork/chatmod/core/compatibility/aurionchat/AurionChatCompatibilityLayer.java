@@ -15,7 +15,6 @@ import org.comroid.api.ByteConverter;
 
 import java.util.NoSuchElementException;
 import java.util.Optional;
-import java.util.Set;
 
 @Value
 public class AurionChatCompatibilityLayer extends RabbitMqCompatibilityLayer<AurionPacket> {
@@ -50,7 +49,8 @@ public class AurionChatCompatibilityLayer extends RabbitMqCompatibilityLayer<Aur
 
     @Override
     public boolean skip(AurionPacket packet) {
-        return !Set.of(AurionPacket.Type.CHAT, AurionPacket.Type.AUTO_MESSAGE).contains(packet.getType());
+        var type = packet.getType();
+        return type != AurionPacket.Type.CHAT && type != AurionPacket.Type.AUTO_MESSAGE;
     }
 
     @Override
