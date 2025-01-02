@@ -5,11 +5,11 @@
   channels: [
     {
       channelName: 'global',
-      channelId: 1134168099164270693,
+      channelId: 1324457917340188702
     },
     {
       channelName: 'staff',
-      channelId: 1134168086346485870,
+      channelId: 1324457993131262055
     }
   ]
 }

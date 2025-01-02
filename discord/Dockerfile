@@ -1,6 +1,7 @@
 FROM eclipse-temurin:21-jdk
 LABEL authors="Kaleidox"
 WORKDIR /app
+STOPSIGNAL SIGINT
 
 # copy shadow jar
 COPY build/libs/chatmod-discord.jar app.jar
