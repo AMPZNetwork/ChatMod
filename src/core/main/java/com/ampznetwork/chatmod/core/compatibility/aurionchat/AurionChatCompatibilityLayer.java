@@ -13,11 +13,12 @@ import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import org.comroid.api.ByteConverter;
 
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 
 @Value
-public class AurionChatCompatibilityLayer extends RabbitMqCompatibilityLayer<AurionPacket> {
+public class AurionChatCompatibilityLayer extends RabbitMqCompatibilityLayer<AurionPacketAdapter> {
     public AurionChatCompatibilityLayer(ChatModCompatibilityLayerAdapter mod) {
         super(mod);
     }
@@ -43,18 +44,18 @@ public class AurionChatCompatibilityLayer extends RabbitMqCompatibilityLayer<Aur
     }
 
     @Override
-    public ByteConverter<AurionPacket> createByteConverter() {
+    public ByteConverter<AurionPacketAdapter> createByteConverter() {
         return new AurionPacketByteConverter();
     }
 
     @Override
-    public boolean skip(AurionPacket packet) {
+    public boolean skip(AurionPacketAdapter packet) {
         var type = packet.getType();
         return type != AurionPacket.Type.CHAT && type != AurionPacket.Type.AUTO_MESSAGE;
     }
 
     @Override
-    public ChatMessagePacket convertToChatModPacket(AurionPacket packet) {
+    public ChatMessagePacket convertToChatModPacket(AurionPacketAdapter packet) {
         var player = Optional.ofNullable(packet.getPlayer());
         var sender = player.map(AurionPlayer::getId)
                 .flatMap(mod.getPlayerAdapter()::getPlayer)
@@ -69,21 +70,21 @@ public class AurionChatCompatibilityLayer extends RabbitMqCompatibilityLayer<Aur
             case CHAT, AUTO_MESSAGE -> MessageType.CHAT;
             case EVENT_JOIN -> MessageType.JOIN;
             default -> throw new UnsupportedOperationException("Unsupported packet type: " + packet.getType());
-        }, packet.getSource(), packet.getChannel(), message);
+        }, packet.getSource(), packet.getChannel(), message, List.of(getMod().getSourceName()));
     }
 
     @Override
-    public AurionPacket convertToNativePacket(ChatMessagePacket packet) {
+    public AurionPacketAdapter convertToNativePacket(ChatMessagePacket packet) {
         var sender = packet.getMessage().getSender();
         assert sender != null : "Outbound from Minecraft should always have a Sender";
         var player = new AurionPlayer(sender.getId(), sender.getName(), null, null);
-        return new AurionPacket(AurionPacket.Type.CHAT, packet.getSource(), player, packet.getChannel(),
+        return new AurionPacketAdapter(AurionPacket.Type.CHAT, packet.getSource(), player, packet.getChannel(),
                 mod.getPlayerAdapter().getPlayer(sender.getId()).map(Player::getName).orElseThrow(),
-                GsonComponentSerializer.gson().serialize(packet.getMessage().getFullText()));
+                GsonComponentSerializer.gson().serialize(packet.getMessage().getFullText()), packet.getRoute());
     }
 
     @Override
-    public void handle(AurionPacket packet) {
+    public void handle(AurionPacketAdapter packet) {
         if (!isEnabled() || skip(packet)) return;
         var convert = convertToChatModPacket(packet);
         if (getMod().skip(convert)) return;

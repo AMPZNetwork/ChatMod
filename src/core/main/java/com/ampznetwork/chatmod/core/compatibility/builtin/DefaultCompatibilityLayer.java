@@ -24,13 +24,13 @@ public class DefaultCompatibilityLayer extends RabbitMqCompatibilityLayer<ChatMe
     }
 
     @Override
-    public boolean isEnabled() {
-        return true;
+    public ByteConverter<ChatMessagePacket> createByteConverter() {
+        return new ChatMessagePacketByteConverter(mod);
     }
 
     @Override
-    public ByteConverter<ChatMessagePacket> createByteConverter() {
-        return new ChatMessagePacketByteConverter(mod);
+    public boolean isEnabled() {
+        return true;
     }
 
     @Override

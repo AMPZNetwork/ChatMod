@@ -14,6 +14,9 @@ import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import org.comroid.api.data.RegExpUtil;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.UUID;
 
 @Value
@@ -34,15 +37,25 @@ public class ChatMessagePacketTypeAdapter extends TypeAdapter<ChatMessagePacket>
         out.name("message");
         writeChatMessage(out, packet.getMessage());
 
+        // serialize route
+        out.name("route");
+        out.beginArray();
+        for (String s : packet.getRoute())
+            out.value(s);
+        // append self
+        out.value(mod.getSourceName());
+        out.endArray();
+
         out.endObject();
     }
 
     @Override
     public ChatMessagePacket read(JsonReader in) throws IOException {
-        MessageType type    = null;
-        String      source  = null;
-        String      channel = null;
-        ChatMessage message = null;
+        MessageType  type    = null;
+        String       source  = null;
+        String       channel = null;
+        ChatMessage  message = null;
+        List<String> route   = new ArrayList<>();
 
         in.beginObject();
         while (in.hasNext()) {
@@ -60,6 +73,11 @@ public class ChatMessagePacketTypeAdapter extends TypeAdapter<ChatMessagePacket>
                 case "message":
                     message = readChatMessage(in);
                     break;
+                case "route":
+                    in.beginArray();
+                    route.add(in.nextString());
+                    in.endArray();
+                    break;
                 default:
                     in.skipValue();
                     break;
@@ -67,7 +85,7 @@ public class ChatMessagePacketTypeAdapter extends TypeAdapter<ChatMessagePacket>
         }
         in.endObject();
 
-        return new ChatMessagePacket(type, source, channel, message);
+        return new ChatMessagePacket(type, source, channel, message, Collections.unmodifiableList(route));
     }
 
     private void writeChatMessage(JsonWriter out, ChatMessage message) throws IOException {

@@ -20,8 +20,8 @@ import java.util.Optional;
 @EqualsAndHashCode(of = "route")
 public abstract class RabbitMqCompatibilityLayer<P> extends Component.Base implements CompatibilityLayer<P> {
     protected ChatModCompatibilityLayerAdapter mod;
-    @NonFinal Rabbit                   rabbit  = null;
-    @NonFinal Rabbit.Exchange.Route<P> route   = null;
+    @NonFinal Rabbit                   rabbit = null;
+    @NonFinal Rabbit.Exchange.Route<P> route  = null;
 
     protected abstract String getUri();
 
@@ -54,8 +54,8 @@ public abstract class RabbitMqCompatibilityLayer<P> extends Component.Base imple
             addChild(route.listen().subscribeData(this::handle));
     }
 
-    protected abstract ByteConverter<P> createByteConverter();
-
     @Override
     public abstract boolean isEnabled();
+
+    protected abstract ByteConverter<P> createByteConverter();
 }

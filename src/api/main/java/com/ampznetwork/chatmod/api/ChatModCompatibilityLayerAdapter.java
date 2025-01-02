@@ -9,6 +9,8 @@ import com.ampznetwork.libmod.api.interop.game.PlayerIdentifierAdapter;
 import net.kyori.adventure.text.TextComponent;
 import org.jetbrains.annotations.Range;
 
+import java.util.List;
+
 import static net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.*;
 
 public interface ChatModCompatibilityLayerAdapter {
@@ -34,11 +36,11 @@ public interface ChatModCompatibilityLayerAdapter {
     }
 
     default void sendChat(String channelName, ChatMessage message) {
-        relayOutbound(new ChatMessagePacket(MessageType.CHAT, getSourceName(), channelName, message));
+        relayOutbound(new ChatMessagePacket(MessageType.CHAT, getSourceName(), channelName, message, List.of(getSourceName())));
     }
 
     default void sendEvent(String channelName, Player player, MessageType type, TextComponent text) {
         relayOutbound(new ChatMessagePacket(type, getSourceName(), channelName, new ChatMessage(player,
-                getPlayerAdapter().getDisplayName(player.getId()), plainText().serialize(text), text)));
+                getPlayerAdapter().getDisplayName(player.getId()), plainText().serialize(text), text), List.of(getSourceName())));
     }
 }
