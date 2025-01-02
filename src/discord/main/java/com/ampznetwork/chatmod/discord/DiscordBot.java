@@ -155,6 +155,11 @@ public class DiscordBot extends Component.Base implements ChatModCompatibilityLa
     }
 
     @Override
+    public boolean skip(ChatMessagePacket packet) {
+        return ChatModCompatibilityLayerAdapter.super.skip(packet);
+    }
+
+    @Override
     public String getSourceName() {
         return SOURCE;
     }
@@ -200,11 +205,6 @@ public class DiscordBot extends Component.Base implements ChatModCompatibilityLa
     @Override
     public void relayOutbound(ChatMessagePacket packet) {
         defaultCompatibilityLayer.send(packet);
-    }
-
-    @Override
-    public boolean skip(ChatMessagePacket packet) {
-        return packet.getRoute().contains(getSourceName());
     }
 
     @Override

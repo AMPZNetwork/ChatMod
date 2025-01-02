@@ -100,8 +100,7 @@ public class ChatMod$Spigot extends SubMod$Spigot implements ChatMod {
 
     @Override
     public boolean skip(ChatMessagePacket packet) {
-        return (isListenerCompatibilityMode() && getSourceName().equals(packet.getSource()))
-               || packet.getRoute().contains(getSourceName());
+        return (isListenerCompatibilityMode() && getSourceName().equals(packet.getSource()));
     }
 
     @Override

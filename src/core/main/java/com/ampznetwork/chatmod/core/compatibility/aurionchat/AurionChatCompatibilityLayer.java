@@ -85,9 +85,7 @@ public class AurionChatCompatibilityLayer extends RabbitMqCompatibilityLayer<Aur
 
     @Override
     public void handle(AurionPacketAdapter packet) {
-        if (!isEnabled() || skip(packet)) return;
         var convert = convertToChatModPacket(packet);
-        if (getMod().skip(convert)) return;
 
         // relay for other servers
         getMod().relayOutbound(convert);

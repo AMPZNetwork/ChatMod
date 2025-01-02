@@ -50,14 +50,13 @@ public class DefaultCompatibilityLayer extends RabbitMqCompatibilityLayer<ChatMe
 
     @Override
     public void handle(ChatMessagePacket packet) {
-        if (!isEnabled() || skip(packet)) return;
         var convert = convertToChatModPacket(packet);
-        if (getMod().skip(convert)) return;
 
-        // relay for other servers
-        child(AurionChatCompatibilityLayer.class)
-                .filter(AurionChatCompatibilityLayer::isEnabled)
-                .ifPresent(layer -> layer.send(convert));
         getMod().relayInbound(convert);
+
+        // relay to registered aurionchat servers
+        children(AurionChatCompatibilityLayer.class)
+                .filter(AurionChatCompatibilityLayer::isEnabled)
+                .forEach(layer -> layer.send(convert));
     }
 }
