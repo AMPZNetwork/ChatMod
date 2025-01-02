@@ -32,7 +32,7 @@ public interface ChatModCompatibilityLayerAdapter {
     void relayOutbound(ChatMessagePacket packet);
 
     default boolean skip(ChatMessagePacket packet) {
-        return false;
+        return packet.getRoute().contains(getSourceName());
     }
 
     default void sendChat(String channelName, ChatMessage message) {

@@ -204,7 +204,7 @@ public class DiscordBot extends Component.Base implements ChatModCompatibilityLa
 
     @Override
     public boolean skip(ChatMessagePacket packet) {
-        return false;
+        return packet.getRoute().contains(getSourceName());
     }
 
     @Override

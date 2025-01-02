@@ -33,8 +33,7 @@ public interface CompatibilityLayer<P> extends Reloadable {
         if (!isEnabled() || skip(packet)) return;
         var convert = convertToChatModPacket(packet);
         if (getMod().skip(convert)) return;
-        if (!convert.getRoute().contains(getMod().getSourceName()))
-            getMod().relayInbound(convert);
+        getMod().relayInbound(convert);
     }
 
     void doSend(P packet);
