@@ -1,6 +1,7 @@
 package com.ampznetwork.chatmod.core.compatibility.aurionchat;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import com.google.gson.annotations.Expose;
 import com.mineaurion.aurionchat.api.AurionPacket;
 import com.mineaurion.aurionchat.api.AurionPlayer;
@@ -17,23 +18,17 @@ public class AurionPacketAdapter extends AurionPacket {
     }
 
     public static AurionPacketAdapter fromJson(final @NotNull String json) {
-        return GSON.fromJson(json, AurionPacketAdapter.class);
+        return GSON.fromJson(json, GSON.fromJson(json, JsonObject.class).has("route") ? AurionPacketAdapter.class : AurionPacket.class);
     }
 
     public static Gson getGson() {
         return GSON;
     }
 
-    @Expose
-    List<String> route;
+    @Expose @Nullable List<String> route;
 
     public AurionPacketAdapter(
-            Type type,
-            String source,
-            @Nullable AurionPlayer player,
-            @Nullable String channel,
-            @Nullable String displayName,
-            @NotNull String tellRawData,
+            Type type, String source, @Nullable AurionPlayer player, @Nullable String channel, @Nullable String displayName, @NotNull String tellRawData,
             List<String> route
     ) {
         super(type, source, player, channel, displayName, tellRawData);

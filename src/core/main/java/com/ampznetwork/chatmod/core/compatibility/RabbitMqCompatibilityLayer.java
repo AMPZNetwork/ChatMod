@@ -13,6 +13,7 @@ import org.comroid.api.tree.Component;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
+import java.util.function.Predicate;
 
 @Value
 @NonFinal
@@ -45,13 +46,14 @@ public abstract class RabbitMqCompatibilityLayer<P> extends Component.Base imple
                                 ? Optional.of(((DefaultCompatibilityLayer) mod.getDefaultCompatibilityLayer()).getRabbit())
                                 : Rabbit.of(uri).wrap())
                 .orElse(null);
-        this.route  = Optional.ofNullable(rabbit)
-                .map(rabbit -> rabbit.bind(getExchange(), getExchangeType(), "", createByteConverter()))
-                .orElse(null);
+        this.route = Optional.ofNullable(rabbit).map(rabbit -> rabbit.bind(getExchange(), getExchangeType(), "", createByteConverter())).orElse(null);
         addChild(route);
 
-        if (route != null)
-            addChild(route.listen().subscribeData(this::handle));
+        if (route != null) addChild(route.filterData(Predicate.not(packet -> {
+            if (skip(packet)) return false;
+            var convert = convertToChatModPacket(packet);
+            return convertToChatModPacket(packet).getRoute().contains(mod.getSourceName()) || mod.skip(convert);
+        })).subscribeData(this::handle));
     }
 
     @Override
