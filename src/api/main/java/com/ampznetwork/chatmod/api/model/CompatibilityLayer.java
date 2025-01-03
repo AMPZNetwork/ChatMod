@@ -63,7 +63,7 @@ public interface CompatibilityLayer<P> extends Reloadable {
                             Context.root().plus(executor);
                             return executor;
                         }).schedule(this::reload, delay, TimeUnit.SECONDS);
-                Log.at(Level.WARNING, string);
+                Log.at(Level.WARNING, string, t);
             }
         }
     }
