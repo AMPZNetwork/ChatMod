@@ -10,7 +10,7 @@ import org.jetbrains.annotations.Nullable;
 
 import static net.kyori.adventure.text.Component.*;
 
-public enum MessageType implements Named {
+public enum PacketType implements Named {
     CHAT {
         @Override
         public String getCustomFormat(ChatMod mod) {

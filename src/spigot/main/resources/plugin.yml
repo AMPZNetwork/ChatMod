@@ -12,6 +12,7 @@ softdepend:
   - PlaceholderAPI
 libraries:
   - 'com.google.code.gson:gson:2.11.0'
+  - 'net.kyori:adventure-text-serializer-json:4.17.0'
   - 'net.kyori:adventure-text-serializer-gson:4.17.0'
   - 'net.kyori:adventure-text-serializer-plain:4.17.0'
   - 'net.dv8tion:JDA:5.2.2'

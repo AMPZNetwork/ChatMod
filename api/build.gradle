@@ -16,6 +16,7 @@ dependencies {
     api 'javax.persistence:javax.persistence-api:2.2'
 
     // kyori
+    api 'net.kyori:adventure-text-serializer-json:4.+'
     api 'net.kyori:adventure-text-serializer-legacy:4.+'
 
     // utility

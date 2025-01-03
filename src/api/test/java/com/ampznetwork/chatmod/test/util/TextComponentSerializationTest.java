@@ -2,7 +2,8 @@ package com.ampznetwork.chatmod.test.util;
 
 import com.ampznetwork.chatmod.api.model.ChatMessage;
 import com.ampznetwork.chatmod.api.model.ChatMessagePacket;
-import com.ampznetwork.chatmod.api.model.MessageType;
+import com.ampznetwork.chatmod.api.model.ChatMessagePacketImpl;
+import com.ampznetwork.chatmod.api.model.PacketType;
 import com.ampznetwork.libmod.api.entity.Player;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -26,8 +27,8 @@ public class TextComponentSerializationTest {
                 "Kaleidox",
                 "arschlöoch",
                 text);
-        var pkt = new ChatMessagePacket(
-                MessageType.CHAT,
+        var pkt = new ChatMessagePacketImpl(
+                PacketType.CHAT,
                 "MC",
                 "global",
                 msg);

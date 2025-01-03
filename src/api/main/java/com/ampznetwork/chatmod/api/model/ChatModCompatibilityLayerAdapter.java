@@ -1,13 +1,16 @@
 package com.ampznetwork.chatmod.api.model;
 
+import com.ampznetwork.chatmod.core.model.ChatMessagePacketImpl;
 import com.ampznetwork.libmod.api.entity.Player;
 import com.ampznetwork.libmod.api.interop.game.PlayerIdentifierAdapter;
 import net.kyori.adventure.text.TextComponent;
+import org.comroid.api.attr.Named;
 import org.jetbrains.annotations.Range;
 
+import static net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.*;
 import static net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.*;
 
-public interface ChatModCompatibilityLayerAdapter {
+public interface ChatModCompatibilityLayerAdapter extends Named {
     String getSourceName();
 
     PlayerIdentifierAdapter getPlayerAdapter();
@@ -21,6 +24,10 @@ public interface ChatModCompatibilityLayerAdapter {
 
     CompatibilityLayer<ChatMessagePacket> getDefaultCompatibilityLayer();
 
+    default String getServerName() {
+        return plainText().serialize(legacyAmpersand().deserialize(getSourceName()));
+    }
+
     void relayInbound(ChatMessagePacket packet);
 
     void relayOutbound(ChatMessagePacket packet);
@@ -30,11 +37,11 @@ public interface ChatModCompatibilityLayerAdapter {
     }
 
     default void sendChat(String channelName, ChatMessage message) {
-        relayOutbound(new ChatMessagePacket(MessageType.CHAT, getSourceName(), channelName, message));
+        relayOutbound(new ChatMessagePacketImpl(PacketType.CHAT, getSourceName(), channelName, message));
     }
 
-    default void sendEvent(String channelName, Player player, MessageType type, TextComponent text) {
-        relayOutbound(new ChatMessagePacket(type, getSourceName(), channelName, new ChatMessage(player,
+    default void sendEvent(String channelName, Player player, PacketType packetType, TextComponent text) {
+        relayOutbound(new ChatMessagePacketImpl(packetType, getSourceName(), channelName, new ChatMessage(player,
                 getPlayerAdapter().getDisplayName(player.getId()), plainText().serialize(text), text)));
     }
 }

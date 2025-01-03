@@ -3,7 +3,8 @@ package com.ampznetwork.chatmod.core.serialization;
 import com.ampznetwork.chatmod.api.model.ChatMessage;
 import com.ampznetwork.chatmod.api.model.ChatMessagePacket;
 import com.ampznetwork.chatmod.api.model.ChatModCompatibilityLayerAdapter;
-import com.ampznetwork.chatmod.api.model.MessageType;
+import com.ampznetwork.chatmod.api.model.PacketType;
+import com.ampznetwork.chatmod.core.model.ChatMessagePacketImpl;
 import com.ampznetwork.libmod.api.entity.Player;
 import com.google.gson.TypeAdapter;
 import com.google.gson.stream.JsonReader;
@@ -28,7 +29,7 @@ public class ChatMessagePacketTypeAdapter extends TypeAdapter<ChatMessagePacket>
         out.beginObject();
 
         // Serialize basic fields
-        out.name("type").value(packet.getType().name());
+        out.name("type").value(packet.getPacketType().name());
         out.name("source").value(packet.getSource());
         out.name("channel").value(packet.getChannel());
 
@@ -48,18 +49,18 @@ public class ChatMessagePacketTypeAdapter extends TypeAdapter<ChatMessagePacket>
 
     @Override
     public ChatMessagePacket read(JsonReader in) throws IOException {
-        MessageType  type    = null;
-        String       source  = null;
-        String       channel = null;
-        ChatMessage  message = null;
-        List<String> route   = new ArrayList<>();
+        PacketType   packetType = null;
+        String       source     = null;
+        String       channel    = null;
+        ChatMessage  message    = null;
+        List<String> route      = new ArrayList<>();
 
         in.beginObject();
         while (in.hasNext()) {
             String name = in.nextName();
             switch (name) {
                 case "type":
-                    type = MessageType.valueOf(in.nextString());
+                    packetType = PacketType.valueOf(in.nextString());
                     break;
                 case "source":
                     source = in.nextString();
@@ -82,7 +83,7 @@ public class ChatMessagePacketTypeAdapter extends TypeAdapter<ChatMessagePacket>
         }
         in.endObject();
 
-        return new ChatMessagePacket(type, source, channel, message);
+        return new ChatMessagePacketImpl(packetType, source, channel, message);
     }
 
     private void writeChatMessage(JsonWriter out, ChatMessage message) throws IOException {

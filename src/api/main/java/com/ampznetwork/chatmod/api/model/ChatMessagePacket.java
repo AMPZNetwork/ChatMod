@@ -1,30 +1,20 @@
 package com.ampznetwork.chatmod.api.model;
 
-import lombok.Value;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-import java.util.ArrayList;
-import java.util.List;
+public interface ChatMessagePacket {
+    @JsonProperty
+    PacketType getPacketType();
 
-@Value
-public class ChatMessagePacket {
-    MessageType  type;
-    String       source;
-    String       channel;
-    ChatMessage  message;
-    List<String> route;
+    @JsonProperty
+    String getSource();
 
-    public ChatMessagePacket(MessageType type, String source, String channel, ChatMessage message) {
-        this(type, source, channel, message, new ArrayList<>());
-    }
+    @JsonProperty
+    String getChannel();
 
-    /**
-     * constructor with route for auto-serialization
-     */
-    public ChatMessagePacket(MessageType type, String source, String channel, ChatMessage message, List<String> route) {
-        this.type    = type;
-        this.source  = source;
-        this.channel = channel;
-        this.message = message;
-        this.route   = route == null ? new ArrayList<>() : route;
-    }
+    @JsonProperty
+    ChatMessage getMessage();
+
+    @JsonProperty
+    java.util.List<String> getRoute();
 }

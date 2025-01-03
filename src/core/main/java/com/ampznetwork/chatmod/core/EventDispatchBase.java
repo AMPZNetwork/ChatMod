@@ -3,7 +3,7 @@ package com.ampznetwork.chatmod.core;
 import com.ampznetwork.chatmod.api.ChatMod;
 import com.ampznetwork.chatmod.api.model.ChannelConfiguration;
 import com.ampznetwork.chatmod.api.model.ChatMessage;
-import com.ampznetwork.chatmod.api.model.MessageType;
+import com.ampznetwork.chatmod.api.model.PacketType;
 import com.ampznetwork.libmod.api.model.delegate.EventDelegate;
 import lombok.SneakyThrows;
 import lombok.Value;
@@ -46,7 +46,7 @@ public abstract class EventDispatchBase<Mod extends ChatMod> {
 
     protected void playerJoin(UUID playerId, @Nullable EventDelegate<TextComponent> event) {
         mod.getChannels().getFirst().getPlayerIDs().add(playerId);
-        handleJoinLeave(playerId, MessageType.JOIN, event);
+        handleJoinLeave(playerId, PacketType.JOIN, event);
     }
 
     protected void playerLeave(UUID playerId, @Nullable EventDelegate<TextComponent> event) {
@@ -54,18 +54,18 @@ public abstract class EventDispatchBase<Mod extends ChatMod> {
         channels.stream()
                 .filter(channel -> channel.getPlayerIDs().contains(playerId))
                 .findAny()
-                .ifPresent(channel -> handleJoinLeave(playerId, MessageType.LEAVE, event));
+                .ifPresent(channel -> handleJoinLeave(playerId, PacketType.LEAVE, event));
         channels.forEach(channel -> {
             channel.getPlayerIDs().remove(playerId);
             channel.getSpyIDs().remove(playerId);
         });
     }
 
-    private void handleJoinLeave(UUID playerId, MessageType type, @Nullable EventDelegate<TextComponent> event) {
+    private void handleJoinLeave(UUID playerId, PacketType packetType, @Nullable EventDelegate<TextComponent> event) {
         if (!mod.isJoinLeaveEnabled()) return;
 
         var player = mod.getPlayerAdapter().getPlayer(playerId).orElseThrow();
-        var text = Optional.ofNullable(type.getCustomFormat(mod))
+        var text = Optional.ofNullable(packetType.getCustomFormat(mod))
                 .map(format -> format.replace(PLAYER_NAME_PLACEHOLDER, RESERVED_PLACEHOLDER))
                 .map(format -> mod.applyPlaceholders(playerId, format))
                 .map(format -> {
@@ -77,12 +77,12 @@ public abstract class EventDispatchBase<Mod extends ChatMod> {
                         txt.append(legacyAmpersand().deserialize(split[1]));
                     return txt.build();
                 })
-                .orElseGet(() -> type.createDefaultText(player, null));
+                .orElseGet(() -> packetType.createDefaultText(player, null));
 
         if ((mod.isListenerCompatibilityMode() || mod.isReplaceDefaultJoinLeaveMessages()) && event != null)
             event.set(text);
         if (!mod.isListenerCompatibilityMode() && event != null)
             event.cancel();
-        mod.getJoinLeaveChannels().forEach(channelName -> mod.sendEvent(channelName, player, type, text));
+        mod.getJoinLeaveChannels().forEach(channelName -> mod.sendEvent(channelName, player, packetType, text));
     }
 }

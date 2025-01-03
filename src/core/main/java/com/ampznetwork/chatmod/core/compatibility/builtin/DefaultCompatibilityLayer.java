@@ -2,13 +2,23 @@ package com.ampznetwork.chatmod.core.compatibility.builtin;
 
 import com.ampznetwork.chatmod.api.model.ChatMessagePacket;
 import com.ampznetwork.chatmod.api.model.ChatModCompatibilityLayerAdapter;
+import com.ampznetwork.chatmod.api.model.CompatibilityLayer;
 import com.ampznetwork.chatmod.core.compatibility.RabbitMqCompatibilityLayer;
-import com.ampznetwork.chatmod.core.compatibility.aurionchat.AurionChatCompatibilityLayer;
+import com.ampznetwork.chatmod.core.model.ChatMessagePacketImpl;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.EqualsAndHashCode;
+import lombok.SneakyThrows;
 import lombok.Value;
 import org.comroid.api.ByteConverter;
 
+import java.io.ByteArrayInputStream;
+import java.util.function.Predicate;
+
 @Value
+@EqualsAndHashCode(callSuper = true)
 public class DefaultCompatibilityLayer extends RabbitMqCompatibilityLayer<ChatMessagePacket> {
+    public static final ObjectMapper MAPPER = new ObjectMapper();
+
     public DefaultCompatibilityLayer(ChatModCompatibilityLayerAdapter mod) {
         super(mod);
     }
@@ -24,13 +34,25 @@ public class DefaultCompatibilityLayer extends RabbitMqCompatibilityLayer<ChatMe
     }
 
     @Override
-    public ByteConverter<ChatMessagePacket> createByteConverter() {
-        return new ChatMessagePacketByteConverter(mod);
+    public boolean isEnabled() {
+        return true;
     }
 
     @Override
-    public boolean isEnabled() {
-        return true;
+    public ByteConverter<ChatMessagePacket> createByteConverter() {
+        return new ByteConverter<>() {
+            @Override
+            @SneakyThrows
+            public byte[] toBytes(ChatMessagePacket packet) {
+                return MAPPER.writeValueAsBytes(packet);
+            }
+
+            @Override
+            @SneakyThrows
+            public ChatMessagePacket fromBytes(byte[] bytes) {
+                return MAPPER.readValue(new ByteArrayInputStream(bytes), ChatMessagePacketImpl.class);
+            }
+        };
     }
 
     @Override
@@ -50,11 +72,10 @@ public class DefaultCompatibilityLayer extends RabbitMqCompatibilityLayer<ChatMe
 
     @Override
     public void handle(ChatMessagePacket packet) {
-        mod.relayInbound(packet);
+        // loop from here to here
+        if (mod.getSourceName().equals(packet.getSource())) mod.relayInbound(packet);
 
         // relay to registered aurionchat servers
-        children(AurionChatCompatibilityLayer.class)
-                .filter(AurionChatCompatibilityLayer::isEnabled)
-                .forEach(layer -> layer.send(packet));
+        children(CompatibilityLayer.class).filter(Predicate.not(this::equals)).forEach(layer -> layer.send(packet));
     }
 }

@@ -189,7 +189,7 @@ public class DiscordBot extends Component.Base implements ChatModCompatibilityLa
                 .forEach(channel -> {
                     var message = new WebhookMessageBuilder()
                             .setUsername(applyPlaceholders(channel.getFormat().getWebhookUsername(), packet))
-                            .setContent(applyPlaceholders(channel.getFormat().getWebhookMessage(), packet, switch (packet.getType()) {
+                            .setContent(applyPlaceholders(channel.getFormat().getWebhookMessage(), packet, switch (packet.getPacketType()) {
                                 case CHAT -> plainText().serialize(packet.getMessage().getText());
                                 case JOIN -> applyPlaceholders(channel.getFormat().getDiscordJoinMessage(), packet);
                                 case LEAVE -> applyPlaceholders(channel.getFormat().getDiscordLeaveMessage(), packet);
