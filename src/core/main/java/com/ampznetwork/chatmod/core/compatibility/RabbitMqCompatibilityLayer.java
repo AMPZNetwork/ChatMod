@@ -68,6 +68,11 @@ public abstract class RabbitMqCompatibilityLayer<P> extends Component.Base imple
     }
 
     @Override
+    public void stop() {
+        if (route != null) route.close();
+    }
+
+    @Override
     public abstract boolean isEnabled();
 
     protected abstract ByteConverter<P> createByteConverter();
