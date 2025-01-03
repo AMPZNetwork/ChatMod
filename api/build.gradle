@@ -11,12 +11,14 @@ dependencies {
 
     // json
     api 'com.fasterxml.jackson.core:jackson-databind:2.+'
+    api 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.+'
 
     // persistence
     api 'javax.persistence:javax.persistence-api:2.2'
 
     // kyori
     api 'net.kyori:adventure-text-serializer-json:4.+'
+    api 'net.kyori:adventure-text-serializer-gson:4.+'
     api 'net.kyori:adventure-text-serializer-legacy:4.+'
 
     // utility

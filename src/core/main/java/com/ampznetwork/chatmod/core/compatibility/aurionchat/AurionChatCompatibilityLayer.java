@@ -6,6 +6,7 @@ import com.ampznetwork.chatmod.api.model.ChatModCompatibilityLayerAdapter;
 import com.ampznetwork.chatmod.api.model.PacketType;
 import com.ampznetwork.chatmod.core.compatibility.RabbitMqCompatibilityLayer;
 import com.ampznetwork.libmod.api.entity.Player;
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.google.gson.JsonObject;
 import com.mineaurion.aurionchat.api.AurionPacket;
 import com.mineaurion.aurionchat.api.AurionPlayer;
@@ -22,6 +23,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 import java.util.Optional;
 
 @Value
@@ -68,6 +70,11 @@ public class AurionChatCompatibilityLayer extends RabbitMqCompatibilityLayer<Aur
                 return parsePacket(new String(bytes, StandardCharsets.UTF_8));
             }
         };
+    }
+
+    @Override
+    public String getName() {
+        return "AurionChat";
     }
 
     public PacketAdapter parsePacket(final @NotNull String str) {
@@ -118,6 +125,10 @@ public class AurionChatCompatibilityLayer extends RabbitMqCompatibilityLayer<Aur
     }
 
     @Value
+    @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.NONE,
+                    setterVisibility = JsonAutoDetect.Visibility.NONE,
+                    getterVisibility = JsonAutoDetect.Visibility.NONE,
+                    isGetterVisibility = JsonAutoDetect.Visibility.NONE)
     public class PacketAdapter extends AurionPacket implements ChatMessagePacket {
         List<String> route;
 
@@ -134,6 +145,12 @@ public class AurionChatCompatibilityLayer extends RabbitMqCompatibilityLayer<Aur
             this.route = route == null ? new ArrayList<>() : route;
         }
 
+        @Override
+        public String getChannel() {
+            return Objects.requireNonNullElse(super.getChannel(), "global");
+        }
+
+        @Override
         public PacketType getPacketType() {
             return PacketType.CHAT;
         }

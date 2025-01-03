@@ -15,6 +15,7 @@ import com.ampznetwork.libmod.api.interop.game.PlayerIdentifierAdapter;
 import com.ampznetwork.libmod.core.adapter.HeadlessPlayerAdapter;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.StreamReadFeature;
 import com.fasterxml.jackson.core.json.JsonReadFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.EqualsAndHashCode;
@@ -100,6 +101,7 @@ public class DiscordBot extends Component.Base implements ChatModCompatibilityLa
 
         try {
             var config = new ObjectMapper(JsonFactory.builder()
+                    .enable(StreamReadFeature.INCLUDE_SOURCE_IN_LOCATION)
                     .enable(JsonReadFeature.ALLOW_TRAILING_COMMA)
                     .build()
                     .enable(JsonParser.Feature.ALLOW_COMMENTS)
@@ -155,11 +157,6 @@ public class DiscordBot extends Component.Base implements ChatModCompatibilityLa
     }
 
     @Override
-    public boolean skip(ChatMessagePacket packet) {
-        return ChatModCompatibilityLayerAdapter.super.skip(packet);
-    }
-
-    @Override
     public String getSourceName() {
         return SOURCE;
     }
@@ -180,9 +177,14 @@ public class DiscordBot extends Component.Base implements ChatModCompatibilityLa
     }
 
     @Override
+    public String getServerName() {
+        return SOURCE.toUpperCase();
+    }
+
+    @Override
     public void relayInbound(ChatMessagePacket packet) {
         if (this.playerAdapter instanceof IPlayerAdapter)
-            Log.get("Chat").info(packet.getMessage().getPlaintext());
+            Log.get("Chat #" + packet.getChannel()).info(packet.getMessage().getPlaintext());
         if (SOURCE.equals(packet.getSource())) return;
         config.getChannels().stream()
                 .filter(channel -> Objects.equals(packet.getChannel(), channel.getChannelName()))
@@ -205,6 +207,11 @@ public class DiscordBot extends Component.Base implements ChatModCompatibilityLa
     @Override
     public void relayOutbound(ChatMessagePacket packet) {
         defaultCompatibilityLayer.send(packet);
+    }
+
+    @Override
+    public boolean skip(ChatMessagePacket packet) {
+        return ChatModCompatibilityLayerAdapter.super.skip(packet);
     }
 
     @Override

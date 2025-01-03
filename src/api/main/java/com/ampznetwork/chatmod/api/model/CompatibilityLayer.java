@@ -1,5 +1,6 @@
 package com.ampznetwork.chatmod.api.model;
 
+import org.comroid.api.attr.Named;
 import org.comroid.api.func.ext.Context;
 import org.comroid.api.info.Log;
 import org.comroid.api.tree.Reloadable;
@@ -9,7 +10,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
-public interface CompatibilityLayer<P> extends Reloadable {
+public interface CompatibilityLayer<P> extends Reloadable, Named {
     ChatModCompatibilityLayerAdapter getMod();
 
     default boolean isEnabled() {

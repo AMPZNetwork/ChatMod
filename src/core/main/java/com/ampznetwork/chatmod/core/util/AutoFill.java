@@ -3,6 +3,7 @@ package com.ampznetwork.chatmod.core.util;
 import com.ampznetwork.chatmod.api.ChatMod;
 import com.ampznetwork.chatmod.api.model.ChannelConfiguration;
 import org.comroid.annotations.Instance;
+import org.comroid.api.attr.Named;
 import org.comroid.api.func.util.Command;
 import org.comroid.api.func.util.Streams;
 
@@ -18,6 +19,19 @@ public interface AutoFill {
                     .flatMap(Streams.cast(ChatMod.class))
                     .flatMap(mod -> mod.getChannels().stream())
                     .map(ChannelConfiguration::getName);
+        }
+    }
+
+    enum Modules implements Command.AutoFillProvider {
+        @Instance INSTANCE;
+
+        @Override
+        public Stream<String> autoFill(Command.Usage usage, String argName, String currentValue) {
+            return usage.getContext().stream()
+                    .flatMap(Streams.cast(ChatMod.class))
+                    .flatMap(mod -> mod.getCompatibilityLayers().stream())
+                    .map(Named::getName)
+                    .map(String::toLowerCase);
         }
     }
 }

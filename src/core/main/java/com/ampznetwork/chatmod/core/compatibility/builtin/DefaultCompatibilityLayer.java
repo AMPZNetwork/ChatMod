@@ -56,6 +56,11 @@ public class DefaultCompatibilityLayer extends RabbitMqCompatibilityLayer<ChatMe
     }
 
     @Override
+    public String getName() {
+        return "ChatMod";
+    }
+
+    @Override
     public boolean isDefault() {
         return true;
     }

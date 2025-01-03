@@ -12,6 +12,7 @@ softdepend:
   - PlaceholderAPI
 libraries:
   - 'com.google.code.gson:gson:2.11.0'
+  - 'com.fasterxml.jackson.core:jackson-databind:2.18.2'
   - 'net.kyori:adventure-text-serializer-json:4.17.0'
   - 'net.kyori:adventure-text-serializer-gson:4.17.0'
   - 'net.kyori:adventure-text-serializer-plain:4.17.0'
@@ -22,6 +23,9 @@ commands:
   reload:
     description: Reloads Configuration
     permission: chatmod.reload
+  status:
+    description: Prints plugin and module status information
+    permission: chatmod.status
   channel:
     aliases: ch
     description: Select Channel
@@ -38,6 +42,9 @@ permissions:
     children:
       chatmod.reload:
         description: Permission for the /chatmod:reload command
+        default: op
+      chatmod.status:
+        description: Permission for the /chatmod:status command
         default: op
       chatmod.shout:
         description: Permission for the /chatmod:shout command

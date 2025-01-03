@@ -4,6 +4,7 @@ import com.ampznetwork.chatmod.api.ChatMod;
 import com.ampznetwork.chatmod.api.model.ChannelConfiguration;
 import com.ampznetwork.chatmod.api.model.ChatMessagePacket;
 import com.ampznetwork.chatmod.api.model.CompatibilityLayer;
+import com.ampznetwork.chatmod.api.model.TextResourceProvider;
 import com.ampznetwork.chatmod.core.ChatModCommands;
 import com.ampznetwork.chatmod.core.compatibility.aurionchat.AurionChatCompatibilityLayer;
 import com.ampznetwork.chatmod.core.compatibility.builtin.DefaultCompatibilityLayer;
@@ -47,11 +48,12 @@ import static org.comroid.api.text.Word.*;
 @Getter
 @Slf4j(topic = ChatMod.Strings.AddonName)
 public class ChatMod$Spigot extends SubMod$Spigot implements ChatMod {
-    List<ChannelConfiguration> channels            = new ArrayList<>();
-    Set<CompatibilityLayer<?>> compatibilityLayers = new HashSet<>() {{
+    List<ChannelConfiguration> channels             = new ArrayList<>();
+    Set<CompatibilityLayer<?>> compatibilityLayers  = new HashSet<>() {{
         add(new DefaultCompatibilityLayer(ChatMod$Spigot.this));
         add(new AurionChatCompatibilityLayer(ChatMod$Spigot.this));
     }};
+    TextResourceProvider       textResourceProvider = new TextResourceProvider(this);
     @NonFinal           ChatMessageFormatter formatter;
     @NonFinal           Set<String> joinLeaveChannels;
     @NonFinal @Nullable DiscordBot  discordBot;
@@ -106,6 +108,11 @@ public class ChatMod$Spigot extends SubMod$Spigot implements ChatMod {
     @Override
     public boolean isListenerCompatibilityMode() {
         return getConfig().getBoolean("compatibility.listeners", false);
+    }
+
+    @Override
+    public TextResourceProvider text() {
+        return textResourceProvider;
     }
 
     @Override

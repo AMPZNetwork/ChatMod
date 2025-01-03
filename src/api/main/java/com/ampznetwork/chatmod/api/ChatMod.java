@@ -5,6 +5,7 @@ import com.ampznetwork.chatmod.api.model.ChannelConfiguration;
 import com.ampznetwork.chatmod.api.model.ChatMessagePacket;
 import com.ampznetwork.chatmod.api.model.ChatModCompatibilityLayerAdapter;
 import com.ampznetwork.chatmod.api.model.CompatibilityLayer;
+import com.ampznetwork.chatmod.api.model.TextResourceProvider;
 import com.ampznetwork.libmod.api.SubMod;
 import com.ampznetwork.libmod.api.interop.game.IPlayerAdapter;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -25,6 +26,8 @@ public interface ChatMod extends SubMod, ChatModCompatibilityLayerAdapter {
     boolean isListenerCompatibilityMode();
 
     MessageFormatter getFormatter();
+
+    TextResourceProvider text();
 
     List<ChannelConfiguration> getChannels();
 

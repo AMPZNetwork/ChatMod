@@ -53,10 +53,11 @@ public abstract class RabbitMqCompatibilityLayer<P> extends Component.Base imple
         this.rabbit = Optional.ofNullable(getUri())
                 .flatMap(uri -> "inherit".equalsIgnoreCase(uri)
                                 ? Optional.of(((DefaultCompatibilityLayer) mod.getDefaultCompatibilityLayer()).getRabbit())
-                                : Rabbit.of(mod.getServerName(), uri).wrap())
+                                : Rabbit.of(mod.getServerName() + ".ChatMod", uri).wrap())
                 .orElse(null);
         this.route  = Optional.ofNullable(rabbit)
-                .map(rabbit -> rabbit.bind(getClass().getSimpleName() + '@' + mod.getServerName(), getExchange(), getExchangeType(), "", createByteConverter()))
+                .map(rabbit -> rabbit.bind(mod.getServerName() + '.' + getName(), getExchange(), getExchangeType(), "",
+                        createByteConverter()))
                 .orElse(null);
         addChild(route);
 
