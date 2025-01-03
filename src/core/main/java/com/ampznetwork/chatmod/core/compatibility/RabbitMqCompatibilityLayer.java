@@ -1,6 +1,6 @@
 package com.ampznetwork.chatmod.core.compatibility;
 
-import com.ampznetwork.chatmod.api.ChatModCompatibilityLayerAdapter;
+import com.ampznetwork.chatmod.api.model.ChatModCompatibilityLayerAdapter;
 import com.ampznetwork.chatmod.api.model.CompatibilityLayer;
 import com.ampznetwork.chatmod.core.compatibility.builtin.DefaultCompatibilityLayer;
 import lombok.EqualsAndHashCode;
@@ -34,7 +34,9 @@ public abstract class RabbitMqCompatibilityLayer<P> extends Component.Base imple
 
     @Override
     public final void doSend(P packet) {
-        if (route != null) route.send(packet);
+        if (route != null) {
+            route.send(packet);
+        }
     }
 
     @Override
@@ -50,9 +52,9 @@ public abstract class RabbitMqCompatibilityLayer<P> extends Component.Base imple
         addChild(route);
 
         if (route != null) addChild(route.filterData(Predicate.not(packet -> {
-            if (skip(packet)) return false;
+            if (skip(packet)) return true;
             var convert = convertToChatModPacket(packet);
-            return convertToChatModPacket(packet).getRoute().contains(mod.getSourceName()) || mod.skip(convert);
+            return convert.getRoute().contains(mod.getSourceName()) || mod.skip(convert);
         })).subscribeData(this::handle));
     }
 

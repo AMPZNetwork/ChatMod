@@ -1,7 +1,7 @@
 package com.ampznetwork.chatmod.core.compatibility.builtin;
 
-import com.ampznetwork.chatmod.api.ChatModCompatibilityLayerAdapter;
 import com.ampznetwork.chatmod.api.model.ChatMessagePacket;
+import com.ampznetwork.chatmod.api.model.ChatModCompatibilityLayerAdapter;
 import com.ampznetwork.chatmod.core.model.PacketByteConverter;
 import com.ampznetwork.chatmod.core.serialization.ChatMessagePacketTypeAdapter;
 import com.google.gson.GsonBuilder;

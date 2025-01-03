@@ -1,8 +1,8 @@
 package com.ampznetwork.chatmod.core.compatibility.aurionchat;
 
-import com.ampznetwork.chatmod.api.ChatModCompatibilityLayerAdapter;
 import com.ampznetwork.chatmod.api.model.ChatMessage;
 import com.ampznetwork.chatmod.api.model.ChatMessagePacket;
+import com.ampznetwork.chatmod.api.model.ChatModCompatibilityLayerAdapter;
 import com.ampznetwork.chatmod.api.model.MessageType;
 import com.ampznetwork.chatmod.core.compatibility.RabbitMqCompatibilityLayer;
 import com.ampznetwork.libmod.api.entity.Player;
@@ -12,8 +12,8 @@ import lombok.Value;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import org.comroid.api.ByteConverter;
+import org.comroid.api.func.util.Streams;
 
-import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 
@@ -59,8 +59,7 @@ public class AurionChatCompatibilityLayer extends RabbitMqCompatibilityLayer<Aur
         var player = Optional.ofNullable(packet.getPlayer());
         var sender = player.map(AurionPlayer::getId)
                 .flatMap(mod.getPlayerAdapter()::getPlayer)
-                .or(() -> player.map(AurionPlayer::getName)
-                        .flatMap(mod.getPlayerAdapter()::getPlayer))
+                .or(() -> player.map(AurionPlayer::getName).flatMap(mod.getPlayerAdapter()::getPlayer))
                 .orElseThrow(() -> new NoSuchElementException("Player not found for packet " + packet));
         var message = new ChatMessage(sender,
                 mod.getPlayerAdapter().getDisplayName(sender.getId()),
@@ -70,7 +69,7 @@ public class AurionChatCompatibilityLayer extends RabbitMqCompatibilityLayer<Aur
             case CHAT, AUTO_MESSAGE -> MessageType.CHAT;
             case EVENT_JOIN -> MessageType.JOIN;
             default -> throw new UnsupportedOperationException("Unsupported packet type: " + packet.getType());
-        }, packet.getSource(), packet.getChannel(), message, List.of(getMod().getSourceName()));
+        }, packet.getSource(), packet.getChannel(), message, packet.getRoute());
     }
 
     @Override
@@ -78,9 +77,13 @@ public class AurionChatCompatibilityLayer extends RabbitMqCompatibilityLayer<Aur
         var sender = packet.getMessage().getSender();
         assert sender != null : "Outbound from Minecraft should always have a Sender";
         var player = new AurionPlayer(sender.getId(), sender.getName(), null, null);
-        return new AurionPacketAdapter(AurionPacket.Type.CHAT, packet.getSource(), player, packet.getChannel(),
+        return new AurionPacketAdapter(AurionPacket.Type.CHAT,
+                packet.getSource(),
+                player,
+                packet.getChannel(),
                 mod.getPlayerAdapter().getPlayer(sender.getId()).map(Player::getName).orElseThrow(),
-                GsonComponentSerializer.gson().serialize(packet.getMessage().getFullText()), packet.getRoute());
+                GsonComponentSerializer.gson().serialize(packet.getMessage().getFullText()),
+                packet.getRoute().stream().collect(Streams.append(mod.getSourceName())).toList());
     }
 
     @Override

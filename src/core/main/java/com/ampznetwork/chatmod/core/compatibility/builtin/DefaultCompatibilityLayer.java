@@ -1,7 +1,7 @@
 package com.ampznetwork.chatmod.core.compatibility.builtin;
 
-import com.ampznetwork.chatmod.api.ChatModCompatibilityLayerAdapter;
 import com.ampznetwork.chatmod.api.model.ChatMessagePacket;
+import com.ampznetwork.chatmod.api.model.ChatModCompatibilityLayerAdapter;
 import com.ampznetwork.chatmod.core.compatibility.RabbitMqCompatibilityLayer;
 import com.ampznetwork.chatmod.core.compatibility.aurionchat.AurionChatCompatibilityLayer;
 import lombok.Value;
@@ -50,13 +50,11 @@ public class DefaultCompatibilityLayer extends RabbitMqCompatibilityLayer<ChatMe
 
     @Override
     public void handle(ChatMessagePacket packet) {
-        var convert = convertToChatModPacket(packet);
-
-        getMod().relayInbound(convert);
+        mod.relayInbound(packet);
 
         // relay to registered aurionchat servers
         children(AurionChatCompatibilityLayer.class)
                 .filter(AurionChatCompatibilityLayer::isEnabled)
-                .forEach(layer -> layer.send(convert));
+                .forEach(layer -> layer.send(packet));
     }
 }

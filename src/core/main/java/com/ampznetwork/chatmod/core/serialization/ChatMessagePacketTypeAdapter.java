@@ -1,8 +1,8 @@
 package com.ampznetwork.chatmod.core.serialization;
 
-import com.ampznetwork.chatmod.api.ChatModCompatibilityLayerAdapter;
 import com.ampznetwork.chatmod.api.model.ChatMessage;
 import com.ampznetwork.chatmod.api.model.ChatMessagePacket;
+import com.ampznetwork.chatmod.api.model.ChatModCompatibilityLayerAdapter;
 import com.ampznetwork.chatmod.api.model.MessageType;
 import com.ampznetwork.libmod.api.entity.Player;
 import com.google.gson.TypeAdapter;
@@ -15,7 +15,6 @@ import org.comroid.api.data.RegExpUtil;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -42,8 +41,6 @@ public class ChatMessagePacketTypeAdapter extends TypeAdapter<ChatMessagePacket>
         out.beginArray();
         for (String s : packet.getRoute())
             out.value(s);
-        // append self
-        out.value(mod.getSourceName());
         out.endArray();
 
         out.endObject();
@@ -85,7 +82,7 @@ public class ChatMessagePacketTypeAdapter extends TypeAdapter<ChatMessagePacket>
         }
         in.endObject();
 
-        return new ChatMessagePacket(type, source, channel, message, Collections.unmodifiableList(route));
+        return new ChatMessagePacket(type, source, channel, message);
     }
 
     private void writeChatMessage(JsonWriter out, ChatMessage message) throws IOException {

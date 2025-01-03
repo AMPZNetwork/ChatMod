@@ -1,6 +1,5 @@
 package com.ampznetwork.chatmod.api.model;
 
-import com.ampznetwork.chatmod.api.ChatModCompatibilityLayerAdapter;
 import org.comroid.api.func.ext.Context;
 import org.comroid.api.info.Log;
 import org.comroid.api.tree.Reloadable;
@@ -37,6 +36,10 @@ public interface CompatibilityLayer<P> extends Reloadable {
 
     default void send(ChatMessagePacket packet) {
         if (!isEnabled()) return;
+
+        // append self to route
+        if (!packet.getRoute().contains(getMod().getSourceName()))
+            packet.getRoute().add(getMod().getSourceName());
 
         doSend(convertToNativePacket(packet));
     }

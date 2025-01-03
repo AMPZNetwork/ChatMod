@@ -3,6 +3,7 @@ package com.ampznetwork.chatmod.api;
 import com.ampznetwork.chatmod.api.formatting.MessageFormatter;
 import com.ampznetwork.chatmod.api.model.ChannelConfiguration;
 import com.ampznetwork.chatmod.api.model.ChatMessagePacket;
+import com.ampznetwork.chatmod.api.model.ChatModCompatibilityLayerAdapter;
 import com.ampznetwork.chatmod.api.model.CompatibilityLayer;
 import com.ampznetwork.libmod.api.SubMod;
 import com.ampznetwork.libmod.api.interop.game.IPlayerAdapter;
