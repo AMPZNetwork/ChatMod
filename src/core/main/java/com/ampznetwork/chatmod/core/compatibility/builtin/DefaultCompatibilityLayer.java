@@ -12,7 +12,6 @@ import lombok.Value;
 import org.comroid.api.ByteConverter;
 
 import java.io.ByteArrayInputStream;
-import java.util.function.Predicate;
 
 @Value
 @EqualsAndHashCode(callSuper = true)
@@ -77,10 +76,10 @@ public class DefaultCompatibilityLayer extends RabbitMqCompatibilityLayer<ChatMe
 
     @Override
     public void handle(ChatMessagePacket packet) {
-        // loop from here to here
+        // relay inbound packet
         if (mod.getSourceName().equals(packet.getSource())) mod.relayInbound(packet);
 
-        // relay to registered aurionchat servers
-        children(CompatibilityLayer.class).filter(Predicate.not(this::equals)).forEach(layer -> layer.send(packet));
+        // relay downstream
+        children(CompatibilityLayer.class).forEach(layer -> layer.send(packet));
     }
 }

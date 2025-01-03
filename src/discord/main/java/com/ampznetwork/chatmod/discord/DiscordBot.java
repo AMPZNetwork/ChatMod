@@ -183,7 +183,7 @@ public class DiscordBot extends Component.Base implements ChatModCompatibilityLa
 
     @Override
     public void relayInbound(ChatMessagePacket packet) {
-        if (this.playerAdapter instanceof IPlayerAdapter)
+        if (!(this.playerAdapter instanceof IPlayerAdapter))
             Log.get("Chat #" + packet.getChannel()).info(packet.getMessage().getPlaintext());
         if (SOURCE.equals(packet.getSource())) return;
         config.getChannels().stream()
