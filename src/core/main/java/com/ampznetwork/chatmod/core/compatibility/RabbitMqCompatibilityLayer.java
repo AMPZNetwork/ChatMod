@@ -48,7 +48,7 @@ public abstract class RabbitMqCompatibilityLayer<P> extends Component.Base imple
 
     @Override
     public final void start() {
-        if (!isEnabled() || (route != null && route.isActive())) return;
+        if (!isClosed() && route != null && !route.isClosed() && route.touch().isOpen()) return;
 
         this.rabbit = Optional.ofNullable(getUri())
                 .flatMap(uri -> "inherit".equalsIgnoreCase(uri)
@@ -71,6 +71,7 @@ public abstract class RabbitMqCompatibilityLayer<P> extends Component.Base imple
     @Override
     public void stop() {
         if (route != null) route.close();
+        clearChildren();
     }
 
     @Override
