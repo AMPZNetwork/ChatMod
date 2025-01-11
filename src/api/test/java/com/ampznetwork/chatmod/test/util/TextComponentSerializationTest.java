@@ -1,9 +1,9 @@
 package com.ampznetwork.chatmod.test.util;
 
-import com.ampznetwork.chatmod.api.model.ChatMessage;
-import com.ampznetwork.chatmod.api.model.ChatMessagePacket;
 import com.ampznetwork.chatmod.api.model.ChatMessagePacketImpl;
-import com.ampznetwork.chatmod.api.model.PacketType;
+import com.ampznetwork.chatmod.api.model.protocol.ChatMessage;
+import com.ampznetwork.chatmod.api.model.protocol.ChatMessagePacket;
+import com.ampznetwork.chatmod.api.model.protocol.internal.PacketType;
 import com.ampznetwork.libmod.api.entity.Player;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;

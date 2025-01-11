@@ -1,4 +1,4 @@
-package com.ampznetwork.chatmod.api.model;
+package com.ampznetwork.chatmod.api.model.protocol.internal;
 
 import com.ampznetwork.chatmod.api.ChatMod;
 import com.ampznetwork.libmod.api.entity.Player;

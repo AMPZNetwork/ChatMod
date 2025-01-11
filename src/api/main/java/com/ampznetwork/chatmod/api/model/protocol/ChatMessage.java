@@ -1,4 +1,4 @@
-package com.ampznetwork.chatmod.api.model;
+package com.ampznetwork.chatmod.api.model.protocol;
 
 import com.ampznetwork.libmod.api.entity.Player;
 import com.fasterxml.jackson.annotation.JsonIgnore;

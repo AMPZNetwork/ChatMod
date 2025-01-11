@@ -1,8 +1,7 @@
-package com.ampznetwork.chatmod.core.model;
+package com.ampznetwork.chatmod.api.model.protocol.internal;
 
-import com.ampznetwork.chatmod.api.model.ChatMessage;
-import com.ampznetwork.chatmod.api.model.ChatMessagePacket;
-import com.ampznetwork.chatmod.api.model.PacketType;
+import com.ampznetwork.chatmod.api.model.protocol.ChatMessage;
+import com.ampznetwork.chatmod.api.model.protocol.ChatMessagePacket;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 

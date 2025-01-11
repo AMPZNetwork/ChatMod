@@ -1,5 +1,6 @@
-package com.ampznetwork.chatmod.api.model;
+package com.ampznetwork.chatmod.api.model.protocol;
 
+import com.ampznetwork.chatmod.api.model.protocol.internal.PacketType;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public interface ChatMessagePacket {

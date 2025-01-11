@@ -2,7 +2,7 @@ package com.ampznetwork.chatmod.core.formatting;
 
 import com.ampznetwork.chatmod.api.ChatMod;
 import com.ampznetwork.chatmod.api.formatting.MessageFormatter;
-import com.ampznetwork.chatmod.api.model.ChatMessage;
+import com.ampznetwork.chatmod.api.model.protocol.ChatMessage;
 import com.ampznetwork.libmod.api.entity.Player;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -102,7 +102,7 @@ public class ChatMessageFormatter implements MessageFormatter {
         var sender = chatMessage.getSender();
         assert sender != null : "Outbound from Minecraft should always have a Sender";
 
-        var format = mod.applyPlaceholders(sender.getId(), this.format);
+        var format = mod.applyPlaceholderApi(sender.getId(), this.format);
         var split = format.split(MESSAGE_PLACEHOLDER);
 
         chatMessage.setPrepend(legacyAmpersand().deserialize(split[0]));

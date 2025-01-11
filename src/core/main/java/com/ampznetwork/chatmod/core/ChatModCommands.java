@@ -1,7 +1,10 @@
 package com.ampznetwork.chatmod.core;
 
 import com.ampznetwork.chatmod.api.ChatMod;
-import com.ampznetwork.chatmod.api.model.CompatibilityLayer;
+import com.ampznetwork.chatmod.api.model.module.Module;
+import com.ampznetwork.chatmod.api.model.protocol.internal.ChatMessagePacketImpl;
+import com.ampznetwork.chatmod.api.model.protocol.internal.PacketType;
+import com.ampznetwork.chatmod.core.module.impl.LinkToMinecraftModule;
 import com.ampznetwork.chatmod.core.util.AutoFill;
 import com.ampznetwork.chatmod.generated.PluginYml.Permission.chatmod;
 import net.kyori.adventure.text.Component;
@@ -24,8 +27,8 @@ import static net.kyori.adventure.text.format.TextDecoration.*;
 public class ChatModCommands {
     @Command(permission = chatmod.STATUS)
     public static Component status(ChatMod mod, @Command.Arg(required = false, autoFillProvider = AutoFill.Modules.class) @Nullable String module) {
-        Stream<CompatibilityLayer<?>>                      source = mod.getCompatibilityLayers().stream();
-        Function<Stream<CompatibilityLayer<?>>, Component> target;
+        Stream<Module<?>>                      source = mod.children(Module.class);
+        Function<Stream<Module<?>>, Component> target;
 
         var gen = mod.text();
         if (module != null && !module.isBlank()) {
@@ -51,13 +54,14 @@ public class ChatModCommands {
             @Command.Arg(stringMode = StringMode.GREEDY) String message, UUID playerId
     ) {
         var player = mod.getLib().getPlayerAdapter().getPlayer(playerId).orElseThrow();
-        return mod.getChannels()
+        return mod.getChannels().getChannels()
                 .stream()
                 .filter(channel -> Arrays.asList(channel.getName(), channel.getAlias()).contains(channelName))
                 .findAny()
                 .map(channel -> {
                     var msg = channel.formatMessage(mod, player, message);
-                    mod.sendChat(channel.getName(), msg);
+                    var pkt = new ChatMessagePacketImpl(PacketType.CHAT, mod.getServerName(), channel.getName(), msg);
+                    mod.child(LinkToMinecraftModule.class).ifPresent(link -> link.broadcastOutbound(pkt));
                     return msg.getFullText();
                 })
                 .orElseThrow(() -> new Command.Error("Could not shout to channel " + channelName));
@@ -69,8 +73,8 @@ public class ChatModCommands {
         @Command(permission = chatmod.channel.LIST)
         public static Component list(ChatMod mod, UUID playerId) {
             var text = text().append(text("Available Channels:").decorate(BOLD));
-            if (mod.getChannels().isEmpty()) text.append(text("\n- ")).append(text("(none)").color(GRAY));
-            else for (var channel : mod.getChannels()) {
+            if (mod.getChannels().getChannels().isEmpty()) text.append(text("\n- ")).append(text("(none)").color(GRAY));
+            else for (var channel : mod.getChannels().getChannels()) {
                 text.append(text("\n- ")).append(text(channel.getName()).color(AQUA));
                 var member = channel.getPlayerIDs().contains(playerId);
                 var spy    = channel.getSpyIDs().contains(playerId);
@@ -86,7 +90,7 @@ public class ChatModCommands {
 
         @Command(permission = chatmod.channel.INFO)
         public static Component info(ChatMod mod, @Command.Arg(autoFillProvider = AutoFill.ChannelNames.class) String channelName) {
-            var channel = mod.getChannels()
+            var channel = mod.getChannels().getChannels()
                     .stream()
                     .filter(it -> Arrays.asList(it.getName(), it.getAlias()).contains(channelName))
                     .findAny()
@@ -107,7 +111,7 @@ public class ChatModCommands {
 
         @Command(permission = chatmod.channel.JOIN)
         public static Component join(ChatMod mod, @Command.Arg(autoFillProvider = AutoFill.ChannelNames.class) String channelName, UUID playerId) {
-            var channels       = mod.getChannels();
+            var channels = mod.getChannels().getChannels();
             var currentChannel = channels.stream().filter(it -> it.getPlayerIDs().contains(playerId)).findAny().orElse(null);
             var targetChannel = channels.stream()
                     .filter(it -> Arrays.asList(it.getName(), it.getAlias()).contains(channelName))
@@ -123,7 +127,7 @@ public class ChatModCommands {
                 ChatMod mod, @Command.Arg(autoFillProvider = AutoFill.ChannelNames.class, autoFill = { "*" }) String channelName,
                 UUID playerId
         ) {
-            var channels = mod.getChannels();
+            var channels = mod.getChannels().getChannels();
             if ("*".equals(channelName)) {
                 channels.forEach(config -> config.getSpyIDs().add(playerId));
                 return text("Now spying ").append(text("all channels").color(AQUA));

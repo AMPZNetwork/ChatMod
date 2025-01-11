@@ -1,9 +1,8 @@
 package com.ampznetwork.chatmod.core;
 
 import com.ampznetwork.chatmod.api.ChatMod;
-import com.ampznetwork.chatmod.api.model.ChannelConfiguration;
-import com.ampznetwork.chatmod.api.model.ChatMessage;
-import com.ampznetwork.chatmod.api.model.PacketType;
+import com.ampznetwork.chatmod.api.model.protocol.ChatMessage;
+import com.ampznetwork.chatmod.api.model.protocol.internal.PacketType;
 import com.ampznetwork.libmod.api.model.delegate.EventDelegate;
 import lombok.SneakyThrows;
 import lombok.Value;
@@ -31,26 +30,25 @@ public abstract class EventDispatchBase<Mod extends ChatMod> {
         assert sender != null : "Outbound from Minecraft should always have a Sender";
 
         var playerId = sender.getId();
-        var optChannel = mod.getChannels().stream()
+        var optChannel = mod.getChannels().getChannels().stream()
                 .filter(channel -> channel.getPlayerIDs().contains(playerId))
-                .findAny()
-                .map(ChannelConfiguration::getName);
+                .findAny();
 
         if (optChannel.isEmpty()) {
             log.warn("Dropped message because player is not in any channel: {}", message);
             return;
         }
 
-        mod.sendChat(optChannel.get(), message);
+        optChannel.get().send(mod, message);
     }
 
     protected void playerJoin(UUID playerId, @Nullable EventDelegate<TextComponent> event) {
-        mod.getChannels().getFirst().getPlayerIDs().add(playerId);
+        mod.getChannels().getChannels().getFirst().getPlayerIDs().add(playerId);
         handleJoinLeave(playerId, PacketType.JOIN, event);
     }
 
     protected void playerLeave(UUID playerId, @Nullable EventDelegate<TextComponent> event) {
-        var channels = mod.getChannels();
+        var channels = mod.getChannels().getChannels();
         channels.stream()
                 .filter(channel -> channel.getPlayerIDs().contains(playerId))
                 .findAny()
@@ -67,7 +65,7 @@ public abstract class EventDispatchBase<Mod extends ChatMod> {
         var player = mod.getPlayerAdapter().getPlayer(playerId).orElseThrow();
         var text = Optional.ofNullable(packetType.getCustomFormat(mod))
                 .map(format -> format.replace(PLAYER_NAME_PLACEHOLDER, RESERVED_PLACEHOLDER))
-                .map(format -> mod.applyPlaceholders(playerId, format))
+                .map(format -> mod.applyPlaceholderApi(playerId, format))
                 .map(format -> {
                     var split = format.split(RESERVED_PLACEHOLDER);
                     var txt = Component.text()

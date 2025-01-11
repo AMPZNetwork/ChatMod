@@ -1,20 +1,17 @@
 package com.ampznetwork.chatmod.spigot;
 
 import com.ampznetwork.chatmod.api.ChatMod;
-import com.ampznetwork.chatmod.api.model.ChannelConfiguration;
-import com.ampznetwork.chatmod.api.model.ChatMessagePacket;
-import com.ampznetwork.chatmod.api.model.CompatibilityLayer;
 import com.ampznetwork.chatmod.api.model.TextResourceProvider;
+import com.ampznetwork.chatmod.api.model.config.ChatModules;
+import com.ampznetwork.chatmod.api.model.config.channel.Channel;
+import com.ampznetwork.chatmod.api.model.config.channel.Channels;
 import com.ampznetwork.chatmod.core.ChatModCommands;
-import com.ampznetwork.chatmod.core.compatibility.aurionchat.AurionChatCompatibilityLayer;
-import com.ampznetwork.chatmod.core.compatibility.builtin.DefaultCompatibilityLayer;
+import com.ampznetwork.chatmod.core.ModuleContainerCore;
 import com.ampznetwork.chatmod.core.formatting.ChatMessageFormatter;
 import com.ampznetwork.chatmod.discord.DiscordBot;
-import com.ampznetwork.chatmod.discord.config.Config;
-import com.ampznetwork.chatmod.discord.config.DiscordChannelConfig;
-import com.ampznetwork.chatmod.discord.config.Formats;
 import com.ampznetwork.chatmod.spigot.adp.SpigotEventDispatch;
-import com.ampznetwork.libmod.api.entity.DbObject;
+import com.ampznetwork.libmod.api.interop.game.IPlayerAdapter;
+import com.ampznetwork.libmod.api.util.Util;
 import com.ampznetwork.libmod.spigot.SubMod$Spigot;
 import lombok.Getter;
 import lombok.experimental.NonFinal;
@@ -26,34 +23,21 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.configuration.MemorySection;
 import org.comroid.api.Polyfill;
 import org.comroid.api.func.util.Command;
-import org.comroid.api.func.util.Tuple;
-import org.comroid.api.info.Log;
+import org.comroid.api.tree.Container;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.Range;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import java.util.logging.Level;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
-import static org.comroid.api.func.util.Streams.*;
-import static org.comroid.api.text.Word.*;
+import static com.ampznetwork.chatmod.api.model.config.ChatModules.*;
+import static com.ampznetwork.chatmod.spigot.YmlConfigHelper.*;
 
 @Getter
 @Slf4j(topic = ChatMod.Strings.AddonName)
-public class ChatMod$Spigot extends SubMod$Spigot implements ChatMod {
-    List<ChannelConfiguration> channels             = new ArrayList<>();
-    Set<CompatibilityLayer<?>> compatibilityLayers  = new HashSet<>() {{
-        add(new DefaultCompatibilityLayer(ChatMod$Spigot.this));
-        add(new AurionChatCompatibilityLayer(ChatMod$Spigot.this));
-    }};
-    TextResourceProvider       textResourceProvider = new TextResourceProvider(this);
+public class ChatMod$Spigot extends SubMod$Spigot implements ChatMod, ModuleContainerCore {
+    @lombok.experimental.Delegate Container $delegate = new Container.Base();
+    TextResourceProvider textResourceProvider = new TextResourceProvider(this);
     @NonFinal           ChatMessageFormatter formatter;
     @NonFinal           Set<String> joinLeaveChannels;
     @NonFinal @Nullable DiscordBot  discordBot;
@@ -64,55 +48,47 @@ public class ChatMod$Spigot extends SubMod$Spigot implements ChatMod {
     }
 
     @Override
-    public String getSourceName() {
-        return getConfig().getString("server.name", "&eMC");
+    public IPlayerAdapter getPlayerAdapter() {
+        return ChatMod.super.getPlayerAdapter();
     }
 
     @Override
-    public String getMainRabbitUri() {
-        return getConfig().getString("rabbitmq.uri");
+    public ChatModules getChatModules() {
+        var config = getConfig();
+        var caps   = builder();
+
+        var format = config.getConfigurationSection("format");
+        if (format != null) caps.defaultFormat(formats(format));
+
+        var modules = config.getConfigurationSection("modules");
+        element(LogProviderConfig::builder, modules, "log", (bld, cfg) -> {}, caps::log);
+        element(MinecraftProviderConfig::builder, modules, "minecraft", YmlConfigHelper::minecraft, caps::minecraft);
+        element(NativeProviderConfig::builder, modules, "rabbitmq", YmlConfigHelper::rabbitmq, caps::builtin);
+        element(AurionChatProviderConfig::builder, modules, "aurionchat", YmlConfigHelper::rabbitmq, caps::aurionChat);
+        element(DiscordProviderConfig::builder, modules, "discord", YmlConfigHelper::discord, caps::discord);
+
+        return caps.build();
     }
 
     @Override
-    public String getAurionChatRabbitUri() {
-        return getConfig().getString("compatibility.aurionchat");
+    public Channels getChannels() {
+        var config   = getConfig().getConfigurationSection("channels");
+        var channels = Channels.builder();
+
+        for (var channelName : config.getKeys(false))
+            element(Channel::builder, config, channelName, YmlConfigHelper::channel, channels::channel);
+
+        return channels.build();
     }
 
     @Override
-    public @Range(from = -1, to = Integer.MAX_VALUE) int getAutoReconnectDelaySeconds() {
-        return getConfig().getInt("auto-reconnect-delay", -1);
-    }
-
-    @Override
-    public void relayInbound(ChatMessagePacket packet) {
-        if (isListenerCompatibilityMode() && getSourceName().equals(packet.getSource())) return;
-        Log.get("Chat #" + packet.getChannel()).info(packet.getMessage().getPlaintext());
-        var targetChannel = packet.getChannel();
-        channels.stream()
-                .filter(channel -> channel.getName().equals(targetChannel))
-                .flatMap(channel -> Stream.concat(channel.getPlayerIDs().stream(), channel.getSpyIDs().stream()))
-                .distinct()
-                .forEach(id -> lib.getPlayerAdapter().send(id, packet.getMessage().getFullText()));
-    }
-
-    @Override
-    public void relayOutbound(ChatMessagePacket packet) {
-        compatibilityLayers.stream().filter(CompatibilityLayer::isEnabled).forEach(layer -> layer.send(packet));
-    }
-
-    @Override
-    public boolean skip(ChatMessagePacket packet) {
-        return (isListenerCompatibilityMode() && getSourceName().equals(packet.getSource()));
+    public String getServerName() {
+        return Util.Kyori.sanitize(getConfig().getString("server.name"));
     }
 
     @Override
     public boolean isListenerCompatibilityMode() {
         return getConfig().getBoolean("compatibility.listeners", false);
-    }
-
-    @Override
-    public TextResourceProvider text() {
-        return textResourceProvider;
     }
 
     @Override
@@ -126,19 +102,14 @@ public class ChatMod$Spigot extends SubMod$Spigot implements ChatMod {
     }
 
     @Override
-    public @Nullable String getCustomJoinMessageFormat() {
-        return getConfig().getString("events.join_leave.format_join", null);
+    public TextResourceProvider text() {
+        return textResourceProvider;
     }
 
     @Override
-    public @Nullable String getCustomLeaveMessageFormat() {
-        return getConfig().getString("events.join_leave.format_leave", null);
-    }
-
-    @Override
-    public String applyPlaceholders(UUID playerId, String input) {
+    public String applyPlaceholderApi(UUID playerId, String input) {
         var player = getServer().getOfflinePlayer(playerId);
-        return hasPlaceholderApi ? PlaceholderAPI.setPlaceholders(player, input) : ChatMod.super.applyPlaceholders(playerId, input);
+        return hasPlaceholderApi ? PlaceholderAPI.setPlaceholders(player, input) : ChatMod.super.applyPlaceholderApi(playerId, input);
     }
 
     @Override
@@ -166,89 +137,13 @@ public class ChatMod$Spigot extends SubMod$Spigot implements ChatMod {
     @Command
     public @NotNull TextComponent reload() {
         reloadConfig();
-        var config = getConfig();
 
-        // reload channel configuration
-        channels.clear();
-        loadChannels();
+        this.formatter = ChatMessageFormatter.of(Polyfill.<MemorySection>uncheckedCast(getConfig().get("formatting")).getValues(true));
 
-        // sync discord bot config
-        if (discordBot != null) discordBot.close();
-        compatibilityLayers.removeIf(DiscordBot.class::isInstance);
-        var token = config.getString("discord_bot_token", null);
-        if (token != null && !token.isBlank() && !"none".equals(token)) {
-            var botConfig = new Config(token, getMainRabbitUri(), getAutoReconnectDelaySeconds(),
-                    channels.stream()
-                            .flatMap(cfg -> Stream.ofNullable(cfg.getDiscord()).map(dc -> new Tuple.N2<>(cfg.getName(), dc)))
-                            .flatMap(filter(e -> e.b.getChannelId() != null,
-                                    e -> getLogger().warning("Cannot load discord configuration for channel '%s': Missing 'discord.channelId' attribute".formatted(
-                                            e.a))))
-                            .map(Tuple.N2::getB)
-                            .collect(Collectors.toUnmodifiableSet()));
-            discordBot = new DiscordBot(botConfig, getPlayerAdapter(), getDefaultCompatibilityLayer());
-            compatibilityLayers.add(discordBot);
-            Log.at(Level.INFO, "Discord Bot module loaded and initialized with %s".formatted(plural("channel", "s", botConfig.getChannels().size())));
-        }
-
-//        if (compatibilityLayers.stream().noneMatch(AurionChatCompatibilityLayer.class::isInstance))
-//            compatibilityLayers.add(new AurionChatCompatibilityLayer(this));
-
-        // rejoin current players
-        var mainChannel = channels.getFirst();
-        getLib().getPlayerAdapter().getCurrentPlayers().map(DbObject::getId).forEach(mainChannel.getPlayerIDs()::add);
-
-        this.formatter = ChatMessageFormatter.of(Polyfill.<MemorySection>uncheckedCast(config.get("formatting")).getValues(true));
-
-        var values = Stream.<String>empty();
-        var key    = "events.join_leave.channels";
-        if (config.isString(key)) values = Stream.ofNullable(config.getString(key, null));
-        if (config.isList(key)) values = config.getStringList(key).stream();
-        this.joinLeaveChannels = values.flatMap(str -> "*".equals(str) ? getChannels().stream().map(ChannelConfiguration::getName) : Stream.of(str))
-                .collect(Collectors.toUnmodifiableSet());
-
-        compatibilityLayers.forEach(CompatibilityLayer::reload);
+        // reinitialize modules
+        clearChildren();
+        initModules();
 
         return Component.text("Successfully reloaded ChatMod configurations").color(NamedTextColor.GREEN);
-    }
-
-    private void loadChannels() {
-        var cfg = getConfig();
-        var ls  = Polyfill.<List<Map<String, ?>>>uncheckedCast(cfg.getList("channels"));
-        for (var $0 : ls) {
-            var name   = $0.keySet().stream().findAny().orElseThrow();
-            var config = Polyfill.<Map<String, Object>>uncheckedCast($0.get(name));
-            channels.add(ChannelConfiguration.builder()
-                    .name(name)
-                    .alias((String) config.getOrDefault("alias", name.substring(0, 1)))
-                    .permission((String) config.getOrDefault("permission", null))
-                    .discord(tryParseDiscordChannelConfig(name, Polyfill.uncheckedCast(config.getOrDefault("discord", null))))
-                    .publish(Boolean.parseBoolean(String.valueOf(config.getOrDefault("publish", true))))
-                    .build());
-        }
-        getLogger().info("Loaded " + channels.size() + " channels");
-    }
-
-    private DiscordChannelConfig tryParseDiscordChannelConfig(String channelName, Map<String, Object> config) {
-        return config == null
-               ? null
-               : DiscordChannelConfig.builder()
-                       .channelName(channelName)
-                       .channelId((Long) config.getOrDefault("channel_id", null))
-                       .webhookUrl((String) config.getOrDefault("webhook_url", null))
-                       .inviteUrl((String) config.getOrDefault("invite_url", null))
-                       .format(tryParseFormats(Polyfill.uncheckedCast(config.getOrDefault("format", null))))
-                       .build();
-    }
-
-    private Formats tryParseFormats(Map<String, Object> config) {
-        return config == null
-               ? null
-               : Formats.builder()
-                       .joinMessage((String) config.getOrDefault("join_message", null))
-                       .leaveMessage((String) config.getOrDefault("leave_message", null))
-                       .webhookUsername((String) config.getOrDefault("webhook_username", null))
-                       .webhookMessage((String) config.getOrDefault("webhook_message", null))
-                       .webhookAvatar((String) config.getOrDefault("webhook_avatar", null))
-                       .build();
     }
 }

@@ -1,6 +1,6 @@
 package com.ampznetwork.chatmod.spigot.adp;
 
-import com.ampznetwork.chatmod.api.model.ChatMessage;
+import com.ampznetwork.chatmod.api.model.protocol.ChatMessage;
 import com.ampznetwork.chatmod.core.EventDispatchBase;
 import com.ampznetwork.chatmod.spigot.ChatMod$Spigot;
 import com.ampznetwork.libmod.api.model.delegate.EventDelegate;

@@ -3,6 +3,10 @@ apply from: "$rootProject.projectDir/gradle/scripts/java-lib.gradle"
 group = 'com.ampznetwork.chatmod'
 
 dependencies {
+    // discord
+    implementation 'net.dv8tion:JDA:+'
+    implementation 'club.minnced:discord-webhooks:+'
+
     // serialization
     implementation 'net.kyori:adventure-api:4.+'
     implementation 'net.kyori:adventure-text-serializer-gson:4.+'

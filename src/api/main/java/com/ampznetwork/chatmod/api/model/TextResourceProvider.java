@@ -1,6 +1,7 @@
 package com.ampznetwork.chatmod.api.model;
 
 import com.ampznetwork.chatmod.api.ChatMod;
+import com.ampznetwork.chatmod.api.model.module.Module;
 import lombok.Value;
 import net.kyori.adventure.text.Component;
 
@@ -13,7 +14,7 @@ public class TextResourceProvider {
 
     Component EmptyListEntry = text().append(text(" - ").color(WHITE)).append(text("(no entries)").color(GRAY)).build();
 
-    public Component getModuleInfo(CompatibilityLayer<?> module) {
+    public Component getModuleInfo(Module<?> module) {
         return text().append(text(module.getName()).color(BLUE))
                 .append(text(": "))
                 .append(module.isEnabled() ? text("ONLINE").color(GREEN) : text("OFFLINE").color(RED))

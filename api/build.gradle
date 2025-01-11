@@ -19,7 +19,6 @@ dependencies {
     // kyori
     api 'net.kyori:adventure-text-serializer-json:4.+'
     api 'net.kyori:adventure-text-serializer-gson:4.+'
-    api 'net.kyori:adventure-text-serializer-legacy:4.+'
 
     // utility
     compileOnly 'org.projectlombok:lombok:+'

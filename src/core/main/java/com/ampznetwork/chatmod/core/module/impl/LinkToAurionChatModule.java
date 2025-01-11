@@ -1,10 +1,11 @@
-package com.ampznetwork.chatmod.core.compatibility.aurionchat;
+package com.ampznetwork.chatmod.core.module.impl;
 
-import com.ampznetwork.chatmod.api.model.ChatMessage;
-import com.ampznetwork.chatmod.api.model.ChatMessagePacket;
-import com.ampznetwork.chatmod.api.model.ChatModCompatibilityLayerAdapter;
-import com.ampznetwork.chatmod.api.model.PacketType;
-import com.ampznetwork.chatmod.core.compatibility.RabbitMqCompatibilityLayer;
+import com.ampznetwork.chatmod.api.model.config.ChatModules;
+import com.ampznetwork.chatmod.api.model.module.ModuleContainer;
+import com.ampznetwork.chatmod.api.model.protocol.ChatMessage;
+import com.ampznetwork.chatmod.api.model.protocol.ChatMessagePacket;
+import com.ampznetwork.chatmod.api.model.protocol.internal.PacketType;
+import com.ampznetwork.chatmod.core.module.rabbit.AbstractRabbitMqModule;
 import com.ampznetwork.libmod.api.entity.Player;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.google.gson.JsonObject;
@@ -28,33 +29,13 @@ import java.util.Optional;
 
 @Value
 @EqualsAndHashCode(callSuper = true)
-public class AurionChatCompatibilityLayer extends RabbitMqCompatibilityLayer<AurionChatCompatibilityLayer.PacketAdapter> {
+public class LinkToAurionChatModule extends AbstractRabbitMqModule<ChatModules.AurionChatProviderConfig, LinkToAurionChatModule.PacketAdapter> {
     {
         AurionPacket.PARSE = this::parsePacket;
     }
 
-    public AurionChatCompatibilityLayer(ChatModCompatibilityLayerAdapter mod) {
-        super(mod);
-    }
-
-    @Override
-    public String getUri() {
-        return mod.getAurionChatRabbitUri();
-    }
-
-    @Override
-    public String getExchange() {
-        return "aurion.chat";
-    }
-
-    @Override
-    protected String getExchangeType() {
-        return "fanout";
-    }
-
-    @Override
-    public boolean isEnabled() {
-        return !"none".equalsIgnoreCase(getUri());
+    public LinkToAurionChatModule(ModuleContainer mod, ChatModules.AurionChatProviderConfig config) {
+        super(mod, config);
     }
 
     @Override
@@ -72,21 +53,10 @@ public class AurionChatCompatibilityLayer extends RabbitMqCompatibilityLayer<Aur
         };
     }
 
-    @Override
-    public String getName() {
-        return "AurionChat";
-    }
-
     public PacketAdapter parsePacket(final @NotNull String str) {
         var json = AurionPacket.GSON.fromJson(str, JsonObject.class);
         if (json.has("route")) return AurionPacket.GSON.fromJson(str, PacketAdapter.class);
         return new PacketAdapter(AurionPacket.GSON.fromJson(str, AurionPacket.class), new ArrayList<>());
-    }
-
-    @Override
-    public boolean skip(PacketAdapter packet) {
-        var type = packet.getType();
-        return type != AurionPacket.Type.CHAT && type != AurionPacket.Type.AUTO_MESSAGE;
     }
 
     @Override
@@ -106,22 +76,12 @@ public class AurionChatCompatibilityLayer extends RabbitMqCompatibilityLayer<Aur
                 packet.getChannel(),
                 mod.getPlayerAdapter().getPlayer(sender.getId()).map(Player::getName).orElseThrow(),
                 GsonComponentSerializer.gson().serialize(packet.getMessage().getFullText()),
-                packet.getRoute().stream().collect(Streams.append(mod.getSourceName())).toList());
+                packet.getRoute().stream().collect(Streams.append(mod.getServerName())).toList());
     }
 
     @Override
-    public void handle(PacketAdapter packet) {
-        var convert = convertToChatModPacket(packet);
-
-        // relay for other servers
-        getMod().relayOutbound(convert);
-        getMod().relayInbound(convert);
-    }
-
-    @Override
-    public void send(ChatMessagePacket packet) {
-        if (packet instanceof PacketAdapter) return; // do not loop packet back into aurionchat
-        super.send(packet);
+    public void relayOutbound(PacketAdapter packet) {
+        broadcastInbound(packet);
     }
 
     @Value

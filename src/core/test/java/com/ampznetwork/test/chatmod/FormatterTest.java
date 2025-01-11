@@ -1,7 +1,7 @@
 package com.ampznetwork.test.chatmod;
 
 import com.ampznetwork.chatmod.api.ChatMod;
-import com.ampznetwork.chatmod.api.model.ChatMessage;
+import com.ampznetwork.chatmod.api.model.protocol.ChatMessage;
 import com.ampznetwork.chatmod.core.formatting.ChatMessageFormatter;
 import com.ampznetwork.libmod.api.LibMod;
 import com.ampznetwork.libmod.api.entity.Player;
@@ -38,7 +38,7 @@ public class FormatterTest {
         expect(lib.getPlayerAdapter()).andReturn(playerAdapter).anyTimes();
         ChatMod mod = mock(ChatMod.class);
         expect(mod.getLib()).andReturn(lib).anyTimes();
-        expect(mod.applyPlaceholders(sender.getId(), FORMAT)).andReturn(FORMAT).anyTimes();
+        expect(mod.applyPlaceholderApi(sender.getId(), FORMAT)).andReturn(FORMAT).anyTimes();
 
         replay(playerAdapter, lib, mod);
 
