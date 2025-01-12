@@ -88,7 +88,7 @@ public class LinkToDiscordModule extends IdentityModule<ChatModules.DiscordProvi
 
     @Override
     public boolean acceptInbound(ChatMessagePacket packet) {
-        return super.acceptInbound(packet) && !config.getEndpointName().equals(packet.getSource());
+        return super.acceptInbound(packet) && !Objects.equals(config.getEndpointName(), packet.getSource());
     }
 
     @Override

@@ -18,6 +18,7 @@ import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import org.comroid.api.ByteConverter;
 import org.comroid.api.func.util.Streams;
+import org.comroid.api.info.Log;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -27,6 +28,7 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.logging.Level;
 
 @Value
 @ToString(callSuper = true)
@@ -70,7 +72,11 @@ public class LinkToAurionChatModule extends AbstractRabbitMqModule<ChatModules.A
     public PacketAdapter convertToNativePacket(ChatMessagePacket packet) {
         if (packet instanceof PacketAdapter adp) return adp;
         var sender = packet.getMessage().getSender();
-        assert sender != null : "Outbound from Minecraft should always have a Sender";
+        if (sender == null) {
+            Log.at(Level.FINE, "Skipping packet " + packet + " because it does not have a sender");
+            //todo: lookup linked user
+            return null;
+        }
         var player = new AurionPlayer(sender.getId(), sender.getName(), null, null);
         return new PacketAdapter(AurionPacket.Type.CHAT,
                 packet.getSource(),
