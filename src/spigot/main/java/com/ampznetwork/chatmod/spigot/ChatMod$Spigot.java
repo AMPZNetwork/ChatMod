@@ -26,9 +26,13 @@ import org.comroid.api.tree.Container;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Predicate;
 import java.util.logging.Level;
 
 import static com.ampznetwork.chatmod.api.model.config.ChatModules.*;
@@ -41,6 +45,7 @@ public class ChatMod$Spigot extends SubMod$Spigot implements ChatMod, ModuleCont
     private final                               TextResourceProvider textResourceProvider = new TextResourceProvider(this);
     private                                     ChatMessageFormatter formatter;
     private                                     boolean              hasPlaceholderApi;
+    private List<Channel> channels;
 
     public ChatMod$Spigot() {
         super(Set.of(), Set.of());
@@ -67,21 +72,6 @@ public class ChatMod$Spigot extends SubMod$Spigot implements ChatMod, ModuleCont
         condElement(DiscordProviderConfig::builder, modules, "discord", YmlConfigHelper::discord, caps::discord);
 
         return caps.build();
-    }
-
-    @Override
-    public List<Channel> getChannels() {
-        var config = getConfig().getConfigurationSection("channels");
-        if (config == null) {
-            Log.at(Level.WARNING, "No channels configured");
-            return List.of();
-        }
-
-        var channels = new ArrayList<Channel>();
-        for (var channelName : config.getKeys(false))
-            condElement(Channel::builder, config, channelName, YmlConfigHelper::channel, it -> channels.add((Channel) it));
-
-        return channels;
     }
 
     @Override
@@ -148,11 +138,60 @@ public class ChatMod$Spigot extends SubMod$Spigot implements ChatMod, ModuleCont
 
         this.formatter = ChatMessageFormatter.of(Polyfill.<MemorySection>uncheckedCast(getConfig().get("formatting")).getValues(true));
 
+        // reload channels
+        reloadChannels();
+
         // reinitialize modules
         close();
         clearChildren();
         initModules();
 
         return Component.text("Successfully reloaded ChatMod configurations").color(NamedTextColor.GREEN);
+    }
+
+    private void reloadChannels() {
+        var players = new HashMap<String, Map<UUID, @NotNull Boolean>>();
+
+        if (channels != null) {
+            // save user subscriptions
+            channels.forEach(channel -> {
+                channel.getPlayerIDs().forEach(id -> players.computeIfAbsent(channel.getName(), ($0) -> new HashMap<>()).computeIfAbsent(id, $1 -> false));
+                channel.getSpyIDs().forEach(id -> players.computeIfAbsent(channel.getName(), ($0) -> new HashMap<>()).computeIfAbsent(id, $1 -> true));
+            });
+
+            channels.clear();
+        }
+        // reload channels
+        channels = loadChannels();
+
+        // rejoin users
+        for (var channel : channels) {
+            players.getOrDefault(channel.getName(), Collections.emptyMap())
+                    .entrySet()
+                    .stream()
+                    .filter(Predicate.not(Map.Entry::getValue))
+                    .map(Map.Entry::getKey)
+                    .forEach(channel.getPlayerIDs()::add);
+            players.getOrDefault(channel.getName(), Collections.emptyMap())
+                    .entrySet()
+                    .stream()
+                    .filter(Map.Entry::getValue)
+                    .map(Map.Entry::getKey)
+                    .forEach(channel.getSpyIDs()::add);
+        }
+    }
+
+    private List<Channel> loadChannels() {
+        var config = getConfig().getConfigurationSection("channels");
+        if (config == null) {
+            Log.at(Level.WARNING, "No channels configured");
+            return List.of();
+        }
+
+        var channels = new ArrayList<Channel>();
+        for (var channelName : config.getKeys(false))
+            condElement(Channel::builder, config, channelName, YmlConfigHelper::channel, it -> channels.add((Channel) it));
+
+        return channels;
     }
 }
