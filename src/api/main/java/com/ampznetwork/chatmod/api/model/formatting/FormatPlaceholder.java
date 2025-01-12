@@ -60,6 +60,8 @@ public interface FormatPlaceholder {
                                     .stream())
                             .sequential()
                             .flatMap(value -> {
+                                if (result.start() <= lastEnd[0])
+                                    return Stream.of(value); // todo test edge cases
                                 var substring = format.substring(lastEnd[0], result.start());
                                 lastEnd[0] = result.end();
                                 return Stream.of(substring, value);

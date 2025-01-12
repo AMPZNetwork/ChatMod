@@ -38,13 +38,15 @@ public interface Module<P> extends Container, BidirectionalPacketStream<P>, Relo
     @Override
     @MustBeInvokedByOverriders
     default boolean acceptInbound(P packet) {
-        return !convertToChatModPacket(packet).getRoute().contains(getMod().getServerName());
+        var convert = convertToChatModPacket(packet);
+        return convert != null && !convert.getRoute().contains(getMod().getServerName());
     }
 
     @Override
     @MustBeInvokedByOverriders
     default boolean acceptOutbound(P packet) {
-        return !convertToChatModPacket(packet).getRoute().contains(getMod().getServerName());
+        var convert = convertToChatModPacket(packet);
+        return convert != null && !convert.getRoute().contains(getMod().getServerName());
     }
 
     /**

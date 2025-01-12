@@ -14,6 +14,7 @@ import com.ampznetwork.chatmod.api.model.protocol.ChatMessagePacket;
 import com.ampznetwork.chatmod.api.model.protocol.internal.ChatMessagePacketImpl;
 import com.ampznetwork.chatmod.api.model.protocol.internal.PacketType;
 import com.ampznetwork.chatmod.core.module.IdentityModule;
+import com.ampznetwork.libmod.api.util.Util;
 import lombok.SneakyThrows;
 import lombok.ToString;
 import lombok.Value;
@@ -61,8 +62,7 @@ public class LinkToDiscordModule extends IdentityModule<ChatModules.DiscordProvi
         super(mod, config);
 
         var tokenRes = ResourceLoader.fromResourceString(config.getToken());
-        if (tokenRes == null)
-            throw new IllegalArgumentException("Discord token not found");
+        if (tokenRes == null) throw new IllegalArgumentException("Discord token not found");
         this.jda = JDABuilder.createLight(DelegateStream.readAll(tokenRes))
                 .enableIntents(GatewayIntent.getIntents(GatewayIntent.ALL_INTENTS))
                 .addEventListeners((EventListener) event -> {
@@ -71,10 +71,7 @@ public class LinkToDiscordModule extends IdentityModule<ChatModules.DiscordProvi
                             .map(Channel::getDiscord)
                             .filter(Objects::nonNull)
                             .filter(channel -> channel.getChannelId() == mre.getChannel().getIdLong())
-                            .map(channel -> new ChatMessagePacketImpl(PacketType.CHAT,
-                                    mod.getServerName(),
-                                    channel.getName(),
-                                    convertMessage(mre, channel)))
+                            .map(channel -> new ChatMessagePacketImpl(PacketType.CHAT, mod.getServerName(), channel.getName(), convertMessage(mre, channel)))
                             .forEach(this::relayOutbound);
                 })
                 .build();
@@ -101,8 +98,10 @@ public class LinkToDiscordModule extends IdentityModule<ChatModules.DiscordProvi
                 .forEach(channel -> {
                     var message = new WebhookMessageBuilder().setUsername(DEFAULT_CONTEXT.apply(mod, packet, channel.getFormat().getMessageAuthor()))
                             .setContent(FormatPlaceholder.override(DefaultPlaceholder.MESSAGE, switch (packet.getPacketType()) {
-                                case CHAT -> plainText().serialize(packet.getMessage().getText());
-                                case JOIN, LEAVE -> DEFAULT_CONTEXT.apply(mod, packet, packet.getPacketType().getFormat(channel.getFormat()));
+                                case CHAT -> Util.Kyori.sanitizePlain(plainText().serialize(packet.getMessage().getText()));
+                                case JOIN, LEAVE -> Util.Kyori.sanitizePlain(DEFAULT_CONTEXT.apply(mod,
+                                        packet,
+                                        packet.getPacketType().getFormat(channel.getFormat())));
                             }).apply(mod, packet, channel.getFormat().getMessageContent()))
                             .setAvatarUrl(DEFAULT_CONTEXT.apply(mod, packet, channel.getFormat().getMessageUserAvatar()))
                             .build();
