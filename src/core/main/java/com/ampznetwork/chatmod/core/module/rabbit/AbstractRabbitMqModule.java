@@ -34,6 +34,13 @@ public abstract class AbstractRabbitMqModule<C extends ChatModules.RabbitMqProvi
     }
 
     @Override
+    public void relayInbound(P packet) {
+        super.relayInbound(packet);
+
+        route.send(packet);
+    }
+
+    @Override
     public int hashCode() {
         return config.getRabbitUri().hashCode();
     }
@@ -64,7 +71,11 @@ public abstract class AbstractRabbitMqModule<C extends ChatModules.RabbitMqProvi
 
         if (route != null) addChild(route.filterData(this::acceptOutbound)
                 .filterData(Predicate.not(packet -> packet.getRoute().contains(getEndpointName())))
-                .subscribeData(this::broadcastInbound));
+                .subscribe(event -> {
+                    broadcastInbound(event.getData());
+                    var callback = event.getCallback();
+                    if (callback != null) callback.run();
+                }));
 
         super.start();
     }
@@ -73,13 +84,6 @@ public abstract class AbstractRabbitMqModule<C extends ChatModules.RabbitMqProvi
     public void closeSelf() {
         clearChildren();
         super.closeSelf();
-    }
-
-    @Override
-    public void relayInbound(P packet) {
-        super.relayInbound(packet);
-
-        route.send(packet);
     }
 
     protected abstract ByteConverter<P> createByteConverter();
