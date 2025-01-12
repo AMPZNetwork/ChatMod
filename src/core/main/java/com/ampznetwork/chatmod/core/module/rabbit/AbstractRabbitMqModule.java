@@ -2,6 +2,7 @@ package com.ampznetwork.chatmod.core.module.rabbit;
 
 import com.ampznetwork.chatmod.api.model.config.ChatModules;
 import com.ampznetwork.chatmod.api.model.module.ModuleContainer;
+import com.ampznetwork.chatmod.api.model.protocol.ChatMessagePacket;
 import com.ampznetwork.chatmod.core.module.AbstractModule;
 import lombok.ToString;
 import lombok.Value;
@@ -19,7 +20,7 @@ import java.util.stream.Stream;
 @Value
 @NonFinal
 @ToString(callSuper = true)
-public abstract class AbstractRabbitMqModule<C extends ChatModules.RabbitMqProviderConfig, P> extends AbstractModule<C, P> {
+public abstract class AbstractRabbitMqModule<C extends ChatModules.RabbitMqProviderConfig, P extends ChatMessagePacket> extends AbstractModule<C, P> {
     @NonFinal Rabbit                   rabbit = null;
     @NonFinal Rabbit.Exchange.Route<P> route  = null;
 
@@ -62,7 +63,6 @@ public abstract class AbstractRabbitMqModule<C extends ChatModules.RabbitMqProvi
         addChildren(rabbit, route);
 
         if (route != null) addChild(route.filterData(this::acceptOutbound)
-                .mapData(this::convertToChatModPacket)
                 .filterData(Predicate.not(packet -> packet.getRoute().contains(getEndpointName())))
                 .subscribeData(this::broadcastInbound));
 
@@ -77,6 +77,8 @@ public abstract class AbstractRabbitMqModule<C extends ChatModules.RabbitMqProvi
 
     @Override
     public void relayInbound(P packet) {
+        super.relayInbound(packet);
+
         route.send(packet);
     }
 

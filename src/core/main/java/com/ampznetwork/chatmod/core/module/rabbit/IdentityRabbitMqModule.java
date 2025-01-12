@@ -16,12 +16,7 @@ public abstract class IdentityRabbitMqModule<C extends ChatModules.RabbitMqProvi
     }
 
     @Override
-    public ChatMessagePacket convertToChatModPacket(ChatMessagePacket packet) {
-        return packet;
-    }
-
-    @Override
-    public ChatMessagePacket convertToNativePacket(ChatMessagePacket packet) {
+    public ChatMessagePacket upgradeToNative(ChatMessagePacket packet) {
         return packet;
     }
 }

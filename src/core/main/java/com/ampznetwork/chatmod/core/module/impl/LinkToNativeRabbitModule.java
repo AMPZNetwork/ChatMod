@@ -26,11 +26,6 @@ public class LinkToNativeRabbitModule extends IdentityRabbitMqModule<ChatModules
     }
 
     @Override
-    public void relayOutbound(ChatMessagePacket packet) {
-        broadcastInbound(packet);
-    }
-
-    @Override
     public ByteConverter<ChatMessagePacket> createByteConverter() {
         return new ByteConverter<>() {
             @Override

@@ -20,7 +20,7 @@ import java.util.logging.Level;
 /**
  * native rabbitmq, aurionchat, discord
  */
-public interface Module<P> extends Container, BidirectionalPacketStream<P>, Reloadable, Named {
+public interface Module<P extends ChatMessagePacket> extends Container, BidirectionalPacketStream<P>, Reloadable, Named {
     Set<ModuleFactory<?>> CUSTOM_TYPES = new HashSet<>();
 
     ModuleContainer getMod();
@@ -39,32 +39,46 @@ public interface Module<P> extends Container, BidirectionalPacketStream<P>, Relo
         return getMod().getServerName() + '.' + getClass().getSimpleName();
     }
 
-    @Override
-    @MustBeInvokedByOverriders
-    default boolean acceptInbound(P packet) {
-        var convert = convertToChatModPacket(packet);
-        return convert != null && !convert.getRoute().contains(getEndpointName());
-    }
-
-    @Override
-    @MustBeInvokedByOverriders
-    default boolean acceptOutbound(P packet) {
-        var convert = convertToChatModPacket(packet);
-        return convert != null && !convert.getRoute().contains(getEndpointName());
+    private void touch(ChatMessagePacket packet) {
+        if (!packet.getRoute().contains(getEndpointName())) packet.getRoute().add(getEndpointName());
     }
 
     /**
      * broadcast inbound packet to all providers except this
      */
     default void broadcastInbound(ChatMessagePacket packet) {
-        packet.getRoute().add(getEndpointName());
         broadcast(packet, Module::acceptInbound, Module::relayInbound);
+    }
+
+    @Override
+    @MustBeInvokedByOverriders
+    default boolean acceptInbound(P packet) {
+        return packet != null && !packet.getRoute().contains(getEndpointName());
+    }
+
+    @Override
+    @MustBeInvokedByOverriders
+    default void relayInbound(P packet) {
+        touch(packet);
+    }
+
+    @Override
+    @MustBeInvokedByOverriders
+    default boolean acceptOutbound(P packet) {
+        return packet != null && !packet.getRoute().contains(getEndpointName());
+    }
+
+    @Override
+    default void relayOutbound(P packet) {
+        touch(packet);
+        broadcastInbound(packet);
     }
 
     /**
      * broadcast packet to all providers except this using relay
      */
-    private <$> void broadcast(final ChatMessagePacket packet, final BiPredicate<Module<$>, $> accept, final BiConsumer<Module<$>, $> relay) {
+    private <$ extends ChatMessagePacket> void broadcast(
+            final ChatMessagePacket packet, final BiPredicate<Module<$>, $> accept, final BiConsumer<Module<$>, $> relay) {
         getMod().children(Module.class)
                 .filter(Predicate.not(this::equals))
                 .filter(module -> getMod().children(Module.class).filter(any -> any.getName().toLowerCase().contains("aurion")).anyMatch(Module::isEnabled))
@@ -72,7 +86,7 @@ public interface Module<P> extends Container, BidirectionalPacketStream<P>, Relo
                 .flatMap(Streams.filter(Module::isAvailable, this::reportCapabilityUnavailable))
                 .map(Polyfill::<Module<$>>uncheckedCast)
                 .forEach(cap -> {
-                    var convert = cap.convertToNativePacket(packet);
+                    var convert = cap.upgradeToNative(packet);
                     if (accept.test(cap, convert)) relay.accept(cap, convert);
                 });
     }
@@ -81,7 +95,5 @@ public interface Module<P> extends Container, BidirectionalPacketStream<P>, Relo
         Log.at(Level.WARNING, "CapabilityProvider " + module + " is unavailable");
     }
 
-    ChatMessagePacket convertToChatModPacket(P packet);
-
-    P convertToNativePacket(ChatMessagePacket packet);
+    P upgradeToNative(ChatMessagePacket packet);
 }

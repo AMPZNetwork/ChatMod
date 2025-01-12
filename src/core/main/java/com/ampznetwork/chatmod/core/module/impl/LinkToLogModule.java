@@ -34,10 +34,9 @@ public class LinkToLogModule extends IdentityModule<ChatModules.LogProviderConfi
     }
 
     @Override
-    public void relayOutbound(ChatMessagePacket packet) {}
-
-    @Override
     public void relayInbound(ChatMessagePacket packet) {
+        super.relayInbound(packet);
+
         Log.get("Chat #" + packet.getChannel()).log(Level.INFO, packet.getMessage().getPlaintext());
     }
 }

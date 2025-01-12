@@ -66,12 +66,12 @@ public class LinkToDiscordModule extends IdentityModule<ChatModules.DiscordProvi
         this.jda = JDABuilder.createLight(DelegateStream.readAll(tokenRes))
                 .enableIntents(GatewayIntent.getIntents(GatewayIntent.ALL_INTENTS))
                 .addEventListeners((EventListener) event -> {
-                    if (event instanceof MessageReceivedEvent mre) mod.getChannels()
+                    if (event instanceof MessageReceivedEvent mre && !mre.getAuthor().isBot()) mod.getChannels()
                             .stream()
                             .map(Channel::getDiscord)
                             .filter(Objects::nonNull)
                             .filter(channel -> channel.getChannelId() == mre.getChannel().getIdLong())
-                            .map(channel -> new ChatMessagePacketImpl(PacketType.CHAT, mod.getServerName() + "." + channel.getChannelId(), channel.getName(),
+                            .map(channel -> new ChatMessagePacketImpl(PacketType.CHAT, mod.getServerName(), channel.getName(),
                                     convertMessage(mre, channel)))
                             .forEach(this::relayOutbound);
                 })
@@ -91,6 +91,8 @@ public class LinkToDiscordModule extends IdentityModule<ChatModules.DiscordProvi
 
     @Override
     public void relayInbound(ChatMessagePacket packet) {
+        super.relayInbound(packet);
+
         //noinspection OptionalOfNullableMisuse
         mod.getChannels()
                 .stream()
@@ -111,11 +113,6 @@ public class LinkToDiscordModule extends IdentityModule<ChatModules.DiscordProvi
                     obtainWebhook(channel, jda.getTextChannelById(channel.getChannelId())).thenCompose(webhook -> webhook.send(message))
                             .exceptionally(Debug.exceptionLogger("Could not send Message using Webhook"));
                 });
-    }
-
-    @Override
-    public void relayOutbound(ChatMessagePacket packet) {
-        broadcastInbound(packet);
     }
 
     private CompletableFuture<WebhookClient> obtainWebhook(DiscordChannel config, TextChannel channel) {

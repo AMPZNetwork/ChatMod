@@ -3,6 +3,7 @@ package com.ampznetwork.chatmod.core.module;
 import com.ampznetwork.chatmod.api.model.config.ChatModules;
 import com.ampznetwork.chatmod.api.model.module.Module;
 import com.ampznetwork.chatmod.api.model.module.ModuleContainer;
+import com.ampznetwork.chatmod.api.model.protocol.ChatMessagePacket;
 import lombok.Value;
 import lombok.experimental.NonFinal;
 import org.comroid.api.func.ext.Context;
@@ -17,7 +18,7 @@ import java.util.logging.Level;
 
 @Value
 @NonFinal
-public abstract class AbstractModule<C extends ChatModules.ProviderConfig, P> extends Component.Base implements Module<P> {
+public abstract class AbstractModule<C extends ChatModules.ProviderConfig, P extends ChatMessagePacket> extends Component.Base implements Module<P> {
     protected ModuleContainer mod;
     protected C               config;
 

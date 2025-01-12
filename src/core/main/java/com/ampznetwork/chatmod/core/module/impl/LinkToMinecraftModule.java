@@ -25,6 +25,8 @@ public class LinkToMinecraftModule extends IdentityModule<ChatModules.MinecraftP
 
     @Override
     public void relayInbound(ChatMessagePacket packet) {
+        super.relayInbound(packet);
+
         var text = packet.getMessage().getFullText();
 
         mod.wrapLib()
@@ -34,10 +36,5 @@ public class LinkToMinecraftModule extends IdentityModule<ChatModules.MinecraftP
                         .filter(channel -> packet.getChannel().equals(channel.getName()))
                         .flatMap(Channel::allPlayerIDs)
                         .forEach(playerId -> adp.send(playerId, text)));
-    }
-
-    @Override
-    public void relayOutbound(ChatMessagePacket packet) {
-        broadcastInbound(packet);
     }
 }

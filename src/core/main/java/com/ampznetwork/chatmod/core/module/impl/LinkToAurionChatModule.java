@@ -64,12 +64,7 @@ public class LinkToAurionChatModule extends AbstractRabbitMqModule<ChatModules.A
     }
 
     @Override
-    public ChatMessagePacket convertToChatModPacket(PacketAdapter packet) {
-        return packet;
-    }
-
-    @Override
-    public PacketAdapter convertToNativePacket(ChatMessagePacket packet) {
+    public PacketAdapter upgradeToNative(ChatMessagePacket packet) {
         if (packet instanceof PacketAdapter adp) return adp;
         var sender = packet.getMessage().getSender();
         if (sender == null) {
@@ -85,11 +80,6 @@ public class LinkToAurionChatModule extends AbstractRabbitMqModule<ChatModules.A
                 mod.getPlayerAdapter().getPlayer(sender.getId()).map(Player::getName).orElseGet(packet.getMessage()::getSenderName),
                 GsonComponentSerializer.gson().serialize(packet.getMessage().getFullText()),
                 packet.getRoute());
-    }
-
-    @Override
-    public void relayOutbound(PacketAdapter packet) {
-        broadcastInbound(packet);
     }
 
     @Value
