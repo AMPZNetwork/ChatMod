@@ -2,7 +2,6 @@ package com.ampznetwork.chatmod.api.model.module;
 
 import com.ampznetwork.chatmod.api.model.protocol.ChatMessagePacket;
 import com.ampznetwork.chatmod.api.model.protocol.io.BidirectionalPacketStream;
-import org.comroid.api.Polyfill;
 import org.comroid.api.attr.Named;
 import org.comroid.api.func.util.Streams;
 import org.comroid.api.info.Log;
@@ -10,6 +9,7 @@ import org.comroid.api.tree.Container;
 import org.comroid.api.tree.Reloadable;
 import org.jetbrains.annotations.MustBeInvokedByOverriders;
 
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.function.BiConsumer;
@@ -21,6 +21,7 @@ import java.util.logging.Level;
  * native rabbitmq, aurionchat, discord
  */
 public interface Module<P extends ChatMessagePacket> extends Container, BidirectionalPacketStream<P>, Reloadable, Named {
+    Comparator<Module<?>> COMPARATOR = Comparator.comparingInt(Module::priority);
     Set<ModuleFactory<?>> CUSTOM_TYPES = new HashSet<>();
 
     ModuleContainer getMod();
@@ -38,6 +39,8 @@ public interface Module<P extends ChatMessagePacket> extends Container, Bidirect
     default String getEndpointName() {
         return getMod().getServerName() + '.' + getClass().getSimpleName();
     }
+
+    int priority();
 
     private void touch(ChatMessagePacket packet) {
         if (!packet.getRoute().contains(getEndpointName())) packet.getRoute().add(getEndpointName());
@@ -79,14 +82,14 @@ public interface Module<P extends ChatMessagePacket> extends Container, Bidirect
      */
     private <$ extends ChatMessagePacket> void broadcast(
             final ChatMessagePacket packet, final BiPredicate<Module<$>, $> accept, final BiConsumer<Module<$>, $> relay) {
-        getMod().children(Module.class)
+        getMod().<Module<$>>children(Module.class)
                 .filter(Predicate.not(this::equals))
                 /*.filter(module -> getMod().children(Module.class)
                         .filter(any -> any.getClass().getSimpleName().toLowerCase().contains("aurion"))
                         .anyMatch(Module::isEnabled))*/
                 .filter(Module::isEnabled)
+                .sorted(COMPARATOR)
                 .flatMap(Streams.filter(Module::isAvailable, this::reportCapabilityUnavailable))
-                .map(Polyfill::<Module<$>>uncheckedCast)
                 .forEach(cap -> {
                     var convert = cap.upgradeToNative(packet);
                     if (accept.test(cap, convert)) relay.accept(cap, convert);

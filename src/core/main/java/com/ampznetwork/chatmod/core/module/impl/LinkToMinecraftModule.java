@@ -19,6 +19,11 @@ public class LinkToMinecraftModule extends IdentityModule<ChatModules.MinecraftP
     }
 
     @Override
+    public int priority() {
+        return -999;
+    }
+
+    @Override
     public boolean isAvailable() {
         return mod.wrapLib().isPresent();
     }

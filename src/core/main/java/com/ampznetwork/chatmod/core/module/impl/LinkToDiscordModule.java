@@ -82,6 +82,11 @@ public class LinkToDiscordModule extends IdentityModule<ChatModules.DiscordProvi
     }
 
     @Override
+    public int priority() {
+        return 10;
+    }
+
+    @Override
     public boolean isAvailable() {
         return jda.getStatus() == JDA.Status.CONNECTED;
     }

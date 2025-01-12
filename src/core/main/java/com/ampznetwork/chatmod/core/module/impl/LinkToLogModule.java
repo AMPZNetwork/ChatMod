@@ -24,6 +24,11 @@ public class LinkToLogModule extends IdentityModule<ChatModules.LogProviderConfi
     }
 
     @Override
+    public int priority() {
+        return Integer.MIN_VALUE;
+    }
+
+    @Override
     public boolean isEnabled() {
         return super.isEnabled() || Debug.isDebug();
     }

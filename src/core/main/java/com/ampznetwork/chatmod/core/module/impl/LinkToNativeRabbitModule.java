@@ -41,4 +41,9 @@ public class LinkToNativeRabbitModule extends IdentityRabbitMqModule<ChatModules
             }
         };
     }
+
+    @Override
+    public int priority() {
+        return 0;
+    }
 }

@@ -64,6 +64,11 @@ public class LinkToAurionChatModule extends AbstractRabbitMqModule<ChatModules.A
     }
 
     @Override
+    public int priority() {
+        return Integer.MAX_VALUE;
+    }
+
+    @Override
     public PacketAdapter upgradeToNative(ChatMessagePacket packet) {
         if (packet instanceof PacketAdapter adp) return adp;
         var sender = packet.getMessage().getSender();
