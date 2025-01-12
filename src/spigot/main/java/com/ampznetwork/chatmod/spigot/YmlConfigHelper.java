@@ -16,7 +16,7 @@ import java.util.function.Supplier;
 import static com.ampznetwork.chatmod.api.model.config.ChatModules.*;
 
 public class YmlConfigHelper {
-    public static <It, Bld extends NamedBaseConfig.Builder<? super It, ?>> void element(
+    public static <It, Bld extends NamedBaseConfig.Builder<?, ?>> void element(
             Supplier<Bld> builder, ConfigurationSection parent, String module, BiConsumer<Bld, ConfigurationSection> mod, Consumer<It> set) {
         var it      = builder.get();
         var section = init(it, parent, module);
@@ -83,7 +83,7 @@ public class YmlConfigHelper {
     public static void format(@NotNull FormatProviderConfig.Builder<?, ?> it, @NotNull ConfigurationSection section) {
         var formats = section.getConfigurationSection("format");
         if (formats == null) return;
-        it.defaultFormat(formats(formats));
+        it.format(formats(formats));
     }
 
     public static Formats formats(ConfigurationSection formats) {

@@ -18,7 +18,7 @@ public interface AutoFill {
         public Stream<String> autoFill(Command.Usage usage, String argName, String currentValue) {
             return usage.getContext().stream()
                     .flatMap(Streams.cast(ChatMod.class))
-                    .flatMap(mod -> mod.getChannels().getChannels().stream())
+                    .flatMap(mod -> mod.getChannels().stream())
                     .map(Channel::getName);
         }
     }

@@ -28,7 +28,6 @@ public class LinkToMinecraftModule extends IdentityModule<ChatModules.MinecraftP
         mod.wrapLib()
                 .map(SubMod::getPlayerAdapter)
                 .ifPresent(adp -> mod.getChannels()
-                        .getChannels()
                         .stream()
                         .filter(channel -> packet.getChannel().equals(channel.getName()))
                         .flatMap(Channel::allPlayerIDs)

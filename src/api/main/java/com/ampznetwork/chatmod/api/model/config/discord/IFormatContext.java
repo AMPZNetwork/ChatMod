@@ -4,5 +4,5 @@ import com.ampznetwork.chatmod.api.model.config.format.Formats;
 import org.jetbrains.annotations.Nullable;
 
 public interface IFormatContext {
-    @Nullable Formats getDefaultFormat();
+    @Nullable Formats getFormat();
 }

@@ -1,6 +1,7 @@
 package com.ampznetwork.chatmod.core;
 
 import com.ampznetwork.chatmod.api.ChatMod;
+import com.ampznetwork.chatmod.api.model.config.discord.IFormatContext;
 import com.ampznetwork.chatmod.api.model.protocol.ChatMessage;
 import com.ampznetwork.chatmod.api.model.protocol.internal.PacketType;
 import com.ampznetwork.libmod.api.model.delegate.EventDelegate;
@@ -30,7 +31,7 @@ public abstract class EventDispatchBase<Mod extends ChatMod> {
         assert sender != null : "Outbound from Minecraft should always have a Sender";
 
         var playerId = sender.getId();
-        var optChannel = mod.getChannels().getChannels().stream()
+        var optChannel = mod.getChannels().stream()
                 .filter(channel -> channel.getPlayerIDs().contains(playerId))
                 .findAny();
 
@@ -43,12 +44,12 @@ public abstract class EventDispatchBase<Mod extends ChatMod> {
     }
 
     protected void playerJoin(UUID playerId, @Nullable EventDelegate<TextComponent> event) {
-        mod.getChannels().getChannels().getFirst().getPlayerIDs().add(playerId);
+        mod.getChannels().getFirst().getPlayerIDs().add(playerId);
         handleJoinLeave(playerId, PacketType.JOIN, event);
     }
 
     protected void playerLeave(UUID playerId, @Nullable EventDelegate<TextComponent> event) {
-        var channels = mod.getChannels().getChannels();
+        var channels = mod.getChannels();
         channels.stream()
                 .filter(channel -> channel.getPlayerIDs().contains(playerId))
                 .findAny()
@@ -62,8 +63,11 @@ public abstract class EventDispatchBase<Mod extends ChatMod> {
     private void handleJoinLeave(UUID playerId, PacketType packetType, @Nullable EventDelegate<TextComponent> event) {
         if (!mod.isJoinLeaveEnabled()) return;
 
-        var player = mod.getPlayerAdapter().getPlayer(playerId).orElseThrow();
-        var text = Optional.ofNullable(packetType.getCustomFormat(mod))
+        var    player = mod.getPlayerAdapter().getPlayer(playerId).orElseThrow();
+        String f      = null;
+        if (mod.getDefaultModule() instanceof IFormatContext formats)
+            f = packetType.getFormat(formats.getFormat());
+        var text = Optional.ofNullable(f)
                 .map(format -> format.replace(PLAYER_NAME_PLACEHOLDER, RESERVED_PLACEHOLDER))
                 .map(format -> mod.applyPlaceholderApi(playerId, format))
                 .map(format -> {

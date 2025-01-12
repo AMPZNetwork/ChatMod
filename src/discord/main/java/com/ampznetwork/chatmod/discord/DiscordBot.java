@@ -2,9 +2,10 @@ package com.ampznetwork.chatmod.discord;
 
 import com.ampznetwork.chatmod.api.model.config.ChatModules;
 import com.ampznetwork.chatmod.api.model.config.channel.Channel;
-import com.ampznetwork.chatmod.api.model.config.channel.IChannels;
 import com.ampznetwork.chatmod.api.model.config.discord.StandaloneDiscordBot;
+import com.ampznetwork.chatmod.api.model.module.Module;
 import com.ampznetwork.chatmod.core.ModuleContainerCore;
+import com.ampznetwork.chatmod.core.module.impl.LinkToDiscordModule;
 import com.ampznetwork.libmod.api.interop.game.PlayerIdentifierAdapter;
 import com.ampznetwork.libmod.core.adapter.HeadlessPlayerAdapter;
 import com.fasterxml.jackson.core.JsonFactory;
@@ -23,6 +24,7 @@ import org.comroid.api.tree.Container;
 import org.comroid.exception.ReloadException;
 
 import java.io.InputStreamReader;
+import java.util.List;
 import java.util.Objects;
 import java.util.logging.Level;
 
@@ -75,13 +77,18 @@ public class DiscordBot extends Container.Base implements ModuleContainerCore {
     }
 
     @Override
-    public IChannels<Channel> getChannels() {
+    public List<Channel> getChannels() {
         return config.getChannels();
     }
 
     @Override
     public String getServerName() {
         return SOURCE.toUpperCase();
+    }
+
+    @Override
+    public Module<?> getDefaultModule() {
+        return child(LinkToDiscordModule.class).assertion();
     }
 
     @Command

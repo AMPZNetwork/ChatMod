@@ -59,7 +59,7 @@ public final class ChatModules {
     @SuperBuilder
     @NoArgsConstructor(force = true, access = AccessLevel.PRIVATE)
     public static abstract class FormatProviderConfig extends ProviderConfig {
-        protected @Nullable @Default Formats defaultFormat = null;
+        protected @Nullable @Default Formats format = null;
     }
 
     @Data

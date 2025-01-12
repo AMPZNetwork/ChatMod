@@ -65,7 +65,6 @@ public class LinkToDiscordModule extends IdentityModule<ChatModules.DiscordProvi
                 .enableIntents(GatewayIntent.getIntents(GatewayIntent.ALL_INTENTS))
                 .addEventListeners((EventListener) event -> {
                     if (event instanceof MessageReceivedEvent mre) mod.getChannels()
-                            .getChannels()
                             .stream()
                             .map(Channel::getDiscord)
                             .filter(Objects::nonNull)
@@ -93,7 +92,6 @@ public class LinkToDiscordModule extends IdentityModule<ChatModules.DiscordProvi
     @Override
     public void relayInbound(ChatMessagePacket packet) {
         mod.getChannels()
-                .getChannels()
                 .stream()
                 .flatMap(channel -> Stream.ofNullable(channel.getDiscord()))
                 .filter(channel -> packet.getChannel().equals(channel.getName()))
@@ -101,8 +99,7 @@ public class LinkToDiscordModule extends IdentityModule<ChatModules.DiscordProvi
                     var message = new WebhookMessageBuilder().setUsername(DEFAULT_CONTEXT.apply(mod, packet, channel.getFormat().getMessageAuthor()))
                             .setContent(FormatPlaceholder.override(DefaultPlaceholder.MESSAGE, switch (packet.getPacketType()) {
                                 case CHAT -> plainText().serialize(packet.getMessage().getText());
-                                case JOIN -> DEFAULT_CONTEXT.apply(mod, packet, channel.getFormat().getDiscordJoinMessage());
-                                case LEAVE -> DEFAULT_CONTEXT.apply(mod, packet, channel.getFormat().getDiscordLeaveMessage());
+                                case JOIN, LEAVE -> DEFAULT_CONTEXT.apply(mod, packet, packet.getPacketType().getFormat(channel.getFormat()));
                             }).apply(mod, packet, channel.getFormat().getMessageContent()))
                             .setAvatarUrl(DEFAULT_CONTEXT.apply(mod, packet, channel.getFormat().getMessageUserAvatar()))
                             .build();

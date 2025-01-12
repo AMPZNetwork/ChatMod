@@ -67,6 +67,10 @@ public enum DefaultPlaceholder implements FormatPlaceholder.Pair, Named {
         return toString();
     }
 
+    public @Nullable Stream<FormatPlaceholder.Pair> getFallback() {
+        return Stream.of(fallback);
+    }
+
     @Override
     public String toString() {
         return name().toLowerCase();

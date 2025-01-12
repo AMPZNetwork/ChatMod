@@ -4,10 +4,10 @@ import com.ampznetwork.chatmod.api.ChatMod;
 import com.ampznetwork.chatmod.api.model.TextResourceProvider;
 import com.ampznetwork.chatmod.api.model.config.ChatModules;
 import com.ampznetwork.chatmod.api.model.config.channel.Channel;
-import com.ampznetwork.chatmod.api.model.config.channel.Channels;
 import com.ampznetwork.chatmod.core.ChatModCommands;
 import com.ampznetwork.chatmod.core.ModuleContainerCore;
 import com.ampznetwork.chatmod.core.formatting.ChatMessageFormatter;
+import com.ampznetwork.chatmod.core.module.impl.LinkToMinecraftModule;
 import com.ampznetwork.chatmod.discord.DiscordBot;
 import com.ampznetwork.chatmod.spigot.adp.SpigotEventDispatch;
 import com.ampznetwork.libmod.api.interop.game.IPlayerAdapter;
@@ -23,12 +23,16 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.configuration.MemorySection;
 import org.comroid.api.Polyfill;
 import org.comroid.api.func.util.Command;
+import org.comroid.api.info.Log;
 import org.comroid.api.tree.Container;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.logging.Level;
 
 import static com.ampznetwork.chatmod.api.model.config.ChatModules.*;
 import static com.ampznetwork.chatmod.spigot.YmlConfigHelper.*;
@@ -39,8 +43,8 @@ public class ChatMod$Spigot extends SubMod$Spigot implements ChatMod, ModuleCont
     @lombok.experimental.Delegate Container $delegate = new Container.Base();
     TextResourceProvider textResourceProvider = new TextResourceProvider(this);
     @NonFinal           ChatMessageFormatter formatter;
-    @NonFinal           Set<String> joinLeaveChannels;
-    @NonFinal @Nullable DiscordBot  discordBot;
+    @NonFinal           Set<String>          joinLeaveChannels;
+    @NonFinal @Nullable DiscordBot           discordBot;
     @NonFinal @Nullable boolean              hasPlaceholderApi;
 
     public ChatMod$Spigot() {
@@ -71,19 +75,28 @@ public class ChatMod$Spigot extends SubMod$Spigot implements ChatMod, ModuleCont
     }
 
     @Override
-    public Channels getChannels() {
-        var config   = getConfig().getConfigurationSection("channels");
-        var channels = Channels.builder();
+    public List<Channel> getChannels() {
+        var config = getConfig().getConfigurationSection("channels");
+        if (config == null) {
+            Log.at(Level.WARNING, "No channels configured");
+            return List.of();
+        }
 
+        var channels = new ArrayList<Channel>();
         for (var channelName : config.getKeys(false))
-            element(Channel::builder, config, channelName, YmlConfigHelper::channel, channels::channel);
+            element(Channel::builder, config, channelName, YmlConfigHelper::channel, it -> channels.add((Channel) it));
 
-        return channels.build();
+        return channels;
     }
 
     @Override
     public String getServerName() {
         return Util.Kyori.sanitize(getConfig().getString("server.name"));
+    }
+
+    @Override
+    public LinkToMinecraftModule getDefaultModule() {
+        return child(LinkToMinecraftModule.class).assertion();
     }
 
     @Override

@@ -47,9 +47,10 @@ public abstract class AbstractRabbitMqModule<C extends ChatModules.RabbitMqProvi
                 .orElse(null);
         addChildren(rabbit, route);
 
-        if (route != null) addChild(route.mapData(this::convertToChatModPacket)
-                .filterData(Predicate.not(packet -> packet.getRoute().contains(config.getEndpointName()) || !getNativeSide().acceptInbound(packet)))
-                .subscribeData(this::relayOutbound));
+        if (route != null) addChild(route.filterData(this::acceptOutbound)
+                .mapData(this::convertToChatModPacket)
+                .filterData(Predicate.not(packet -> packet.getRoute().contains(config.getEndpointName())))
+                .subscribeData(this::broadcastInbound));
     }
 
     @Override

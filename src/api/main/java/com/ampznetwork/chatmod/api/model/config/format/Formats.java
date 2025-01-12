@@ -20,23 +20,20 @@ import java.util.Objects;
 
 @Value
 @Builder
-@AllArgsConstructor
-@NoArgsConstructor(force = true)
-@SuppressWarnings("DataFlowIssue"/* false-positive */)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@NoArgsConstructor(force = true, access = AccessLevel.PRIVATE)
 public class Formats implements IFormats {
-    @NotNull @Default @JsonIgnore IFormats defaults          = Defaults.MINECRAFT_CHAT;
-    @Nullable @Default            String   joinMessage       = null;
-    @Nullable @Default            String   leaveMessage      = null;
-    @Nullable @Default            String   messageAuthor     = null;
-    @Nullable @Default            String   messageContent    = null;
-    @Nullable @Default            String   messageUserAvatar = null;
+    public static final Formats  DEFAULT           = new Formats();
+    @NotNull @Default   IFormats defaults          = Defaults.MINECRAFT_CHAT;
+    @Nullable @Default  String   joinMessage       = null;
+    @Nullable @Default  String   leaveMessage      = null;
+    @Nullable @Default  String   messageAuthor     = null;
+    @Nullable @Default  String   messageContent    = null;
+    @Nullable @Default  String   messageUserAvatar = null;
 
-    public @NotNull String getDiscordJoinMessage() {
-        return Objects.requireNonNullElse(joinMessage, defaults.getJoinMessage());
-    }
-
-    public @NotNull String getDiscordLeaveMessage() {
-        return Objects.requireNonNullElse(leaveMessage, defaults.getLeaveMessage());
+    @JsonIgnore
+    public @NotNull IFormats getDefaults() {
+        return defaults;
     }
 
     @Override

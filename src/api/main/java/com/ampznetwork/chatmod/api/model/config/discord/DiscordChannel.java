@@ -18,7 +18,7 @@ public class DiscordChannel extends ChatModules.FormatProviderConfig {
     @Nullable @Default String inviteUrl  = null;
 
     public @NotNull Formats getFormat() {
-        return Objects.requireNonNullElseGet(defaultFormat, Formats::new);
+        return Objects.requireNonNullElseGet(format, () -> Formats.DEFAULT);
     }
 
     @Override
