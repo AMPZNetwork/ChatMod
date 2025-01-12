@@ -81,7 +81,9 @@ public interface Module<P extends ChatMessagePacket> extends Container, Bidirect
             final ChatMessagePacket packet, final BiPredicate<Module<$>, $> accept, final BiConsumer<Module<$>, $> relay) {
         getMod().children(Module.class)
                 .filter(Predicate.not(this::equals))
-                .filter(module -> getMod().children(Module.class).filter(any -> any.getName().toLowerCase().contains("aurion")).anyMatch(Module::isEnabled))
+                /*.filter(module -> getMod().children(Module.class)
+                        .filter(any -> any.getClass().getSimpleName().toLowerCase().contains("aurion"))
+                        .anyMatch(Module::isEnabled))*/
                 .filter(Module::isEnabled)
                 .flatMap(Streams.filter(Module::isAvailable, this::reportCapabilityUnavailable))
                 .map(Polyfill::<Module<$>>uncheckedCast)

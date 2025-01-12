@@ -32,17 +32,15 @@ public abstract class EventDispatchBase<Mod extends ChatMod> {
         var sender = message.getSender();
         assert sender != null : "Outbound from Minecraft should always have a Sender";
 
-        var playerId = sender.getId();
-        var optChannel = mod.getChannels().stream()
-                .filter(channel -> channel.getPlayerIDs().contains(playerId))
-                .findAny();
+        var playerId   = sender.getId();
+        var optChannel = mod.getChannels().stream().filter(channel -> channel.getPlayerIDs().contains(playerId)).findAny();
 
         if (optChannel.isEmpty()) {
             log.warn("Dropped message because player is not in any channel: {}", message);
             return;
         }
 
-        optChannel.get().send(mod, message);
+        mod.sendChat(optChannel.get().getName(), message);
     }
 
     protected void playerJoin(UUID playerId, @Nullable EventDelegate<TextComponent> event) {
@@ -67,8 +65,7 @@ public abstract class EventDispatchBase<Mod extends ChatMod> {
 
         var    player = mod.getPlayerAdapter().getPlayer(playerId).orElseThrow();
         String f      = null;
-        if (mod.getDefaultModule() instanceof IFormatContext formats)
-            f = packetType.getFormat(formats.getFormat());
+        if (mod.getDefaultModule() instanceof IFormatContext formats) f = packetType.getFormat(formats.getFormat());
         var text = Optional.ofNullable(f)
                 .map(format -> format.replace(PLAYER_NAME_PLACEHOLDER, RESERVED_PLACEHOLDER))
                 .map(format -> mod.applyPlaceholderApi(playerId, format))
@@ -77,17 +74,15 @@ public abstract class EventDispatchBase<Mod extends ChatMod> {
                     var txt = Component.text()
                             .append(legacyAmpersand().deserialize(split[0]))
                             .append(Component.text((mod.getPlayerAdapter().getDisplayName(playerId))));
-                    if (split.length > 1)
-                        txt.append(legacyAmpersand().deserialize(split[1]));
+                    if (split.length > 1) txt.append(legacyAmpersand().deserialize(split[1]));
                     return txt.build();
                 })
                 .orElseGet(() -> packetType.createDefaultText(player, null));
 
-        if ((mod.isListenerCompatibilityMode() || mod.isReplaceDefaultJoinLeaveMessages()) && event != null)
-            event.set(text);
-        if (!mod.isListenerCompatibilityMode() && event != null)
-            event.cancel();
-        mod.getDefaultModule().as(LinkToMinecraftModule.class)
+        if ((mod.isListenerCompatibilityMode() || mod.isReplaceDefaultJoinLeaveMessages()) && event != null) event.set(text);
+        if (!mod.isListenerCompatibilityMode() && event != null) event.cancel();
+        mod.getDefaultModule()
+                .as(LinkToMinecraftModule.class)
                 .stream()
                 .flatMap(link -> Stream.ofNullable(link.getConfig().getJoinLeave()))
                 .flatMap(eventConfig -> eventConfig.getChannels().stream())
