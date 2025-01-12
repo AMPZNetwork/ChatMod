@@ -6,6 +6,8 @@ import com.ampznetwork.chatmod.api.model.protocol.ChatMessagePacket;
 import com.ampznetwork.chatmod.api.model.protocol.internal.ChatMessagePacketImpl;
 import com.ampznetwork.chatmod.core.module.rabbit.IdentityRabbitMqModule;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.EqualsAndHashCode;
 import lombok.SneakyThrows;
 import lombok.ToString;
@@ -13,6 +15,7 @@ import lombok.Value;
 import org.comroid.api.ByteConverter;
 
 import java.io.ByteArrayInputStream;
+import java.nio.charset.StandardCharsets;
 
 @Value
 @ToString(callSuper = true)
@@ -26,11 +29,6 @@ public class LinkToNativeRabbitModule extends IdentityRabbitMqModule<ChatModules
     }
 
     @Override
-    public boolean acceptOutbound(ChatMessagePacket packet) {
-        return super.acceptOutbound(packet) && !packet.getRoute().contains(mod.getServerName());
-    }
-
-    @Override
     public void relayOutbound(ChatMessagePacket packet) {
         broadcastInbound(packet);
     }
@@ -41,7 +39,9 @@ public class LinkToNativeRabbitModule extends IdentityRabbitMqModule<ChatModules
             @Override
             @SneakyThrows
             public byte[] toBytes(ChatMessagePacket packet) {
-                return MAPPER.writeValueAsBytes(packet);
+                ObjectNode tree = MAPPER.valueToTree(packet);
+                ((ArrayNode) tree.get("route")).add(mod.getServerName());
+                return tree.toString().getBytes(StandardCharsets.UTF_8);
             }
 
             @Override

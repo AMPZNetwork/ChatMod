@@ -47,7 +47,11 @@ public class LinkToAurionChatModule extends AbstractRabbitMqModule<ChatModules.A
         return new ByteConverter<>() {
             @Override
             public byte[] toBytes(PacketAdapter packetAdapter) {
-                return AurionPacket.GSON.toJson(packetAdapter).getBytes(StandardCharsets.UTF_8);
+                packetAdapter.route.add(mod.getServerName());
+                var json = AurionPacket.GSON.toJson(packetAdapter);
+                var data = AurionPacket.GSON.fromJson(json, JsonObject.class);
+                data.getAsJsonArray("route").add(mod.getServerName());
+                return data.toString().getBytes(StandardCharsets.UTF_8);
             }
 
             @Override

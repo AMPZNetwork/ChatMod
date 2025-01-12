@@ -8,6 +8,7 @@ import org.comroid.api.func.util.Streams;
 import org.comroid.api.info.Log;
 import org.comroid.api.tree.Container;
 import org.comroid.api.tree.Reloadable;
+import org.jetbrains.annotations.MustBeInvokedByOverriders;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -34,6 +35,18 @@ public interface Module<P> extends Container, BidirectionalPacketStream<P>, Relo
      */
     boolean isAvailable();
 
+    @Override
+    @MustBeInvokedByOverriders
+    default boolean acceptInbound(P packet) {
+        return !convertToChatModPacket(packet).getRoute().contains(getMod().getServerName());
+    }
+
+    @Override
+    @MustBeInvokedByOverriders
+    default boolean acceptOutbound(P packet) {
+        return !convertToChatModPacket(packet).getRoute().contains(getMod().getServerName());
+    }
+
     /**
      * broadcast inbound packet to all providers except this
      */
@@ -54,6 +67,9 @@ public interface Module<P> extends Container, BidirectionalPacketStream<P>, Relo
     private <$> void broadcast(final ChatMessagePacket packet, final BiPredicate<Module<$>, $> accept, final BiConsumer<Module<$>, $> relay) {
         getMod().children(Module.class)
                 .filter(Predicate.not(this::equals))
+                .filter(module -> getMod().children(Module.class)
+                        .filter(any -> any.getName().toLowerCase().contains("aurion"))
+                        .anyMatch(Module::isEnabled))
                 .filter(Module::isEnabled)
                 .flatMap(Streams.filter(Module::isAvailable, this::reportCapabilityUnavailable))
                 .map(Polyfill::<Module<$>>uncheckedCast)
