@@ -33,7 +33,9 @@ public interface ModuleContainer extends Container, Named {
     Stream<Module<?>> createModules();
 
     default void initModules() {
-        createModules().peek(Startable::start).forEach(this::addChildren);
+        var ls = createModules().toList();
+        ls.forEach(this::addChildren);
+        ls.stream().filter(Module::isEnabled).forEach(Startable::start);
     }
 
     default Optional<LibMod> wrapLib() {

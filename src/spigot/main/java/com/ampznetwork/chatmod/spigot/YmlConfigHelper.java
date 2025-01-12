@@ -16,12 +16,14 @@ import java.util.function.Supplier;
 import static com.ampznetwork.chatmod.api.model.config.ChatModules.*;
 
 public class YmlConfigHelper {
-    public static <It, Bld extends NamedBaseConfig.Builder<?, ?>> void element(
+    public static <It, Bld extends NamedBaseConfig.Builder<?, ?>> void condElement(
             Supplier<Bld> builder, ConfigurationSection parent, String module, BiConsumer<Bld, ConfigurationSection> mod, Consumer<It> set) {
         var it      = builder.get();
         var section = init(it, parent, module);
-        if (section != null) mod.accept(it, section);
-        set.accept((It) it.build());
+        if (section != null) {
+            mod.accept(it, section);
+            set.accept((It) it.build());
+        }
     }
 
     public static <It, T> void cond(
@@ -102,8 +104,8 @@ public class YmlConfigHelper {
     }
 
     public static void mcEvents(@NotNull MinecraftProviderConfig.Builder<?, ?> it, @NotNull ConfigurationSection config) {
-        element(MinecraftProviderConfig.EventConfig::builder, config, "joinLeave", YmlConfigHelper::mcEvent, it::joinLeave);
-        element(MinecraftProviderConfig.EventConfig::builder, config, "achievements", YmlConfigHelper::mcEvent, it::achievements);
+        condElement(MinecraftProviderConfig.EventConfig::builder, config, "joinLeave", YmlConfigHelper::mcEvent, it::joinLeave);
+        condElement(MinecraftProviderConfig.EventConfig::builder, config, "achievements", YmlConfigHelper::mcEvent, it::achievements);
     }
 
     public static void minecraft(@NotNull MinecraftProviderConfig.Builder<?, ?> it, @NotNull ConfigurationSection section) {
@@ -125,7 +127,7 @@ public class YmlConfigHelper {
     public static void channel(Channel.Builder<?, ?> it, ConfigurationSection section) {
         condString(it, section, "alias", Channel.Builder::alias);
         condString(it, section, "permission", Channel.Builder::permission);
-        element(DiscordChannel::builder, section, "discord", YmlConfigHelper::discordChannel, it::discord);
+        condElement(DiscordChannel::builder, section, "discord", YmlConfigHelper::discordChannel, it::discord);
         condBoolean(it, section, "publish", Channel.Builder::publish);
     }
 

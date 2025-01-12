@@ -29,8 +29,8 @@ public abstract class AbstractModule<C extends ChatModules.ProviderConfig, P ext
     }
 
     @Override
-    public String toString() {
-        return config.getName();
+    public boolean isEnabled() {
+        return config != null && config.isEnable();
     }
 
     @Override
@@ -40,8 +40,8 @@ public abstract class AbstractModule<C extends ChatModules.ProviderConfig, P ext
     }
 
     @Override
-    public boolean isEnabled() {
-        return config.isEnable();
+    public String toString() {
+        return config == null ? getClass().getSimpleName() : config.getName();
     }
 
     @Override

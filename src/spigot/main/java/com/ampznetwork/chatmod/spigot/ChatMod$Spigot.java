@@ -60,11 +60,11 @@ public class ChatMod$Spigot extends SubMod$Spigot implements ChatMod, ModuleCont
         if (format != null) caps.defaultFormat(formats(format));
 
         var modules = config.getConfigurationSection("modules");
-        element(LogProviderConfig::builder, modules, "log", (bld, cfg) -> {}, caps::log);
-        element(MinecraftProviderConfig::builder, modules, "minecraft", YmlConfigHelper::minecraft, caps::minecraft);
-        element(NativeProviderConfig::builder, modules, "rabbitmq", YmlConfigHelper::rabbitmq, caps::rabbitmq);
-        element(AurionChatProviderConfig::builder, modules, "aurionchat", YmlConfigHelper::rabbitmq, caps::aurionchat);
-        element(DiscordProviderConfig::builder, modules, "discord", YmlConfigHelper::discord, caps::discord);
+        condElement(LogProviderConfig::builder, modules, "log", (bld, cfg) -> {}, caps::log);
+        condElement(MinecraftProviderConfig::builder, modules, "minecraft", YmlConfigHelper::minecraft, caps::minecraft);
+        condElement(NativeProviderConfig::builder, modules, "rabbitmq", YmlConfigHelper::rabbitmq, caps::rabbitmq);
+        condElement(AurionChatProviderConfig::builder, modules, "aurionchat", YmlConfigHelper::rabbitmq, caps::aurionchat);
+        condElement(DiscordProviderConfig::builder, modules, "discord", YmlConfigHelper::discord, caps::discord);
 
         return caps.build();
     }
@@ -79,7 +79,7 @@ public class ChatMod$Spigot extends SubMod$Spigot implements ChatMod, ModuleCont
 
         var channels = new ArrayList<Channel>();
         for (var channelName : config.getKeys(false))
-            element(Channel::builder, config, channelName, YmlConfigHelper::channel, it -> channels.add((Channel) it));
+            condElement(Channel::builder, config, channelName, YmlConfigHelper::channel, it -> channels.add((Channel) it));
 
         return channels;
     }
@@ -149,6 +149,7 @@ public class ChatMod$Spigot extends SubMod$Spigot implements ChatMod, ModuleCont
         this.formatter = ChatMessageFormatter.of(Polyfill.<MemorySection>uncheckedCast(getConfig().get("formatting")).getValues(true));
 
         // reinitialize modules
+        close();
         clearChildren();
         initModules();
 

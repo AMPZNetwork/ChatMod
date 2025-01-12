@@ -22,10 +22,11 @@ public interface ModuleContainerCore extends ModuleContainer {
                         new ModuleProvider<>(ChatModules::getRabbitmq, LinkToNativeRabbitModule::new),
                         new ModuleProvider<>(ChatModules::getAurionchat, LinkToAurionChatModule::new),
                         new ModuleProvider<>(ChatModules::getDiscord, LinkToDiscordModule::new)).map(provider -> provider.toFactory(caps)),
-                Module.CUSTOM_TYPES.stream()).map(moduleFactory -> {
-            Module<?> o = moduleFactory.create(this);
-            Log.at(Level.INFO, "Module " + o + " created");
-            return o;
+                Module.CUSTOM_TYPES.stream()).flatMap(moduleFactory -> {
+            Module<?> module = moduleFactory.create(this);
+            if (module == null) return Stream.empty();
+            Log.at(Level.INFO, "Module " + module + " created");
+            return Stream.of(module);
         });
     }
 }
