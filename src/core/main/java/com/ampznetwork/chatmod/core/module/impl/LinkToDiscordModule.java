@@ -72,7 +72,7 @@ public class LinkToDiscordModule extends IdentityModule<ChatModules.DiscordProvi
                             .filter(Objects::nonNull)
                             .filter(channel -> channel.getChannelId() == mre.getChannel().getIdLong())
                             .map(channel -> new ChatMessagePacketImpl(PacketType.CHAT,
-                                    config.getEndpointName(),
+                                    mod.getServerName(),
                                     channel.getName(),
                                     convertMessage(mre, channel)))
                             .forEach(this::relayOutbound);
@@ -88,7 +88,7 @@ public class LinkToDiscordModule extends IdentityModule<ChatModules.DiscordProvi
 
     @Override
     public boolean acceptInbound(ChatMessagePacket packet) {
-        return super.acceptInbound(packet) && !Objects.equals(config.getEndpointName(), packet.getSource());
+        return super.acceptInbound(packet) && !Objects.equals(mod.getServerName(), packet.getSource());
     }
 
     @Override
