@@ -4,7 +4,6 @@ import club.minnced.discord.webhook.WebhookClient;
 import club.minnced.discord.webhook.WebhookClientBuilder;
 import club.minnced.discord.webhook.send.WebhookMessageBuilder;
 import com.ampznetwork.chatmod.api.model.config.ChatModules;
-import com.ampznetwork.chatmod.api.model.config.channel.Channel;
 import com.ampznetwork.chatmod.api.model.config.discord.DiscordChannel;
 import com.ampznetwork.chatmod.api.model.formatting.DefaultPlaceholder;
 import com.ampznetwork.chatmod.api.model.formatting.FormatPlaceholder;
@@ -66,13 +65,16 @@ public class LinkToDiscordModule extends IdentityModule<ChatModules.DiscordProvi
         this.jda = JDABuilder.createLight(DelegateStream.readAll(tokenRes))
                 .enableIntents(GatewayIntent.getIntents(GatewayIntent.ALL_INTENTS))
                 .addEventListeners((EventListener) event -> {
-                    if (event instanceof MessageReceivedEvent mre && !mre.getAuthor().isBot()) mod.getChannels()
+                    if (event instanceof MessageReceivedEvent mre && !mre.getAuthor().isBot()) //noinspection OptionalOfNullableMisuse
+                        mod.getChannels()
                             .stream()
-                            .map(Channel::getDiscord)
-                            .filter(Objects::nonNull)
-                            .filter(channel -> channel.getChannelId() == mre.getChannel().getIdLong())
-                            .map(channel -> new ChatMessagePacketImpl(PacketType.CHAT, mod.getServerName(), channel.getName(),
-                                    convertMessage(mre, channel)))
+                                .flatMap(channel -> Stream.ofNullable(channel.getDiscord())
+                                        .filter(Objects::nonNull)
+                                        .filter(dc -> dc.getChannelId() == mre.getChannel().getIdLong())
+                                        .map(dc -> new ChatMessagePacketImpl(PacketType.CHAT,
+                                                mod.getServerName(),
+                                                Optional.ofNullable(dc.getName()).orElseGet(channel::getName),
+                                                convertMessage(mre, dc))))
                             .forEach(this::relayOutbound);
                 })
                 .build();
@@ -103,9 +105,7 @@ public class LinkToDiscordModule extends IdentityModule<ChatModules.DiscordProvi
                     var message = new WebhookMessageBuilder().setUsername(DEFAULT_CONTEXT.apply(mod, packet, format.getMessageAuthor()))
                             .setContent(FormatPlaceholder.override(DefaultPlaceholder.MESSAGE, switch (packet.getPacketType()) {
                                 case CHAT -> Util.Kyori.sanitizePlain(plainText().serialize(packet.getMessage().getText()));
-                                case JOIN, LEAVE -> Util.Kyori.sanitizePlain(DEFAULT_CONTEXT.apply(mod,
-                                        packet,
-                                        packet.getPacketType().getFormat(format)));
+                                case JOIN, LEAVE -> Util.Kyori.sanitizePlain(DEFAULT_CONTEXT.apply(mod, packet, packet.getPacketType().getFormat(format)));
                             }).apply(mod, packet, format.getMessageContent()))
                             .setAvatarUrl(DEFAULT_CONTEXT.apply(mod, packet, format.getMessageUserAvatar()))
                             .build();
