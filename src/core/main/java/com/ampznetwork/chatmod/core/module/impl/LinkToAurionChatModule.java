@@ -93,8 +93,6 @@ public class LinkToAurionChatModule extends AbstractRabbitMqModule<ChatModules.A
                     getterVisibility = JsonAutoDetect.Visibility.NONE,
                     isGetterVisibility = JsonAutoDetect.Visibility.NONE)
     public class PacketAdapter extends AurionPacket implements ChatMessagePacket {
-        List<String> route;
-
         public PacketAdapter(AurionPacket packet, List<String> route) {
             this(packet.getType(), packet.getSource(), packet.getPlayer(), packet.getChannel(), packet.getDisplayName(), packet.getTellRawData(), route);
         }
@@ -103,9 +101,7 @@ public class LinkToAurionChatModule extends AbstractRabbitMqModule<ChatModules.A
                 Type type, String source, @Nullable AurionPlayer player, @Nullable String channel, @Nullable String displayName, @NotNull String tellRawData,
                 List<String> route
         ) {
-            super(type, source, player, channel, displayName, tellRawData);
-
-            this.route = route == null ? new ArrayList<>() : route;
+            super(type, source, route, player, channel, displayName, tellRawData);
         }
 
         @Override
