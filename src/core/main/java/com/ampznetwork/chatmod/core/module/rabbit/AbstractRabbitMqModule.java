@@ -7,11 +7,14 @@ import lombok.ToString;
 import lombok.Value;
 import lombok.experimental.NonFinal;
 import org.comroid.api.ByteConverter;
+import org.comroid.api.func.util.Streams;
 import org.comroid.api.net.Rabbit;
 
+import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Predicate;
+import java.util.stream.Stream;
 
 @Value
 @NonFinal
@@ -43,7 +46,14 @@ public abstract class AbstractRabbitMqModule<C extends ChatModules.RabbitMqProvi
     public final void start() {
         if (!isClosed() && route != null && !route.isClosed() && route.touch().isOpen()) return;
 
-        this.rabbit = Rabbit.of(mod.getServerName() + ".ChatMod", config.getRabbitUri()).get();
+        var uri = config.getRabbitUri();
+        this.rabbit = "inherit".equalsIgnoreCase(uri)
+                      ? mod.children(AbstractRabbitMqModule.class).flatMap(rabbit -> Stream.of(rabbit.config)
+                .flatMap(Streams.cast(ChatModules.RabbitMqProviderConfig.class))
+                .map(ChatModules.RabbitMqProviderConfig::getRabbitUri)
+                .filter(Predicate.not("inherit"::equalsIgnoreCase))
+                .map($ -> rabbit.getRabbit())).findAny().orElseThrow(() -> new NoSuchElementException("No RabbitMQ URI found to inherit from"))
+                      : Rabbit.of(mod.getServerName() + ".ChatMod", uri).get();
         this.route  = Optional.ofNullable(rabbit)
                 .map(rabbit -> rabbit.bind(mod.getServerName() + '.' + getName(), config.getExchange(), config.getExchangeType(), "", createByteConverter()))
                 .orElse(null);
