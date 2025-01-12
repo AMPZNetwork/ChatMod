@@ -72,7 +72,6 @@ public class YmlConfigHelper {
 
                 it.enable(mod.getBoolean("enabled", def));
                 if (it instanceof ProviderConfig.Builder<?, ?> pcb) {
-                    condString(pcb, mod, "endpointName", ProviderConfig.Builder::endpointName);
                     condInt(pcb, mod, "autoReconnectDelay", ProviderConfig.Builder::autoReconnectDelay);
                 }
                 return mod;

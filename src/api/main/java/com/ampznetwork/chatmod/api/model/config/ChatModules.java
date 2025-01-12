@@ -41,7 +41,6 @@ public final class ChatModules {
     @SuperBuilder
     @NoArgsConstructor(force = true, access = AccessLevel.PRIVATE)
     public static abstract class ProviderConfig extends NamedBaseConfig {
-        protected @Nullable @Default                                 String endpointName       = null;
         @Range(from = -1, to = Integer.MAX_VALUE) protected @Default int    autoReconnectDelay = 5;
 
         public abstract String providerType();

@@ -46,22 +46,24 @@ public abstract class AbstractRabbitMqModule<C extends ChatModules.RabbitMqProvi
     public final void start() {
         if (!isClosed() && route != null && !route.isClosed() && route.touch().isOpen()) return;
 
-        var uri = config.getRabbitUri();
-        this.rabbit = "inherit".equalsIgnoreCase(uri)
-                      ? mod.children(AbstractRabbitMqModule.class).flatMap(rabbit -> Stream.of(rabbit.config)
-                .flatMap(Streams.cast(ChatModules.RabbitMqProviderConfig.class))
-                .map(ChatModules.RabbitMqProviderConfig::getRabbitUri)
-                .filter(Predicate.not("inherit"::equalsIgnoreCase))
-                .map($ -> rabbit.getRabbit())).findAny().orElseThrow(() -> new NoSuchElementException("No RabbitMQ URI found to inherit from"))
-                      : Rabbit.of(mod.getServerName() + ".ChatMod", uri).get();
+        var uri        = config.getRabbitUri();
+        var rabbitName = "ChatMod@" + getEndpointName();
+        this.rabbit = "inherit".equalsIgnoreCase(uri) ? mod.children(AbstractRabbitMqModule.class)
+                .flatMap(rabbit -> Stream.of(rabbit.config)
+                        .flatMap(Streams.cast(ChatModules.RabbitMqProviderConfig.class))
+                        .map(ChatModules.RabbitMqProviderConfig::getRabbitUri)
+                        .filter(Predicate.not("inherit"::equalsIgnoreCase))
+                        .map($ -> rabbit.getRabbit()))
+                .findAny()
+                .orElseThrow(() -> new NoSuchElementException("No RabbitMQ URI found to inherit from")) : Rabbit.of(rabbitName, uri).get();
         this.route  = Optional.ofNullable(rabbit)
-                .map(rabbit -> rabbit.bind(mod.getServerName() + '.' + getName(), config.getExchange(), config.getExchangeType(), "", createByteConverter()))
+                .map(rabbit -> rabbit.bind(rabbitName, config.getExchange(), config.getExchangeType(), "", createByteConverter()))
                 .orElse(null);
         addChildren(rabbit, route);
 
         if (route != null) addChild(route.filterData(this::acceptOutbound)
                 .mapData(this::convertToChatModPacket)
-                .filterData(Predicate.not(packet -> packet.getRoute().contains(config.getEndpointName())))
+                .filterData(Predicate.not(packet -> packet.getRoute().contains(getEndpointName())))
                 .subscribeData(this::broadcastInbound));
 
         super.start();

@@ -17,7 +17,6 @@ import lombok.Value;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import org.comroid.api.ByteConverter;
-import org.comroid.api.func.util.Streams;
 import org.comroid.api.info.Log;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -28,6 +27,7 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.logging.Level;
 
 @Value
@@ -47,11 +47,7 @@ public class LinkToAurionChatModule extends AbstractRabbitMqModule<ChatModules.A
         return new ByteConverter<>() {
             @Override
             public byte[] toBytes(PacketAdapter packetAdapter) {
-                packetAdapter.route.add(mod.getServerName());
-                var json = AurionPacket.GSON.toJson(packetAdapter);
-                var data = AurionPacket.GSON.fromJson(json, JsonObject.class);
-                data.getAsJsonArray("route").add(mod.getServerName());
-                return data.toString().getBytes(StandardCharsets.UTF_8);
+                return AurionPacket.GSON.toJson(packetAdapter).getBytes(StandardCharsets.UTF_8);
             }
 
             @Override
@@ -77,18 +73,18 @@ public class LinkToAurionChatModule extends AbstractRabbitMqModule<ChatModules.A
         if (packet instanceof PacketAdapter adp) return adp;
         var sender = packet.getMessage().getSender();
         if (sender == null) {
-            Log.at(Level.FINE, "Skipping packet " + packet + " because it does not have a sender");
+            Log.at(Level.WARNING, "Skipping packet " + packet + " because it does not have a sender");
             //todo: lookup linked user
-            return null;
+            sender = Player.builder().id(new UUID(0, 0)).name(packet.getMessage().getSenderName()).build();
         }
         var player = new AurionPlayer(sender.getId(), sender.getName(), null, null);
         return new PacketAdapter(AurionPacket.Type.CHAT,
                 packet.getSource(),
                 player,
                 packet.getChannel(),
-                mod.getPlayerAdapter().getPlayer(sender.getId()).map(Player::getName).orElseThrow(),
+                mod.getPlayerAdapter().getPlayer(sender.getId()).map(Player::getName).orElseGet(packet.getMessage()::getSenderName),
                 GsonComponentSerializer.gson().serialize(packet.getMessage().getFullText()),
-                packet.getRoute().stream().collect(Streams.append(mod.getServerName())).toList());
+                packet.getRoute());
     }
 
     @Override

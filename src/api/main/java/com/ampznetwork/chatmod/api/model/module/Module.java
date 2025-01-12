@@ -35,32 +35,30 @@ public interface Module<P> extends Container, BidirectionalPacketStream<P>, Relo
      */
     boolean isAvailable();
 
+    default String getEndpointName() {
+        return getMod().getServerName() + '.' + getClass().getSimpleName();
+    }
+
     @Override
     @MustBeInvokedByOverriders
     default boolean acceptInbound(P packet) {
         var convert = convertToChatModPacket(packet);
-        return convert != null && !convert.getRoute().contains(getMod().getServerName());
+        return convert != null && !convert.getRoute().contains(getEndpointName());
     }
 
     @Override
     @MustBeInvokedByOverriders
     default boolean acceptOutbound(P packet) {
         var convert = convertToChatModPacket(packet);
-        return convert != null && !convert.getRoute().contains(getMod().getServerName());
+        return convert != null && !convert.getRoute().contains(getEndpointName());
     }
 
     /**
      * broadcast inbound packet to all providers except this
      */
     default void broadcastInbound(ChatMessagePacket packet) {
+        packet.getRoute().add(getEndpointName());
         broadcast(packet, Module::acceptInbound, Module::relayInbound);
-    }
-
-    /**
-     * broadcast outbound packet to all providers except this
-     */
-    default void broadcastOutbound(ChatMessagePacket packet) {
-        broadcast(packet, Module::acceptOutbound, Module::relayOutbound);
     }
 
     /**
@@ -69,14 +67,13 @@ public interface Module<P> extends Container, BidirectionalPacketStream<P>, Relo
     private <$> void broadcast(final ChatMessagePacket packet, final BiPredicate<Module<$>, $> accept, final BiConsumer<Module<$>, $> relay) {
         getMod().children(Module.class)
                 .filter(Predicate.not(this::equals))
-                .filter(module -> getMod().children(Module.class)
-                        .filter(any -> any.getName().toLowerCase().contains("aurion"))
-                        .anyMatch(Module::isEnabled))
+                .filter(module -> getMod().children(Module.class).filter(any -> any.getName().toLowerCase().contains("aurion")).anyMatch(Module::isEnabled))
                 .filter(Module::isEnabled)
                 .flatMap(Streams.filter(Module::isAvailable, this::reportCapabilityUnavailable))
                 .map(Polyfill::<Module<$>>uncheckedCast)
                 .forEach(cap -> {
-                    if (accept.test(cap, cap.convertToNativePacket(packet))) relay.accept(cap, cap.convertToNativePacket(packet));
+                    var convert = cap.convertToNativePacket(packet);
+                    if (accept.test(cap, convert)) relay.accept(cap, convert);
                 });
     }
 

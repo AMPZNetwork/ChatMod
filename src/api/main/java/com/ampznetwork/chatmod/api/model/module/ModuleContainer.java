@@ -41,17 +41,19 @@ public interface ModuleContainer extends Container, Named {
     }
 
     default void sendChat(String channelName, ChatMessage message) {
-        getDefaultModule().broadcastInbound(new ChatMessagePacketImpl(PacketType.CHAT, getServerName(), channelName, message, List.of(getServerName())));
+        var module = getDefaultModule();
+        module.broadcastInbound(new ChatMessagePacketImpl(PacketType.CHAT, getServerName(), channelName, message, List.of(module.getEndpointName())));
     }
 
     default void sendEvent(String channelName, Player player, PacketType type, TextComponent text) {
-        getDefaultModule().broadcastInbound(new ChatMessagePacketImpl(type,
+        var module = getDefaultModule();
+        module.broadcastInbound(new ChatMessagePacketImpl(type,
                 getServerName(),
                 channelName,
                 new ChatMessage(player,
                         getPlayerAdapter().getDisplayName(player.getId()),
                         PlainTextComponentSerializer.plainText().serialize(text),
                         text),
-                List.of(getServerName())));
+                List.of(module.getEndpointName())));
     }
 }

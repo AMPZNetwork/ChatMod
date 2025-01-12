@@ -71,7 +71,8 @@ public class LinkToDiscordModule extends IdentityModule<ChatModules.DiscordProvi
                             .map(Channel::getDiscord)
                             .filter(Objects::nonNull)
                             .filter(channel -> channel.getChannelId() == mre.getChannel().getIdLong())
-                            .map(channel -> new ChatMessagePacketImpl(PacketType.CHAT, mod.getServerName(), channel.getName(), convertMessage(mre, channel)))
+                            .map(channel -> new ChatMessagePacketImpl(PacketType.CHAT, mod.getServerName() + "." + channel.getChannelId(), channel.getName(),
+                                    convertMessage(mre, channel)))
                             .forEach(this::relayOutbound);
                 })
                 .build();
