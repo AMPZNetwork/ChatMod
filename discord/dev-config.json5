@@ -1,15 +1,44 @@
 {
-  discordToken: '@/srv/cred/discord/mc-server-integration.txt',
-  rabbitMqUri: 'amqp://guest:guest@localhost:5672',
-  autoReconnectDelay: 5,
+  modules: {
+    log: {
+      name: 'log',
+      enable: true
+    },
+    minecraft: {
+      name: 'minecraft',
+      enable: false
+    },
+    rabbitmq: {
+      name: 'rabbitmq',
+      enable: true,
+      rabbitUri: 'amqp://guest:guest@localhost:5672'
+    },
+    aurionchat: {
+      name: 'aurionchat',
+      enable: true,
+      rabbitUri: 'inherit'
+    },
+    discord: {
+      name: 'discord',
+      enable: true,
+      token: '@/srv/cred/discord/mc-server-integration.txt',
+    },
+  },
   channels: [
     {
-      channelName: 'global',
-      channelId: 1324457917340188702
+      name: 'global',
+      discord: {
+        channelId: 1324457917340188702
+      }
     },
     {
-      channelName: 'staff',
-      channelId: 1324457993131262055
+      name: 'staff',
+      discord: {
+        channelId: 1324457993131262055,
+      }
     }
-  ]
+  ],
+  format: {
+    defaults: 'discord_webhook'
+  }
 }

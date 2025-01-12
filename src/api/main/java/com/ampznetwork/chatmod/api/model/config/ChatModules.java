@@ -4,6 +4,7 @@ import com.ampznetwork.chatmod.api.model.config.discord.DiscordBot;
 import com.ampznetwork.chatmod.api.model.config.discord.IFormatContext;
 import com.ampznetwork.chatmod.api.model.config.format.Formats;
 import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Builder.Default;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -22,16 +23,17 @@ import java.util.Collection;
 public final class ChatModules {
     @Nullable @Default Formats                  defaultFormat = null;
     @Nullable @Default LogProviderConfig        log           = null;
-    @Nullable @Default MinecraftProviderConfig  minecraft     = null;
-    @Nullable @Default NativeProviderConfig     builtin       = null;
-    @Nullable @Default AurionChatProviderConfig aurionChat    = null;
-    @Nullable @Default DiscordProviderConfig    discord       = null;
+    @Nullable @Default MinecraftProviderConfig  minecraft  = null;
+    @Nullable @Default NativeProviderConfig     rabbitmq   = null;
+    @Nullable @Default AurionChatProviderConfig aurionchat = null;
+    @Nullable @Default DiscordProviderConfig    discord    = null;
 
     @Data
     @SuperBuilder
+    @AllArgsConstructor(access = AccessLevel.PROTECTED)
     @NoArgsConstructor(force = true, access = AccessLevel.PRIVATE)
     public static abstract class NamedBaseConfig implements Named {
-        protected @Default boolean enabled = true;
+        protected @Default boolean enable = true;
         protected @NotNull String  name;
     }
 
@@ -57,6 +59,7 @@ public final class ChatModules {
 
     @Data
     @SuperBuilder
+    @AllArgsConstructor(access = AccessLevel.PROTECTED)
     @NoArgsConstructor(force = true, access = AccessLevel.PRIVATE)
     public static abstract class FormatProviderConfig extends ProviderConfig {
         protected @Nullable @Default Formats format = null;
@@ -120,7 +123,7 @@ public final class ChatModules {
     @SuperBuilder
     @NoArgsConstructor(force = true, access = AccessLevel.PRIVATE)
     public static class DiscordProviderConfig extends FormatProviderConfig implements DiscordBot {
-        protected @NotNull String discordToken;
+        protected @NotNull String token;
 
         @Override
         public final String providerType() {

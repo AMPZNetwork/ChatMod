@@ -3,7 +3,6 @@ package com.ampznetwork.chatmod.api.model.config.format;
 import com.ampznetwork.chatmod.api.model.formatting.DefaultPlaceholder;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Builder.Default;
 import lombok.Getter;
@@ -15,12 +14,12 @@ import org.comroid.api.attr.Named;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.beans.ConstructorProperties;
 import java.util.Collection;
 import java.util.Objects;
 
 @Value
 @Builder
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
 @NoArgsConstructor(force = true, access = AccessLevel.PRIVATE)
 public class Formats implements IFormats {
     public static final Formats  DEFAULT           = new Formats();
@@ -30,6 +29,19 @@ public class Formats implements IFormats {
     @Nullable @Default  String   messageAuthor     = null;
     @Nullable @Default  String   messageContent    = null;
     @Nullable @Default  String   messageUserAvatar = null;
+
+    @ConstructorProperties({ "defaults", "joinMessage", "leaveMessage", "messageAuthor", "messageContent", "messageUserAvatar" })
+    public Formats(
+            @Nullable IFormats defaults, @Nullable String joinMessage, @Nullable String leaveMessage, @Nullable String messageAuthor,
+            @Nullable String messageContent, @Nullable String messageUserAvatar
+    ) {
+        this.defaults          = defaults == null ? Defaults.MINECRAFT_CHAT : defaults;
+        this.joinMessage       = joinMessage;
+        this.leaveMessage      = leaveMessage;
+        this.messageAuthor     = messageAuthor;
+        this.messageContent    = messageContent;
+        this.messageUserAvatar = messageUserAvatar;
+    }
 
     @JsonIgnore
     public @NotNull IFormats getDefaults() {

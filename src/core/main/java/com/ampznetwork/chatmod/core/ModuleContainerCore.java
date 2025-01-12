@@ -17,8 +17,8 @@ public interface ModuleContainerCore extends ModuleContainer {
         final var caps = getChatModules();
         return Stream.concat(Stream.of(new ModuleProvider<>(ChatModules::getLog, LinkToLogModule::new),
                         new ModuleProvider<>(ChatModules::getMinecraft, LinkToMinecraftModule::new),
-                        new ModuleProvider<>(ChatModules::getBuiltin, LinkToNativeRabbitModule::new),
-                        new ModuleProvider<>(ChatModules::getAurionChat, LinkToAurionChatModule::new),
+                        new ModuleProvider<>(ChatModules::getRabbitmq, LinkToNativeRabbitModule::new),
+                        new ModuleProvider<>(ChatModules::getAurionchat, LinkToAurionChatModule::new),
                         new ModuleProvider<>(ChatModules::getDiscord, LinkToDiscordModule::new)).map(provider -> provider.toFactory(caps)),
                 Module.CUSTOM_TYPES.stream()).map(moduleFactory -> moduleFactory.create(this));
     }

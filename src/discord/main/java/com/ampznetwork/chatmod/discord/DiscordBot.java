@@ -73,7 +73,7 @@ public class DiscordBot extends Container.Base implements ModuleContainerCore {
 
     @Override
     public ChatModules getChatModules() {
-        return config.getChatModules();
+        return config.getModules();
     }
 
     @Override

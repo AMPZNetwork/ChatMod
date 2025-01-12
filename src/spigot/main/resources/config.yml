@@ -3,7 +3,7 @@ server:
   name: '&aMC'
 
 modules:
-  log: false
+  log: true
   minecraft:
     autoReconnectDelay: 0
   rabbitmq:
@@ -29,11 +29,11 @@ channels:
       # they can be applied to all channel configuration entries
       discord:
         # the discord snowflake-id of the channel to link
-        channel_id: 1142833435665256478
+        channelId: 1142833435665256478
         # (optional) this invite url will be presented to in-game users
-        #invite_url: '<insert server invite url>'
+        #inviteUrl: '<insert server invite url>'
         # (optional) configuring this webhook url will let the bot try to use this before attempting to find or create a webhook
-        #webhook_url: '<insert webhook url>'
+        #webhookUrl: '<insert webhook url>'
 
         # format settings for discord channel
         # supported placeholders:
@@ -67,37 +67,6 @@ channels:
   - staff:
       alias: s
       permission: chat.channel.staff
-
-### old config scheme (partially out of order) ###
-# rabbitmq configuration
-rabbitmq:
-  uri: amqp://guest:guest@localhost:5672
-
-# automatic reconnection base delay in seconds, set to -1 or remove entirely to disable
-auto-reconnect-delay: 5
-
-# insert token to enable to builtin discord bot to also mirror chat to a discord channel
-# this is only required once per network! the bot can be hosted standalone
-discord_bot_token: 'token'
-
-# configure generic chat events
-events:
-  # handles join/leave messages
-  join_leave:
-    # enable/disable handling
-    enable: true
-    # when enabled, ChatMod replaces vanilla join/leave messages
-    replace: true
-    # list of channels to send join/leave messages to
-    # '*' is allowed and represents all channels
-    channels:
-      - '*'
-    # custom formats for join/leave messages
-    # set to blank '' for using default vanilla messages
-    # "%server_name%", "%player_name%" and "%message%" are special format strings that are always available
-    # otherwise there is optional PlaceholderAPI support
-    format_join: '&a%player_name%&a has joined %server_name%'
-    format_leave: '&c%player_name%&c has left %server_name%'
 
 # formatter configuration; these formatters are applied in configured order to each message's content
 formatting:

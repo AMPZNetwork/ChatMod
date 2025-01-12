@@ -58,7 +58,7 @@ public class LinkToDiscordModule extends IdentityModule<ChatModules.DiscordProvi
     public LinkToDiscordModule(ModuleContainer mod, ChatModules.DiscordProviderConfig config) {
         super(mod, config);
 
-        var tokenRes = ResourceLoader.fromResourceString(config.getDiscordToken());
+        var tokenRes = ResourceLoader.fromResourceString(config.getToken());
         if (tokenRes == null)
             throw new IllegalArgumentException("Discord token not found");
         this.jda = JDABuilder.createLight(DelegateStream.readAll(tokenRes))

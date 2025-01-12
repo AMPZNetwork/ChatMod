@@ -21,6 +21,6 @@ public abstract class AbstractModule<C extends ChatModules.ProviderConfig, P> ex
 
     @Override
     public boolean isEnabled() {
-        return config.isEnabled();
+        return config.isEnable();
     }
 }

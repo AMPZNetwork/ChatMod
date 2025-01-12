@@ -3,46 +3,74 @@ this is an example config for the standalone chatmod discord bot
 for configuring the bot that is bundled with the plugin, please see the plugin config.yml
 */
 {
-  // token for the Discord bot
-  discordToken: '<insert token>',
-  // authenticated uri for RabbitMQ
-  rabbitMqUri: '<insert uri>',
-  // automatic reconnection base delay in seconds, set to -1 or remove entirely to disable
-  autoReconnectDelay: 5,
+  // modules configuration
+  modules: {
+    log: {
+      name: 'log',
+      enable: true
+    },
+    minecraft: {
+      name: 'minecraft',
+      enable: false
+      // cannot be enabled on discord bot
+    },
+    rabbitmq: {
+      name: 'rabbitmq',
+      enable: false,
+      rabbitUri: 'amqp://guest:guest@localhost:5672'
+    },
+    aurionchat: {
+      name: 'aurionchat',
+      enable: false,
+      rabbitUri: 'inherit'
+    },
+    discord: {
+      name: 'discord',
+      enable: false,
+      token: 'token'
+    }
+  },
   // discord channel configuration
   channels: [
     {
       // the chatmod name of the channel to link
-      channelName: 'global',
-      // the discord snowflake-id of the channel to link
-      channelId: 1142833435665256478,
-      // (optional) this invite url will be presented to in-game users
-      //inviteUrl: '<insert server invite url>',
-      // (optional) configuring this webhook url will let the bot try to use this before attempting to find or create a webhook
-      //webhookUrl: '<insert webhook url>',
-      /*
-      format settings for discord channel
-      supported placeholders:
-      - %server_name% = name of the server where the message originates from
-      - %channel_name% = name of the channel in which the message was sent
-      - %player_id% = uuid4 of a player
-      - %player_name% = username of a player
-      - %player_displayname% = displayname of a player
-      - %message% = full message contents
-      you can delete this block if you want to stick to defaults
-      */
-      format: {
-        // format for 'user joined the game' messages on discord, if enabled
-        joinMessage: "> %player_name% has joined %server_name%",
-        // format for 'user left the game' messages on discord, if enabled
-        leaveMessage: "> %player_name% has left %server_name%",
-        // format for webhook message author
-        webhookUsername: "%player_name%",
-        // format for webhook message content
-        webhookMessage: "%message%",
-        // if you want to use a custom service to provide user avatars, configure the avatar url format here
-        webhookAvatar: "https://mc-heads.net/avatar/%player_name%"
+      name: 'global',
+      // discord data for this channel
+      discord: {
+        // the discord snowflake-id of the channel to link
+        channelId: 1142833435665256478,
+        // (optional) this invite url will be presented to in-game users
+        //inviteUrl: '<insert server invite url>',
+        // (optional) configuring this webhook url will let the bot try to use this before attempting to find or create a webhook
+        //webhookUrl: '<insert webhook url>',
+        /*
+        format settings for discord channel
+        supported placeholders:
+        - %server_name% = name of the server where the message originates from
+        - %channel_name% = name of the channel in which the message was sent
+        - %player_id% = uuid4 of a player
+        - %player_name% = username of a player
+        - %player_displayname% = displayname of a player
+        - %message% = full message contents
+        you can delete this block if you want to stick to defaults
+        */
+        format: {
+          // example block for discord defaults
+          //// format for 'user joined the game' messages on discord, if enabled
+          //joinMessage: "> %player_name% has joined %server_name%",
+          //// format for 'user left the game' messages on discord, if enabled
+          //leaveMessage: "> %player_name% has left %server_name%",
+          //// format for webhook message author
+          //messageAuthor: "%player_name%",
+          //// format for webhook message content
+          //messageContent: "%message%",
+          //// if you want to use a custom service to provide user avatars, configure the avatar url format here
+          //messageUserAvatar: "https://mc-heads.net/avatar/%player_name%"
+        }
       }
     }
-  ]
+  ],
+  format: {
+    defaults: 'discord_webhook'
+  }
 }

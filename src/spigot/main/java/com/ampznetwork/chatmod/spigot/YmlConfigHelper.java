@@ -61,16 +61,16 @@ public class YmlConfigHelper {
         boolean def = it instanceof MinecraftProviderConfig.Builder;
         if (section == null || !section.isSet(module))
             // only minecraft provider should default to "true" when not configured
-            it.enabled(def);
+            it.enable(def);
         else if (section.isBoolean(module))
             // handle shorthand configuration
-            it.enabled(section.getBoolean(module, def));
+            it.enable(section.getBoolean(module, def));
         else end:{
                 // otherwise try to read 'enabled' attribute
                 var mod = section.getConfigurationSection(module);
                 if (mod == null) break end;
 
-                it.enabled(mod.getBoolean("enabled", def));
+                it.enable(mod.getBoolean("enabled", def));
                 if (it instanceof ProviderConfig.Builder<?, ?> pcb) {
                     condString(pcb, mod, "endpointName", ProviderConfig.Builder::endpointName);
                     condInt(pcb, mod, "autoReconnectDelay", ProviderConfig.Builder::autoReconnectDelay);
@@ -119,7 +119,7 @@ public class YmlConfigHelper {
     }
 
     public static void discord(DiscordProviderConfig.Builder<?, ?> it, ConfigurationSection section) {
-        condString(it, section, "token", DiscordProviderConfig.Builder::discordToken);
+        condString(it, section, "token", DiscordProviderConfig.Builder::token);
         format(it, section);
     }
 
