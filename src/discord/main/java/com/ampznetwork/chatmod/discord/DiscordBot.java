@@ -3,7 +3,6 @@ package com.ampznetwork.chatmod.discord;
 import com.ampznetwork.chatmod.api.model.config.ChatModules;
 import com.ampznetwork.chatmod.api.model.config.channel.Channel;
 import com.ampznetwork.chatmod.api.model.config.discord.StandaloneDiscordBot;
-import com.ampznetwork.chatmod.api.model.module.Module;
 import com.ampznetwork.chatmod.core.ModuleContainerCore;
 import com.ampznetwork.chatmod.core.module.impl.LinkToDiscordModule;
 import com.ampznetwork.libmod.api.interop.game.PlayerIdentifierAdapter;
@@ -53,6 +52,7 @@ public class DiscordBot extends Container.Base implements ModuleContainerCore {
 
         while (true) try {
             INSTANCE = new DiscordBot(CONFIG);
+            INSTANCE.getDefaultModule().getJda().awaitShutdown();
         } catch (ReloadException r) {
             Log.at(Level.INFO, "Restarting Discord Bot");
         } catch (Throwable t) {
@@ -87,7 +87,7 @@ public class DiscordBot extends Container.Base implements ModuleContainerCore {
     }
 
     @Override
-    public Module<?> getDefaultModule() {
+    public LinkToDiscordModule getDefaultModule() {
         return child(LinkToDiscordModule.class).assertion();
     }
 

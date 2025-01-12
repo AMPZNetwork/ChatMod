@@ -3,6 +3,7 @@ package com.ampznetwork.chatmod.core.module.rabbit;
 import com.ampznetwork.chatmod.api.model.config.ChatModules;
 import com.ampznetwork.chatmod.api.model.module.ModuleContainer;
 import com.ampznetwork.chatmod.core.module.AbstractModule;
+import lombok.ToString;
 import lombok.Value;
 import lombok.experimental.NonFinal;
 import org.comroid.api.ByteConverter;
@@ -14,6 +15,7 @@ import java.util.function.Predicate;
 
 @Value
 @NonFinal
+@ToString(callSuper = true)
 public abstract class AbstractRabbitMqModule<C extends ChatModules.RabbitMqProviderConfig, P> extends AbstractModule<C, P> {
     @NonFinal Rabbit                   rabbit = null;
     @NonFinal Rabbit.Exchange.Route<P> route  = null;
@@ -51,11 +53,14 @@ public abstract class AbstractRabbitMqModule<C extends ChatModules.RabbitMqProvi
                 .mapData(this::convertToChatModPacket)
                 .filterData(Predicate.not(packet -> packet.getRoute().contains(config.getEndpointName())))
                 .subscribeData(this::broadcastInbound));
+
+        super.start();
     }
 
     @Override
     public void closeSelf() {
         clearChildren();
+        super.closeSelf();
     }
 
     @Override

@@ -7,9 +7,11 @@ import com.ampznetwork.chatmod.api.model.protocol.ChatMessagePacket;
 import com.ampznetwork.chatmod.core.module.IdentityModule;
 import com.ampznetwork.libmod.api.SubMod;
 import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import lombok.Value;
 
 @Value
+@ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
 public class LinkToMinecraftModule extends IdentityModule<ChatModules.MinecraftProviderConfig> implements IIdentityModule<ChatModules.NativeProviderConfig> {
     public LinkToMinecraftModule(ModuleContainer mod, ChatModules.MinecraftProviderConfig config) {

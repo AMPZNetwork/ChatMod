@@ -8,12 +8,14 @@ import com.ampznetwork.chatmod.core.module.rabbit.IdentityRabbitMqModule;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.EqualsAndHashCode;
 import lombok.SneakyThrows;
+import lombok.ToString;
 import lombok.Value;
 import org.comroid.api.ByteConverter;
 
 import java.io.ByteArrayInputStream;
 
 @Value
+@ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
 public class LinkToNativeRabbitModule extends IdentityRabbitMqModule<ChatModules.NativeProviderConfig>
         implements IIdentityModule<ChatModules.NativeProviderConfig> {

@@ -9,7 +9,9 @@ import com.ampznetwork.chatmod.core.module.impl.LinkToDiscordModule;
 import com.ampznetwork.chatmod.core.module.impl.LinkToLogModule;
 import com.ampznetwork.chatmod.core.module.impl.LinkToMinecraftModule;
 import com.ampznetwork.chatmod.core.module.impl.LinkToNativeRabbitModule;
+import org.comroid.api.info.Log;
 
+import java.util.logging.Level;
 import java.util.stream.Stream;
 
 public interface ModuleContainerCore extends ModuleContainer {
@@ -20,6 +22,10 @@ public interface ModuleContainerCore extends ModuleContainer {
                         new ModuleProvider<>(ChatModules::getRabbitmq, LinkToNativeRabbitModule::new),
                         new ModuleProvider<>(ChatModules::getAurionchat, LinkToAurionChatModule::new),
                         new ModuleProvider<>(ChatModules::getDiscord, LinkToDiscordModule::new)).map(provider -> provider.toFactory(caps)),
-                Module.CUSTOM_TYPES.stream()).map(moduleFactory -> moduleFactory.create(this));
+                Module.CUSTOM_TYPES.stream()).map(moduleFactory -> {
+            Module<?> o = moduleFactory.create(this);
+            Log.at(Level.INFO, "Module " + o + " created");
+            return o;
+        });
     }
 }

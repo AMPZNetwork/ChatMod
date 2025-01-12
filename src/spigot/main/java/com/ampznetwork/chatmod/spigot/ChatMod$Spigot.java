@@ -62,7 +62,7 @@ public class ChatMod$Spigot extends SubMod$Spigot implements ChatMod, ModuleCont
         var modules = config.getConfigurationSection("modules");
         element(LogProviderConfig::builder, modules, "log", (bld, cfg) -> {}, caps::log);
         element(MinecraftProviderConfig::builder, modules, "minecraft", YmlConfigHelper::minecraft, caps::minecraft);
-        element(NativeProviderConfig::builder, modules, "rabbitmq", YmlConfigHelper::rabbitmq, caps::rabbitMq);
+        element(NativeProviderConfig::builder, modules, "rabbitmq", YmlConfigHelper::rabbitmq, caps::rabbitmq);
         element(AurionChatProviderConfig::builder, modules, "aurionchat", YmlConfigHelper::rabbitmq, caps::aurionchat);
         element(DiscordProviderConfig::builder, modules, "discord", YmlConfigHelper::discord, caps::discord);
 

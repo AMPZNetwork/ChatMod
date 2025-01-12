@@ -6,6 +6,7 @@ import com.ampznetwork.chatmod.api.model.protocol.ChatMessagePacket;
 import com.ampznetwork.chatmod.core.module.IdentityModule;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import lombok.Value;
 import org.comroid.api.func.util.Debug;
 import org.comroid.api.info.Log;
@@ -13,6 +14,7 @@ import org.comroid.api.info.Log;
 import java.util.logging.Level;
 
 @Value
+@ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
 public class LinkToLogModule extends IdentityModule<ChatModules.LogProviderConfig> {
     public static final ObjectMapper MAPPER = new ObjectMapper();

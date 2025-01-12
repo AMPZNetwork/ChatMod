@@ -12,6 +12,7 @@ import com.google.gson.JsonObject;
 import com.mineaurion.aurionchat.api.AurionPacket;
 import com.mineaurion.aurionchat.api.AurionPlayer;
 import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import lombok.Value;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
@@ -28,6 +29,7 @@ import java.util.Objects;
 import java.util.Optional;
 
 @Value
+@ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
 public class LinkToAurionChatModule extends AbstractRabbitMqModule<ChatModules.AurionChatProviderConfig, LinkToAurionChatModule.PacketAdapter> {
     {

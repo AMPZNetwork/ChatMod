@@ -15,6 +15,7 @@ import com.ampznetwork.chatmod.api.model.protocol.internal.ChatMessagePacketImpl
 import com.ampznetwork.chatmod.api.model.protocol.internal.PacketType;
 import com.ampznetwork.chatmod.core.module.IdentityModule;
 import lombok.SneakyThrows;
+import lombok.ToString;
 import lombok.Value;
 import lombok.experimental.NonFinal;
 import net.dv8tion.jda.api.JDA;
@@ -44,6 +45,7 @@ import static net.kyori.adventure.text.serializer.plain.PlainTextComponentSerial
 
 @Value
 @NonFinal
+@ToString(callSuper = true)
 public class LinkToDiscordModule extends IdentityModule<ChatModules.DiscordProviderConfig> {
     public static final String WEBHOOK_NAME = "Minecraft Chat Link";
     JDA jda;
@@ -107,11 +109,6 @@ public class LinkToDiscordModule extends IdentityModule<ChatModules.DiscordProvi
                     obtainWebhook(channel, jda.getTextChannelById(channel.getChannelId())).thenCompose(webhook -> webhook.send(message))
                             .exceptionally(Debug.exceptionLogger("Could not send Message using Webhook"));
                 });
-    }
-
-    @Override
-    public void start() {
-        super.start();
     }
 
     @Override
