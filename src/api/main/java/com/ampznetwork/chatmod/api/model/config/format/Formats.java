@@ -6,7 +6,6 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Builder.Default;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.Value;
 import lombok.experimental.FieldDefaults;
@@ -20,15 +19,19 @@ import java.util.Objects;
 
 @Value
 @Builder
-@NoArgsConstructor(force = true, access = AccessLevel.PRIVATE)
 public class Formats implements IFormats {
-    public static final Formats  DEFAULT           = new Formats();
+    public static final Formats MINECRAFT = new Formats(Defaults.MINECRAFT_CHAT);
+    public static final Formats DISCORD   = new Formats(Defaults.DISCORD_WEBHOOK);
     @NotNull @Default   IFormats defaults          = Defaults.MINECRAFT_CHAT;
     @Nullable @Default  String   joinMessage       = null;
     @Nullable @Default  String   leaveMessage      = null;
     @Nullable @Default  String   messageAuthor     = null;
     @Nullable @Default  String   messageContent    = null;
     @Nullable @Default  String   messageUserAvatar = null;
+
+    private Formats(@NotNull IFormats defaults) {
+        this(defaults, null, null, null, null, null);
+    }
 
     @ConstructorProperties({ "defaults", "joinMessage", "leaveMessage", "messageAuthor", "messageContent", "messageUserAvatar" })
     public Formats(

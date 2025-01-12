@@ -5,6 +5,7 @@ import com.ampznetwork.chatmod.api.model.protocol.ChatMessagePacket;
 import org.comroid.api.func.util.Streams;
 
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Objects;
 import java.util.Spliterators;
@@ -37,37 +38,33 @@ public interface FormatPlaceholder {
         default String apply(ModuleContainer mod, ChatMessagePacket packet, String format) {
             final var lastEnd = new int[]{ 0 };
             var output = StreamSupport.<MatchResult>stream(Spliterators.spliteratorUnknownSize(new Iterator<>() {
-                        final Matcher matcher = PLACEHOLDER.matcher(format);
-                        boolean consumed = true;
+                final Matcher matcher = PLACEHOLDER.matcher(format);
+                boolean consumed = true;
 
-                        @Override
-                        public boolean hasNext() {
-                            return !consumed || !(consumed = !matcher.find());
-                        }
+                @Override
+                public boolean hasNext() {
+                    return !consumed || !(consumed = !matcher.find());
+                }
 
-                        @Override
-                        public MatchResult next() {
-                            consumed = true;
-                            return matcher.toMatchResult();
-                        }
-                    }, 0), false)
-                    .sequential()
-                    .flatMap(result -> stream().filter(placeholder -> placeholder.getName().equalsIgnoreCase(result.group("key")))
-                            .flatMap(placeholder -> Stream.concat(placeholder.streamValues(mod, packet),
-                                            placeholder.getFallback().flatMap(fallback -> fallback.streamValues(mod, packet)))
-                                    .filter(Objects::nonNull)
-                                    .findAny()
-                                    .stream())
-                            .sequential()
-                            .flatMap(value -> {
-                                if (result.start() <= lastEnd[0])
-                                    return Stream.of(value); // todo test edge cases
-                                var substring = format.substring(lastEnd[0], result.start());
-                                lastEnd[0] = result.end();
-                                return Stream.of(substring, value);
-                            }))
-                    .collect(Streams.atLeastOneOrElseGet(() -> format))
-                    .collect(Collectors.joining());
+                @Override
+                public MatchResult next() {
+                    consumed = true;
+                    return matcher.toMatchResult();
+                }
+            }, 0), false).sequential().flatMap(result -> {
+                var set = new HashSet<String>();
+                return stream().filter(pair -> set.add(pair.getName()))
+                        .filter(placeholder -> placeholder.getName().equalsIgnoreCase(result.group("key")))
+                        .flatMap(placeholder -> Stream.concat(placeholder.streamValues(mod, packet),
+                                placeholder.getFallback().flatMap(fallback -> fallback.streamValues(mod, packet))).filter(Objects::nonNull).findAny().stream())
+                        .sequential()
+                        .flatMap(value -> {
+                            if (result.start() <= lastEnd[0]) return Stream.of(value); // todo test edge cases
+                            var substring = format.substring(lastEnd[0], result.start());
+                            lastEnd[0] = result.end();
+                            return Stream.of(substring, value);
+                        });
+            }).collect(Streams.atLeastOneOrElseGet(() -> format)).collect(Collectors.joining());
             if (lastEnd[0] != 0) output += format.substring(lastEnd[0]);
             return output;
         }

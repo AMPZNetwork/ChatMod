@@ -30,7 +30,7 @@ public class DiscordChannel extends ChatModules.FormatProviderConfig implements 
     }
 
     public @NotNull Formats getFormat() {
-        return Objects.requireNonNullElseGet(format, () -> Formats.DEFAULT);
+        return Objects.requireNonNullElse(format, Formats.DISCORD);
     }
 
     @Override

@@ -96,14 +96,15 @@ public class LinkToDiscordModule extends IdentityModule<ChatModules.DiscordProvi
                 .flatMap(channel -> Stream.ofNullable(channel.getDiscord())
                         .filter(dc -> Optional.ofNullable(dc.getName()).orElseGet(channel::getName).equals(packet.getChannel())))
                 .forEach(channel -> {
-                    var message = new WebhookMessageBuilder().setUsername(DEFAULT_CONTEXT.apply(mod, packet, channel.getFormat().getMessageAuthor()))
+                    var format = channel.getFormat();
+                    var message = new WebhookMessageBuilder().setUsername(DEFAULT_CONTEXT.apply(mod, packet, format.getMessageAuthor()))
                             .setContent(FormatPlaceholder.override(DefaultPlaceholder.MESSAGE, switch (packet.getPacketType()) {
                                 case CHAT -> Util.Kyori.sanitizePlain(plainText().serialize(packet.getMessage().getText()));
                                 case JOIN, LEAVE -> Util.Kyori.sanitizePlain(DEFAULT_CONTEXT.apply(mod,
                                         packet,
-                                        packet.getPacketType().getFormat(channel.getFormat())));
-                            }).apply(mod, packet, channel.getFormat().getMessageContent()))
-                            .setAvatarUrl(DEFAULT_CONTEXT.apply(mod, packet, channel.getFormat().getMessageUserAvatar()))
+                                        packet.getPacketType().getFormat(format)));
+                            }).apply(mod, packet, format.getMessageContent()))
+                            .setAvatarUrl(DEFAULT_CONTEXT.apply(mod, packet, format.getMessageUserAvatar()))
                             .build();
 
                     obtainWebhook(channel, jda.getTextChannelById(channel.getChannelId())).thenCompose(webhook -> webhook.send(message))
