@@ -15,6 +15,7 @@ import org.comroid.api.attr.Named;
 import org.comroid.api.tree.Container;
 import org.comroid.api.tree.Startable;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -44,7 +45,7 @@ public interface ModuleContainer extends Container, Named {
 
     default void sendChat(String channelName, ChatMessage message) {
         var module = getDefaultModule();
-        module.broadcastInbound(new ChatMessagePacketImpl(PacketType.CHAT, getServerName(), channelName, message, List.of(module.getEndpointName())));
+        module.broadcastInbound(new ChatMessagePacketImpl(PacketType.CHAT, getServerName(), channelName, message, new ArrayList<>()));
     }
 
     default void sendEvent(String channelName, Player player, PacketType type, TextComponent text) {
@@ -56,6 +57,6 @@ public interface ModuleContainer extends Container, Named {
                         getPlayerAdapter().getDisplayName(player.getId()),
                         PlainTextComponentSerializer.plainText().serialize(text),
                         text),
-                List.of(module.getEndpointName())));
+                new ArrayList<>()));
     }
 }
