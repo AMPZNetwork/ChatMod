@@ -8,7 +8,6 @@ import com.ampznetwork.libmod.api.interop.game.IPlayerAdapter;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
 
-import java.util.Set;
 import java.util.UUID;
 
 public interface ChatMod extends SubMod, ModuleContainer {
@@ -24,8 +23,6 @@ public interface ChatMod extends SubMod, ModuleContainer {
     boolean isJoinLeaveEnabled();
 
     boolean isReplaceDefaultJoinLeaveMessages();
-
-    Set<String> getJoinLeaveChannels();
 
     @Override
     default TextColor getThemeColor() {

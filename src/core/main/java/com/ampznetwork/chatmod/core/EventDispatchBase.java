@@ -4,6 +4,7 @@ import com.ampznetwork.chatmod.api.ChatMod;
 import com.ampznetwork.chatmod.api.model.config.discord.IFormatContext;
 import com.ampznetwork.chatmod.api.model.protocol.ChatMessage;
 import com.ampznetwork.chatmod.api.model.protocol.internal.PacketType;
+import com.ampznetwork.chatmod.core.module.impl.LinkToMinecraftModule;
 import com.ampznetwork.libmod.api.model.delegate.EventDelegate;
 import lombok.SneakyThrows;
 import lombok.Value;
@@ -15,6 +16,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Stream;
 
 import static com.ampznetwork.chatmod.core.formatting.ChatMessageFormatter.*;
 import static net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.*;
@@ -85,6 +87,10 @@ public abstract class EventDispatchBase<Mod extends ChatMod> {
             event.set(text);
         if (!mod.isListenerCompatibilityMode() && event != null)
             event.cancel();
-        mod.getJoinLeaveChannels().forEach(channelName -> mod.sendEvent(channelName, player, packetType, text));
+        mod.getDefaultModule().as(LinkToMinecraftModule.class)
+                .stream()
+                .flatMap(link -> Stream.ofNullable(link.getConfig().getJoinLeave()))
+                .flatMap(eventConfig -> eventConfig.getChannels().stream())
+                .forEach(channelName -> mod.sendEvent(channelName, player, packetType, text));
     }
 }

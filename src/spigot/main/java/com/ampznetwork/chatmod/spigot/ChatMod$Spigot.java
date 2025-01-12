@@ -8,13 +8,11 @@ import com.ampznetwork.chatmod.core.ChatModCommands;
 import com.ampznetwork.chatmod.core.ModuleContainerCore;
 import com.ampznetwork.chatmod.core.formatting.ChatMessageFormatter;
 import com.ampznetwork.chatmod.core.module.impl.LinkToMinecraftModule;
-import com.ampznetwork.chatmod.discord.DiscordBot;
 import com.ampznetwork.chatmod.spigot.adp.SpigotEventDispatch;
 import com.ampznetwork.libmod.api.interop.game.IPlayerAdapter;
 import com.ampznetwork.libmod.api.util.Util;
 import com.ampznetwork.libmod.spigot.SubMod$Spigot;
 import lombok.Getter;
-import lombok.experimental.NonFinal;
 import lombok.extern.slf4j.Slf4j;
 import me.clip.placeholderapi.PlaceholderAPI;
 import net.kyori.adventure.text.Component;
@@ -26,7 +24,6 @@ import org.comroid.api.func.util.Command;
 import org.comroid.api.info.Log;
 import org.comroid.api.tree.Container;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,12 +37,10 @@ import static com.ampznetwork.chatmod.spigot.YmlConfigHelper.*;
 @Getter
 @Slf4j(topic = ChatMod.Strings.AddonName)
 public class ChatMod$Spigot extends SubMod$Spigot implements ChatMod, ModuleContainerCore {
-    @lombok.experimental.Delegate Container $delegate = new Container.Base();
-    TextResourceProvider textResourceProvider = new TextResourceProvider(this);
-    @NonFinal           ChatMessageFormatter formatter;
-    @NonFinal           Set<String>          joinLeaveChannels;
-    @NonFinal @Nullable DiscordBot           discordBot;
-    @NonFinal @Nullable boolean              hasPlaceholderApi;
+    private final @lombok.experimental.Delegate Container            $delegate            = new Container.Base();
+    private final                               TextResourceProvider textResourceProvider = new TextResourceProvider(this);
+    private                                     ChatMessageFormatter formatter;
+    private                                     boolean              hasPlaceholderApi;
 
     public ChatMod$Spigot() {
         super(Set.of(), Set.of());
