@@ -53,6 +53,7 @@ public class DiscordBot extends Container.Base implements ModuleContainerCore {
         while (true) try {
             INSTANCE = new DiscordBot(CONFIG);
             INSTANCE.getDefaultModule().getJda().awaitShutdown();
+            return;
         } catch (ReloadException r) {
             Log.at(Level.INFO, "Restarting Discord Bot");
         } catch (Throwable t) {

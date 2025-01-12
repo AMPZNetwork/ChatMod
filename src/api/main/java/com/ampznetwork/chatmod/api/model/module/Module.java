@@ -7,7 +7,7 @@ import org.comroid.api.attr.Named;
 import org.comroid.api.func.util.Streams;
 import org.comroid.api.info.Log;
 import org.comroid.api.tree.Container;
-import org.comroid.api.tree.LifeCycle;
+import org.comroid.api.tree.Reloadable;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -19,7 +19,7 @@ import java.util.logging.Level;
 /**
  * native rabbitmq, aurionchat, discord
  */
-public interface Module<P> extends Container, BidirectionalPacketStream<P>, LifeCycle, Named {
+public interface Module<P> extends Container, BidirectionalPacketStream<P>, Reloadable, Named {
     Set<ModuleFactory<?>> CUSTOM_TYPES = new HashSet<>();
 
     ModuleContainer getMod();

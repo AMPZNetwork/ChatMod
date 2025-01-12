@@ -13,6 +13,7 @@ import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.comroid.api.attr.Named;
 import org.comroid.api.tree.Container;
+import org.comroid.api.tree.Startable;
 
 import java.util.List;
 import java.util.Optional;
@@ -32,7 +33,7 @@ public interface ModuleContainer extends Container, Named {
     Stream<Module<?>> createModules();
 
     default void initModules() {
-        createModules().forEach(this::addChildren);
+        createModules().peek(Startable::start).forEach(this::addChildren);
     }
 
     default Optional<LibMod> wrapLib() {
