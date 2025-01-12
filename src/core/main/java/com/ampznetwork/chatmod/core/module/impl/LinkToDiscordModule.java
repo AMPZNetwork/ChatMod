@@ -93,10 +93,11 @@ public class LinkToDiscordModule extends IdentityModule<ChatModules.DiscordProvi
 
     @Override
     public void relayInbound(ChatMessagePacket packet) {
+        //noinspection OptionalOfNullableMisuse
         mod.getChannels()
                 .stream()
-                .flatMap(channel -> Stream.ofNullable(channel.getDiscord()))
-                .filter(channel -> packet.getChannel().equals(channel.getName()))
+                .flatMap(channel -> Stream.ofNullable(channel.getDiscord())
+                        .filter(dc -> Optional.ofNullable(dc.getName()).orElseGet(channel::getName).equals(packet.getChannel())))
                 .forEach(channel -> {
                     var message = new WebhookMessageBuilder().setUsername(DEFAULT_CONTEXT.apply(mod, packet, channel.getFormat().getMessageAuthor()))
                             .setContent(FormatPlaceholder.override(DefaultPlaceholder.MESSAGE, switch (packet.getPacketType()) {
