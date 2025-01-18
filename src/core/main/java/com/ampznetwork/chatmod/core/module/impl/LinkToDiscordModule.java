@@ -6,7 +6,6 @@ import club.minnced.discord.webhook.send.WebhookMessageBuilder;
 import com.ampznetwork.chatmod.api.model.config.ChatModules;
 import com.ampznetwork.chatmod.api.model.config.discord.DiscordChannel;
 import com.ampznetwork.chatmod.api.model.formatting.DefaultPlaceholder;
-import com.ampznetwork.chatmod.api.model.formatting.FormatPlaceholder;
 import com.ampznetwork.chatmod.api.model.module.ModuleContainer;
 import com.ampznetwork.chatmod.api.model.protocol.ChatMessage;
 import com.ampznetwork.chatmod.api.model.protocol.ChatMessagePacket;
@@ -25,15 +24,20 @@ import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.EventListener;
 import net.dv8tion.jda.api.requests.GatewayIntent;
+import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
+import net.kyori.adventure.text.flattener.ComponentFlattener;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 import org.comroid.api.func.util.Debug;
 import org.comroid.api.func.util.DelegateStream;
 import org.comroid.api.java.ResourceLoader;
+import org.comroid.api.text.Markdown;
 import org.comroid.api.tree.UncheckedCloseable;
 
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -41,13 +45,31 @@ import java.util.stream.Stream;
 
 import static com.ampznetwork.chatmod.api.model.formatting.FormatPlaceholder.*;
 import static net.kyori.adventure.text.Component.*;
-import static net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.*;
 
 @Value
 @NonFinal
 @ToString(callSuper = true)
 public class LinkToDiscordModule extends IdentityModule<ChatModules.DiscordProviderConfig> {
-    public static final String WEBHOOK_NAME = "Minecraft Chat Link";
+    public static final ComponentFlattener COMPONENT_TO_MARKDOWN = ComponentFlattener.basic().toBuilder().mapper(TextComponent.class, text -> {
+        var feats = text.decorations()
+                .entrySet()
+                .stream()
+                .filter(e -> e.getValue() == TextDecoration.State.TRUE)
+                .map(Map.Entry::getKey)
+                .map(decor -> switch (decor) {
+                    case OBFUSCATED -> Markdown.Code;
+                    case BOLD -> Markdown.Bold;
+                    case STRIKETHROUGH -> Markdown.Strikethrough;
+                    case UNDERLINED -> Markdown.Underline;
+                    case ITALIC -> Markdown.Italic;
+                })
+                .toList();
+        var str = text.content();
+        for (var feat : feats)
+            str = feat.apply(str);
+        return str;
+    }).build();
+    public static final String             WEBHOOK_NAME          = "Minecraft Chat Link";
     JDA jda;
 
     public LinkToDiscordModule(ModuleContainer mod, ChatModules.DiscordProviderConfig config, JDA jda) {
@@ -65,7 +87,8 @@ public class LinkToDiscordModule extends IdentityModule<ChatModules.DiscordProvi
         this.jda = JDABuilder.createLight(DelegateStream.readAll(tokenRes))
                 .enableIntents(GatewayIntent.getIntents(GatewayIntent.ALL_INTENTS))
                 .addEventListeners((EventListener) event -> {
-                    if (event instanceof MessageReceivedEvent mre && !mre.getAuthor().isBot() && !mre.getMessage().getContentDisplay()
+                    if (event instanceof MessageReceivedEvent mre && !mre.getAuthor().isBot() && !mre.getMessage()
+                            .getContentDisplay()
                             .isBlank()) //noinspection OptionalOfNullableMisuse
                         mod.getChannels()
                                 .stream()
@@ -109,8 +132,12 @@ public class LinkToDiscordModule extends IdentityModule<ChatModules.DiscordProvi
                 .forEach(channel -> {
                     var format = channel.getFormat();
                     var message = new WebhookMessageBuilder().setUsername(DEFAULT_CONTEXT.apply(mod, packet, format.getMessageAuthor()))
-                            .setContent(FormatPlaceholder.override(DefaultPlaceholder.MESSAGE, switch (packet.getPacketType()) {
-                                case CHAT -> Util.Kyori.sanitizePlain(plainText().serialize(packet.getMessage().getText()));
+                            .setContent(override(DefaultPlaceholder.MESSAGE, switch (packet.getPacketType()) {
+                                case CHAT -> {
+                                    var sb = new StringBuilder();
+                                    COMPONENT_TO_MARKDOWN.flatten(packet.getMessage().getText(), sb::append);
+                                    yield sb.toString();
+                                }
                                 case JOIN, LEAVE -> Util.Kyori.sanitizePlain(DEFAULT_CONTEXT.apply(mod, packet, packet.getPacketType().getFormat(format)));
                             }).apply(mod, packet, format.getMessageContent()))
                             .setAvatarUrl(DEFAULT_CONTEXT.apply(mod, packet, format.getMessageUserAvatar()))
