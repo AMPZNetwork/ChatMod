@@ -65,9 +65,10 @@ public class LinkToDiscordModule extends IdentityModule<ChatModules.DiscordProvi
         this.jda = JDABuilder.createLight(DelegateStream.readAll(tokenRes))
                 .enableIntents(GatewayIntent.getIntents(GatewayIntent.ALL_INTENTS))
                 .addEventListeners((EventListener) event -> {
-                    if (event instanceof MessageReceivedEvent mre && !mre.getAuthor().isBot()) //noinspection OptionalOfNullableMisuse
+                    if (event instanceof MessageReceivedEvent mre && !mre.getAuthor().isBot() && !mre.getMessage().getContentDisplay()
+                            .isBlank()) //noinspection OptionalOfNullableMisuse
                         mod.getChannels()
-                            .stream()
+                                .stream()
                                 .flatMap(channel -> Stream.ofNullable(channel.getDiscord())
                                         .filter(Objects::nonNull)
                                         .filter(dc -> dc.getChannelId() == mre.getChannel().getIdLong())
@@ -75,20 +76,20 @@ public class LinkToDiscordModule extends IdentityModule<ChatModules.DiscordProvi
                                                 mod.getServerName(),
                                                 Optional.ofNullable(dc.getName()).orElseGet(channel::getName),
                                                 convertMessage(mre, dc))))
-                            .forEach(this::relayOutbound);
+                                .forEach(this::relayOutbound);
                 })
                 .build();
         this.<UncheckedCloseable>addChild(jda::shutdownNow);
     }
 
     @Override
-    public int priority() {
-        return 10;
+    public boolean isAvailable() {
+        return jda.getStatus() == JDA.Status.CONNECTED;
     }
 
     @Override
-    public boolean isAvailable() {
-        return jda.getStatus() == JDA.Status.CONNECTED;
+    public int priority() {
+        return 10;
     }
 
     @Override
