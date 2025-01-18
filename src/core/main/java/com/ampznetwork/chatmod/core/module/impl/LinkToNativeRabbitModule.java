@@ -5,6 +5,7 @@ import com.ampznetwork.chatmod.api.model.module.ModuleContainer;
 import com.ampznetwork.chatmod.api.model.protocol.ChatMessagePacket;
 import com.ampznetwork.chatmod.api.model.protocol.internal.ChatMessagePacketImpl;
 import com.ampznetwork.chatmod.core.module.rabbit.IdentityRabbitMqModule;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.EqualsAndHashCode;
 import lombok.SneakyThrows;
@@ -19,7 +20,7 @@ import java.io.ByteArrayInputStream;
 @EqualsAndHashCode(callSuper = true)
 public class LinkToNativeRabbitModule extends IdentityRabbitMqModule<ChatModules.NativeProviderConfig>
         implements IIdentityModule<ChatModules.NativeProviderConfig> {
-    public static final ObjectMapper MAPPER = new ObjectMapper();
+    public static final ObjectMapper MAPPER = new ObjectMapper() {{configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);}};
 
     public LinkToNativeRabbitModule(ModuleContainer mod, ChatModules.NativeProviderConfig config) {
         super(mod, config);

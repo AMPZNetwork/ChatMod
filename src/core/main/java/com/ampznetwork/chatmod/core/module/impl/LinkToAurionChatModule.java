@@ -7,13 +7,16 @@ import com.ampznetwork.chatmod.api.model.protocol.ChatMessagePacket;
 import com.ampznetwork.chatmod.api.model.protocol.internal.PacketType;
 import com.ampznetwork.chatmod.core.module.rabbit.AbstractRabbitMqModule;
 import com.ampznetwork.libmod.api.entity.Player;
-import com.fasterxml.jackson.annotation.JsonAutoDetect;
-import com.google.gson.JsonObject;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.google.gson.annotations.Expose;
 import com.mineaurion.aurionchat.api.AurionPacket;
 import com.mineaurion.aurionchat.api.AurionPlayer;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.ToString;
 import lombok.Value;
+import lombok.experimental.NonFinal;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import org.comroid.api.ByteConverter;
@@ -21,11 +24,12 @@ import org.comroid.api.info.Log;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.logging.Level;
@@ -34,10 +38,6 @@ import java.util.logging.Level;
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
 public class LinkToAurionChatModule extends AbstractRabbitMqModule<ChatModules.AurionChatProviderConfig, LinkToAurionChatModule.PacketAdapter> {
-    {
-        AurionPacket.PARSE = this::parsePacket;
-    }
-
     public LinkToAurionChatModule(ModuleContainer mod, ChatModules.AurionChatProviderConfig config) {
         super(mod, config);
     }
@@ -52,15 +52,9 @@ public class LinkToAurionChatModule extends AbstractRabbitMqModule<ChatModules.A
 
             @Override
             public PacketAdapter fromBytes(byte[] bytes) {
-                return parsePacket(new String(bytes, StandardCharsets.UTF_8));
+                return AurionPacket.GSON.fromJson(new InputStreamReader(new ByteArrayInputStream(bytes)), PacketAdapter.class).setMod(mod);
             }
         };
-    }
-
-    public PacketAdapter parsePacket(final @NotNull String str) {
-        var json = AurionPacket.GSON.fromJson(str, JsonObject.class);
-        if (json.has("route")) return AurionPacket.GSON.fromJson(str, PacketAdapter.class);
-        return new PacketAdapter(AurionPacket.GSON.fromJson(str, AurionPacket.class), new ArrayList<>());
     }
 
     @Override
@@ -77,41 +71,49 @@ public class LinkToAurionChatModule extends AbstractRabbitMqModule<ChatModules.A
             //todo: lookup linked user
             sender = Player.builder().id(new UUID(0, 0)).name(packet.getMessage().getSenderName()).build();
         }
-        var player = new AurionPlayer(sender.getId(), sender.getName(), null, null);
-        return new PacketAdapter(AurionPacket.Type.CHAT,
+        return new PacketAdapter(packet.getPacketType(),
                 packet.getSource(),
-                player,
+                packet.getRoute(),
+                new AurionPlayer(sender.getId(), sender.getName(), null, null),
                 packet.getChannel(),
                 mod.getPlayerAdapter().getPlayer(sender.getId()).map(Player::getName).orElseGet(packet.getMessage()::getSenderName),
-                GsonComponentSerializer.gson().serialize(packet.getMessage().getFullText()),
-                packet.getRoute());
+                GsonComponentSerializer.gson().serialize(packet.getMessage().getFullText())).setMod(mod);
     }
 
     @Value
-    @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.NONE,
-                    setterVisibility = JsonAutoDetect.Visibility.NONE,
-                    getterVisibility = JsonAutoDetect.Visibility.NONE,
-                    isGetterVisibility = JsonAutoDetect.Visibility.NONE)
-    public class PacketAdapter extends AurionPacket implements ChatMessagePacket {
-        public PacketAdapter(AurionPacket packet, List<String> route) {
-            this(packet.getType(), packet.getSource(), packet.getPlayer(), packet.getChannel(), packet.getDisplayName(), packet.getTellRawData(), route);
+    public static class PacketAdapter extends AurionPacket implements ChatMessagePacket {
+        @Expose                                                                               PacketType      packetType;
+        @Getter(onMethod_ = @__(@JsonIgnore)) @Setter(onMethod_ = @__(@JsonIgnore)) @NonFinal ModuleContainer mod;
+
+        public PacketAdapter(
+                Type type, String source, List<String> route, @Nullable AurionPlayer player, @Nullable String channel,
+                @Nullable String displayName, @NotNull String tellRawData
+        ) {
+            this(type, PacketType.of(type), source, route, player, channel, displayName, tellRawData);
         }
 
         public PacketAdapter(
-                Type type, String source, @Nullable AurionPlayer player, @Nullable String channel, @Nullable String displayName, @NotNull String tellRawData,
-                List<String> route
+                PacketType packetType, String source, List<String> route, @Nullable AurionPlayer player, @Nullable String channel,
+                @Nullable String displayName, @NotNull String tellRawData
         ) {
-            super(type, source, route, player, channel, displayName, tellRawData);
+            this(packetType.getAurionPacketType(), packetType, source, route, player, channel, displayName, tellRawData);
+        }
+
+        public PacketAdapter(
+                Type type, PacketType packetType, String source, List<String> route, @Nullable AurionPlayer player, @Nullable String channel,
+                @Nullable String displayName, @NotNull String tellRawData
+        ) {
+            super(type == null ? AurionPacket.Type.CHAT : type, source, route == null ? new ArrayList<>() : route, player, channel, displayName, tellRawData);
+            this.packetType = packetType;
         }
 
         @Override
-        public String getChannel() {
-            return Objects.requireNonNullElse(super.getChannel(), "global");
+        public Type getType() {
+            return super.getType();
         }
 
-        @Override
         public PacketType getPacketType() {
-            return PacketType.CHAT;
+            return packetType == null ? PacketType.CHAT : packetType;
         }
 
         @Override
