@@ -19,13 +19,21 @@ public class LinkToMinecraftModule extends IdentityModule<ChatModules.MinecraftP
     }
 
     @Override
+    public boolean isAvailable() {
+        return mod.wrapLib().isPresent();
+    }
+
+    @Override
     public int priority() {
         return -999;
     }
 
     @Override
-    public boolean isAvailable() {
-        return mod.wrapLib().isPresent();
+    public void broadcastInbound(ChatMessagePacket packet) {
+        if (!mod.isListenerCompatibilityMode())
+            // relay packet to self because without listener compat mode, spigot swallows messages in favor of better markdown and hyperlink support
+            relayInbound(packet);
+        super.broadcastInbound(packet);
     }
 
     @Override

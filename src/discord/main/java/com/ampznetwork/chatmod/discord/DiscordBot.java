@@ -83,6 +83,11 @@ public class DiscordBot extends Container.Base implements ModuleContainerCore {
     }
 
     @Override
+    public boolean isListenerCompatibilityMode() {
+        return false;
+    }
+
+    @Override
     public String getServerName() {
         return SOURCE.toUpperCase();
     }

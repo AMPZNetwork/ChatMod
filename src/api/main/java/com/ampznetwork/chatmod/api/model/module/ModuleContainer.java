@@ -27,6 +27,8 @@ public interface ModuleContainer extends Container, Named {
 
     List<Channel> getChannels();
 
+    boolean isListenerCompatibilityMode();
+
     String getServerName();
 
     Module<?> getDefaultModule();
@@ -53,10 +55,7 @@ public interface ModuleContainer extends Container, Named {
         module.broadcastInbound(new ChatMessagePacketImpl(type,
                 getServerName(),
                 channelName,
-                new ChatMessage(player,
-                        getPlayerAdapter().getDisplayName(player.getId()),
-                        PlainTextComponentSerializer.plainText().serialize(text),
-                        text),
+                new ChatMessage(player, getPlayerAdapter().getDisplayName(player.getId()), PlainTextComponentSerializer.plainText().serialize(text), text),
                 new ArrayList<>()));
     }
 }
