@@ -6,6 +6,7 @@ import com.ampznetwork.chatmod.api.model.config.discord.StandaloneDiscordBot;
 import com.ampznetwork.chatmod.core.ModuleContainerCore;
 import com.ampznetwork.chatmod.core.module.impl.LinkToDiscordModule;
 import com.ampznetwork.libmod.api.interop.game.PlayerIdentifierAdapter;
+import com.ampznetwork.libmod.api.model.info.ServerInfoProvider;
 import com.ampznetwork.libmod.core.adapter.HeadlessPlayerAdapter;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParser;
@@ -73,6 +74,11 @@ public class DiscordBot extends Container.Base implements ModuleContainerCore {
     }
 
     @Override
+    public ServerInfoProvider getLib() {
+        return SOURCE::toUpperCase;
+    }
+
+    @Override
     public ChatModules getChatModules() {
         return config.getModules();
     }
@@ -85,11 +91,6 @@ public class DiscordBot extends Container.Base implements ModuleContainerCore {
     @Override
     public boolean isListenerCompatibilityMode() {
         return false;
-    }
-
-    @Override
-    public String getServerName() {
-        return SOURCE.toUpperCase();
     }
 
     @Override

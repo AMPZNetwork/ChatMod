@@ -9,6 +9,7 @@ import com.ampznetwork.libmod.api.LibMod;
 import com.ampznetwork.libmod.api.SubMod;
 import com.ampznetwork.libmod.api.entity.Player;
 import com.ampznetwork.libmod.api.interop.game.PlayerIdentifierAdapter;
+import com.ampznetwork.libmod.api.model.info.ServerInfoProvider;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.comroid.api.attr.Named;
@@ -21,6 +22,8 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 public interface ModuleContainer extends Container, Named {
+    ServerInfoProvider getLib();
+
     PlayerIdentifierAdapter getPlayerAdapter();
 
     ChatModules getChatModules();
@@ -29,7 +32,10 @@ public interface ModuleContainer extends Container, Named {
 
     boolean isListenerCompatibilityMode();
 
-    String getServerName();
+    @Deprecated
+    default String getServerName() {
+        return getLib().getServerName();
+    }
 
     Module<?> getDefaultModule();
 

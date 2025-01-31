@@ -10,7 +10,6 @@ import com.ampznetwork.chatmod.core.formatting.ChatMessageFormatter;
 import com.ampznetwork.chatmod.core.module.impl.LinkToMinecraftModule;
 import com.ampznetwork.chatmod.spigot.adp.SpigotEventDispatch;
 import com.ampznetwork.libmod.api.interop.game.IPlayerAdapter;
-import com.ampznetwork.libmod.api.util.Util;
 import com.ampznetwork.libmod.spigot.SubMod$Spigot;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -72,11 +71,6 @@ public class ChatMod$Spigot extends SubMod$Spigot implements ChatMod, ModuleCont
         condElement(DiscordProviderConfig::builder, modules, "discord", YmlConfigHelper::discord, caps::discord);
 
         return caps.build();
-    }
-
-    @Override
-    public String getServerName() {
-        return Util.Kyori.sanitize(getConfig().getString("server.name"));
     }
 
     @Override
