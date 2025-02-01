@@ -28,7 +28,6 @@ import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.flattener.ComponentFlattener;
-import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.comroid.api.func.util.Debug;
@@ -36,6 +35,7 @@ import org.comroid.api.func.util.DelegateStream;
 import org.comroid.api.java.ResourceLoader;
 import org.comroid.api.text.Markdown;
 import org.comroid.api.tree.UncheckedCloseable;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
 import java.util.Objects;
@@ -45,6 +45,7 @@ import java.util.stream.Stream;
 
 import static com.ampznetwork.chatmod.api.model.formatting.FormatPlaceholder.*;
 import static net.kyori.adventure.text.Component.*;
+import static net.kyori.adventure.text.format.NamedTextColor.*;
 
 @Value
 @NonFinal
@@ -166,12 +167,22 @@ public class LinkToDiscordModule extends IdentityModule<ChatModules.DiscordProvi
         var discord   = text("DISCORD ", TextColor.color(86, 98, 246));
         var inviteUrl = channel.getInviteUrl();
         if (inviteUrl != null) discord = discord.clickEvent(ClickEvent.openUrl(inviteUrl)).hoverEvent(HoverEvent.showText(text("Click for Invite link...")));
-        var str = event.getMessage().getContentDisplay();
+        var str  = event.getMessage().getContentDisplay();
+        var text = getTextComponent(event, str);
         var component = text().append(discord)
                 .append(text(event.getAuthor().getEffectiveName().trim(),
-                        Optional.ofNullable(event.getMember()).map(Member::getColorRaw).map(TextColor::color).orElse(NamedTextColor.WHITE)))
-                .append(text(": " + str, NamedTextColor.WHITE).clickEvent(ClickEvent.openUrl(event.getJumpUrl()))
-                        .hoverEvent(HoverEvent.showText(text("Jump to Message..."))));
+                        Optional.ofNullable(event.getMember()).map(Member::getColorRaw).map(TextColor::color).orElse(WHITE)))
+                .append(text);
         return new ChatMessage(null, event.getAuthor().getName(), str, component.build());
+    }
+
+    private static @NotNull TextComponent getTextComponent(MessageReceivedEvent event, String str) {
+        var text = text(": " + str, WHITE).clickEvent(ClickEvent.openUrl(event.getJumpUrl())).hoverEvent(HoverEvent.showText(text("Jump to Message...")));
+        for (var attachment : event.getMessage().getAttachments())
+            text = text.append(text(" [", DARK_GRAY))
+                    .append(text(attachment.getFileName(), GRAY).hoverEvent(HoverEvent.showText(text("Open in Browser...")))
+                            .clickEvent(ClickEvent.openUrl(attachment.getUrl())))
+                    .append(text("]", DARK_GRAY));
+        return text;
     }
 }
