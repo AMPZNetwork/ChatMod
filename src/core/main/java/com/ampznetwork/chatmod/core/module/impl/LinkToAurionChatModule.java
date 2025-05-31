@@ -120,6 +120,7 @@ public class LinkToAurionChatModule extends AbstractRabbitMqModule<ChatModules.A
                 component = (TextComponent) getComponent();
             else {
                 var txt     = legacySection().serialize(getComponent());
+                System.out.println("txt = " + txt);
                 var matcher = Pattern.compile(config.getContentPattern()).matcher(txt);
                 component = legacySection().deserialize(matcher.find() ? matcher.group(1) : txt);
             }
