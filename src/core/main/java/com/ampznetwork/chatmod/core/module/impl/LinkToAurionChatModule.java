@@ -33,6 +33,9 @@ import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.logging.Level;
+import java.util.regex.Pattern;
+
+import static net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.*;
 
 @Value
 @ToString(callSuper = true)
@@ -71,40 +74,29 @@ public class LinkToAurionChatModule extends AbstractRabbitMqModule<ChatModules.A
             //todo: lookup linked user
             sender = Player.builder().id(new UUID(0, 0)).name(packet.getMessage().getSenderName()).build();
         }
-        return new PacketAdapter(packet.getPacketType(),
+        return new PacketAdapter(packet.getPacketType().getAurionPacketType(), packet.getPacketType(),
                 packet.getSource(),
                 packet.getRoute(),
                 new AurionPlayer(sender.getId(), sender.getName(), null, null),
                 packet.getChannel(),
                 mod.getPlayerAdapter().getPlayer(sender.getId()).map(Player::getName).orElseGet(packet.getMessage()::getSenderName),
-                GsonComponentSerializer.gson().serialize(packet.getMessage().getFullText())).setMod(mod);
+                GsonComponentSerializer.gson().serialize(packet.getMessage().getFullText()), config).setMod(mod);
     }
 
     @Value
     public static class PacketAdapter extends AurionPacket implements ChatMessagePacket {
-        @Expose                                                                               PacketType      packetType;
+        @Expose PacketType packetType;
+        ChatModules.AurionChatProviderConfig config;
         @Getter(onMethod_ = @__(@JsonIgnore)) @Setter(onMethod_ = @__(@JsonIgnore)) @NonFinal ModuleContainer mod;
 
         public PacketAdapter(
-                Type type, String source, List<String> route, @Nullable AurionPlayer player, @Nullable String channel,
-                @Nullable String displayName, @NotNull String tellRawData
-        ) {
-            this(type, PacketType.of(type), source, route, player, channel, displayName, tellRawData);
-        }
-
-        public PacketAdapter(
-                PacketType packetType, String source, List<String> route, @Nullable AurionPlayer player, @Nullable String channel,
-                @Nullable String displayName, @NotNull String tellRawData
-        ) {
-            this(packetType.getAurionPacketType(), packetType, source, route, player, channel, displayName, tellRawData);
-        }
-
-        public PacketAdapter(
                 Type type, PacketType packetType, String source, List<String> route, @Nullable AurionPlayer player, @Nullable String channel,
-                @Nullable String displayName, @NotNull String tellRawData
+                @Nullable String displayName, @NotNull String tellRawData,
+                ChatModules.AurionChatProviderConfig config
         ) {
             super(type == null ? AurionPacket.Type.CHAT : type, source, route == null ? new ArrayList<>() : route, player, channel, displayName, tellRawData);
             this.packetType = packetType;
+            this.config = config;
         }
 
         @Override
@@ -123,7 +115,15 @@ public class LinkToAurionChatModule extends AbstractRabbitMqModule<ChatModules.A
                     .flatMap(mod.getPlayerAdapter()::getPlayer)
                     .or(() -> optional.map(AurionPlayer::getName).flatMap(mod.getPlayerAdapter()::getPlayer))
                     .orElseThrow(() -> new NoSuchElementException("Player not found"));
-            return new ChatMessage(sender, mod.getPlayerAdapter().getDisplayName(sender.getId()), getDisplayString(), (TextComponent) getComponent());
+            TextComponent component;
+            if (config.getContentPattern() == null)
+                component = (TextComponent) getComponent();
+            else {
+                var txt     = legacySection().serialize(getComponent());
+                var matcher = Pattern.compile(config.getContentPattern()).matcher(txt);
+                component = legacySection().deserialize(matcher.find() ? matcher.group(1) : txt);
+            }
+            return new ChatMessage(sender, mod.getPlayerAdapter().getDisplayName(sender.getId()), getDisplayString(), component);
         }
     }
 }

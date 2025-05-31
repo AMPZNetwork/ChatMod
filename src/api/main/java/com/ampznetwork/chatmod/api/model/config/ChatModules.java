@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 import lombok.Singular;
 import lombok.experimental.SuperBuilder;
 import org.comroid.api.attr.Named;
+import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Range;
@@ -41,7 +42,7 @@ public final class ChatModules {
     @SuperBuilder
     @NoArgsConstructor(force = true, access = AccessLevel.PRIVATE)
     public static abstract class ProviderConfig extends NamedBaseConfig {
-        @Range(from = -1, to = Integer.MAX_VALUE) protected @Default int    autoReconnectDelay = 5;
+        @Range(from = -1, to = Integer.MAX_VALUE) protected @Default int autoReconnectDelay = 5;
 
         public abstract String providerType();
     }
@@ -110,7 +111,8 @@ public final class ChatModules {
     @SuperBuilder
     @NoArgsConstructor(force = true, access = AccessLevel.PRIVATE)
     public static class AurionChatProviderConfig extends RabbitMqProviderConfig {
-        protected @NotNull @Default String exchange = "aurion.chat";
+        protected @NotNull @Default                      String exchange       = "aurion.chat";
+        protected @Nullable @Default @Language("RegExp") String contentPattern = "\\[[\\w&§]+]\\s[\\w&§]+\\s[\\w-_&§]+:\\s(.*)";
 
         @Override
         public final String providerType() {
