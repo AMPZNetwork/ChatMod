@@ -18,6 +18,6 @@ public class ModuleProvider<Mod extends Module<?>, Cfg extends ChatModules.Provi
 
     public @Nullable Mod create(ModuleContainer mod, ChatModules caps) {
         var cfg = config.apply(caps);
-        return cfg == null ? null : ctor.apply(mod, cfg);
+        return cfg == null || !cfg.isEnable() ? null : ctor.apply(mod, cfg);
     }
 }

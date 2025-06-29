@@ -21,7 +21,8 @@ public interface ModuleContainerCore extends ModuleContainer {
                         new ModuleProvider<>(ChatModules::getMinecraft, LinkToMinecraftModule::new),
                         new ModuleProvider<>(ChatModules::getRabbitmq, LinkToNativeRabbitModule::new),
                         new ModuleProvider<>(ChatModules::getAurionchat, LinkToAurionChatModule::new),
-                        new ModuleProvider<>(ChatModules::getDiscord, LinkToDiscordModule::new)).map(provider -> provider.toFactory(caps)),
+                                new ModuleProvider<>(ChatModules::getDiscord, LinkToDiscordModule::new))
+                        .map(provider -> provider.toFactory(caps)),
                 Module.CUSTOM_TYPES.stream()).flatMap(moduleFactory -> {
             Module<?> module = moduleFactory.create(this);
             if (module == null) return Stream.empty();

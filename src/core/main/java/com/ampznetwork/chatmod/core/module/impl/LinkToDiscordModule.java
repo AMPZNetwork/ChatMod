@@ -51,25 +51,28 @@ import static net.kyori.adventure.text.format.NamedTextColor.*;
 @NonFinal
 @ToString(callSuper = true)
 public class LinkToDiscordModule extends IdentityModule<ChatModules.DiscordProviderConfig> {
-    public static final ComponentFlattener COMPONENT_TO_MARKDOWN = ComponentFlattener.basic().toBuilder().mapper(TextComponent.class, text -> {
-        var feats = text.decorations()
-                .entrySet()
-                .stream()
-                .filter(e -> e.getValue() == TextDecoration.State.TRUE)
-                .map(Map.Entry::getKey)
-                .map(decor -> switch (decor) {
-                    case OBFUSCATED -> Markdown.Code;
-                    case BOLD -> Markdown.Bold;
-                    case STRIKETHROUGH -> Markdown.Strikethrough;
-                    case UNDERLINED -> Markdown.Underline;
-                    case ITALIC -> Markdown.Italic;
-                })
-                .toList();
-        var str = text.content();
-        for (var feat : feats)
-            str = feat.apply(str);
-        return str;
-    }).build();
+    public static final ComponentFlattener COMPONENT_TO_MARKDOWN = ComponentFlattener.basic()
+            .toBuilder()
+            .mapper(TextComponent.class, text -> {
+                var feats = text.decorations()
+                        .entrySet()
+                        .stream()
+                        .filter(e -> e.getValue() == TextDecoration.State.TRUE)
+                        .map(Map.Entry::getKey)
+                        .map(decor -> switch (decor) {
+                            case OBFUSCATED -> Markdown.Code;
+                            case BOLD -> Markdown.Bold;
+                            case STRIKETHROUGH -> Markdown.Strikethrough;
+                            case UNDERLINED -> Markdown.Underline;
+                            case ITALIC -> Markdown.Italic;
+                        })
+                        .toList();
+                var str = text.content();
+                for (var feat : feats)
+                    str = feat.apply(str);
+                return str;
+            })
+            .build();
     public static final String             WEBHOOK_NAME          = "Minecraft Chat Link";
     JDA jda;
 
@@ -129,22 +132,29 @@ public class LinkToDiscordModule extends IdentityModule<ChatModules.DiscordProvi
         mod.getChannels()
                 .stream()
                 .flatMap(channel -> Stream.ofNullable(channel.getDiscord())
-                        .filter(dc -> Optional.ofNullable(dc.getName()).orElseGet(channel::getName).equals(packet.getChannel())))
+                        .filter(dc -> Optional.ofNullable(dc.getName())
+                                .orElseGet(channel::getName)
+                                .equals(packet.getChannel())))
                 .forEach(channel -> {
                     var format = channel.getFormat();
-                    var message = new WebhookMessageBuilder().setUsername(DEFAULT_CONTEXT.apply(mod, packet, format.getMessageAuthor()))
+                    var message = new WebhookMessageBuilder().setUsername(DEFAULT_CONTEXT.apply(mod,
+                                    packet,
+                                    format.getMessageAuthor()))
                             .setContent(override(DefaultPlaceholder.MESSAGE, switch (packet.getPacketType()) {
                                 case CHAT -> {
                                     var sb = new StringBuilder();
                                     COMPONENT_TO_MARKDOWN.flatten(packet.getMessage().getText(), sb::append);
                                     yield sb.toString();
                                 }
-                                case JOIN, LEAVE -> Util.Kyori.sanitizePlain(DEFAULT_CONTEXT.apply(mod, packet, packet.getPacketType().getFormat(format)));
+                                case JOIN, LEAVE -> Util.Kyori.sanitizePlain(DEFAULT_CONTEXT.apply(mod,
+                                        packet,
+                                        packet.getPacketType().getFormat(format)));
                             }).apply(mod, packet, format.getMessageContent()))
                             .setAvatarUrl(DEFAULT_CONTEXT.apply(mod, packet, format.getMessageUserAvatar()))
                             .build();
 
-                    obtainWebhook(channel, jda.getTextChannelById(channel.getChannelId())).thenCompose(webhook -> webhook.send(message))
+                    obtainWebhook(channel,
+                            jda.getTextChannelById(channel.getChannelId())).thenCompose(webhook -> webhook.send(message))
                             .exceptionally(Debug.exceptionLogger("Could not send Message using Webhook"));
                 });
     }
@@ -166,22 +176,27 @@ public class LinkToDiscordModule extends IdentityModule<ChatModules.DiscordProvi
     private ChatMessage convertMessage(MessageReceivedEvent event, DiscordChannel channel) {
         var discord   = text("DISCORD ", TextColor.color(86, 98, 246));
         var inviteUrl = channel.getInviteUrl();
-        if (inviteUrl != null) discord = discord.clickEvent(ClickEvent.openUrl(inviteUrl)).hoverEvent(HoverEvent.showText(text("Click for Invite link...")));
+        if (inviteUrl != null) discord = discord.clickEvent(ClickEvent.openUrl(inviteUrl))
+                .hoverEvent(HoverEvent.showText(text("Click for Invite link...")));
         var str  = event.getMessage().getContentDisplay();
         var text = getTextComponent(event, str);
         var component = text().append(discord)
                 .append(text(event.getAuthor().getEffectiveName().trim(),
-                        Optional.ofNullable(event.getMember()).map(Member::getColorRaw).map(TextColor::color).orElse(WHITE)))
+                        Optional.ofNullable(event.getMember())
+                                .map(Member::getColorRaw)
+                                .map(TextColor::color)
+                                .orElse(WHITE)))
                 .append(text);
         return new ChatMessage(null, event.getAuthor().getName(), str, component.build());
     }
 
     private static @NotNull TextComponent getTextComponent(MessageReceivedEvent event, String str) {
-        var text = text(": " + str, WHITE).clickEvent(ClickEvent.openUrl(event.getJumpUrl())).hoverEvent(HoverEvent.showText(text("Jump to Message...")));
+        var text = text(": " + str, WHITE).clickEvent(ClickEvent.openUrl(event.getJumpUrl()))
+                .hoverEvent(HoverEvent.showText(text("Jump to Message...")));
         for (var attachment : event.getMessage().getAttachments())
             text = text.append(text(" [", DARK_GRAY))
-                    .append(text(attachment.getFileName(), GRAY).hoverEvent(HoverEvent.showText(text("Open in Browser...")))
-                            .clickEvent(ClickEvent.openUrl(attachment.getUrl())))
+                    .append(text(attachment.getFileName(), GRAY).hoverEvent(HoverEvent.showText(text(
+                            "Open in Browser..."))).clickEvent(ClickEvent.openUrl(attachment.getUrl())))
                     .append(text("]", DARK_GRAY));
         return text;
     }
