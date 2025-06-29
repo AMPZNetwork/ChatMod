@@ -88,24 +88,28 @@ public class LinkToDiscordModule extends IdentityModule<ChatModules.DiscordProvi
 
         var tokenRes = ResourceLoader.fromResourceString(config.getToken());
         if (tokenRes == null) throw new IllegalArgumentException("Discord token not found");
-        this.jda = JDABuilder.createLight(DelegateStream.readAll(tokenRes))
-                .enableIntents(GatewayIntent.getIntents(GatewayIntent.ALL_INTENTS))
-                .addEventListeners((EventListener) event -> {
-                    if (event instanceof MessageReceivedEvent mre && !mre.getAuthor().isBot() && !mre.getMessage()
-                            .getContentDisplay()
-                            .isBlank()) //noinspection OptionalOfNullableMisuse
-                        mod.getChannels()
-                                .stream()
-                                .flatMap(channel -> Stream.ofNullable(channel.getDiscord())
-                                        .filter(Objects::nonNull)
-                                        .filter(dc -> dc.getChannelId() == mre.getChannel().getIdLong())
-                                        .map(dc -> new ChatMessagePacketImpl(PacketType.CHAT,
-                                                mod.getServerName(),
-                                                Optional.ofNullable(dc.getName()).orElseGet(channel::getName),
-                                                convertMessage(mre, dc))))
-                                .forEach(this::relayOutbound);
-                })
-                .build();
+        this.jda = !isEnabled()
+                   ? null
+                   : JDABuilder.createLight(DelegateStream.readAll(tokenRes))
+                           .enableIntents(GatewayIntent.getIntents(GatewayIntent.ALL_INTENTS))
+                           .addEventListeners((EventListener) event -> {
+                               if (event instanceof MessageReceivedEvent mre && !mre.getAuthor()
+                                       .isBot() && !mre.getMessage()
+                                       .getContentDisplay()
+                                       .isBlank()) //noinspection OptionalOfNullableMisuse
+                                   mod.getChannels()
+                                           .stream()
+                                           .flatMap(channel -> Stream.ofNullable(channel.getDiscord())
+                                                   .filter(Objects::nonNull)
+                                                   .filter(dc -> dc.getChannelId() == mre.getChannel().getIdLong())
+                                                   .map(dc -> new ChatMessagePacketImpl(PacketType.CHAT,
+                                                           mod.getServerName(),
+                                                           Optional.ofNullable(dc.getName())
+                                                                   .orElseGet(channel::getName),
+                                                           convertMessage(mre, dc))))
+                                           .forEach(this::relayOutbound);
+                           })
+                           .build();
         this.<UncheckedCloseable>addChild(jda::shutdownNow);
     }
 
