@@ -17,8 +17,8 @@ dependencies {
     api 'javax.persistence:javax.persistence-api:2.2'
 
     // kyori
-    api 'net.kyori:adventure-text-serializer-json:4.+'
-    api 'net.kyori:adventure-text-serializer-gson:4.+'
+    api 'net.kyori:adventure-text-serializer-json:4.24.0'
+    api 'net.kyori:adventure-text-serializer-gson:4.24.0'
 
     // utility
     compileOnly 'org.projectlombok:lombok:+'

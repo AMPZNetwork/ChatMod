@@ -11,10 +11,7 @@ softdepend:
   - BanMod
   - PlaceholderAPI
 libraries:
-  - 'com.google.code.gson:gson:2.11.0'
-  - 'com.fasterxml.jackson.core:jackson-databind:2.18.2'
-  - 'net.kyori:adventure-text-serializer-json:4.17.0'
-  - 'net.kyori:adventure-text-serializer-gson:4.17.0'
+  # discord
   - 'net.dv8tion:JDA:5.2.2'
   - 'club.minnced:discord-webhooks:0.8.4'
   - 'com.kcthota:emoji4j:6.0'

@@ -8,11 +8,11 @@ dependencies {
     implementation 'club.minnced:discord-webhooks:+'
 
     // serialization
-    implementation 'net.kyori:adventure-api:4.+'
-    implementation 'net.kyori:adventure-text-serializer-gson:4.+'
-    implementation 'net.kyori:adventure-text-serializer-plain:4.+'
+    implementation 'net.kyori:adventure-api:4.24.0'
+    implementation 'net.kyori:adventure-text-serializer-gson:4.24.0'
+    implementation 'net.kyori:adventure-text-serializer-plain:4.24.0'
     implementation 'com.google.code.gson:gson:2.11.0'
 
     // tests
-    testImplementation 'net.kyori:adventure-text-serializer-gson:4.14.0'
+    testImplementation 'net.kyori:adventure-text-serializer-gson:4.24.0'
 }
