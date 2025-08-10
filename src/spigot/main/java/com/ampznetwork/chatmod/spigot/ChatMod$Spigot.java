@@ -41,10 +41,10 @@ import static com.ampznetwork.chatmod.spigot.YmlConfigHelper.*;
 @Slf4j(topic = ChatMod.Strings.AddonName)
 public class ChatMod$Spigot extends SubMod$Spigot implements ChatMod, ModuleContainerCore {
     private final @lombok.experimental.Delegate Container            $delegate            = new Container.Base();
-    private final                               TextResourceProvider textResourceProvider = new TextResourceProvider(this);
+    private final TextResourceProvider textResourceProvider = new TextResourceProvider(
+            this);
     private                                     ChatMessageFormatter formatter;
-    private                                     boolean              hasPlaceholderApi;
-    private List<Channel> channels;
+    private       List<Channel>        channels;
 
     public ChatMod$Spigot() {
         super(Set.of(), Set.of());
@@ -65,9 +65,17 @@ public class ChatMod$Spigot extends SubMod$Spigot implements ChatMod, ModuleCont
 
         var modules = config.getConfigurationSection("modules");
         condElement(LogProviderConfig::builder, modules, "log", (bld, cfg) -> {}, caps::log);
-        condElement(MinecraftProviderConfig::builder, modules, "minecraft", YmlConfigHelper::minecraft, caps::minecraft);
+        condElement(MinecraftProviderConfig::builder,
+                modules,
+                "minecraft",
+                YmlConfigHelper::minecraft,
+                caps::minecraft);
         condElement(NativeProviderConfig::builder, modules, "rabbitmq", YmlConfigHelper::rabbitmq, caps::rabbitmq);
-        condElement(AurionChatProviderConfig::builder, modules, "aurionchat", YmlConfigHelper::rabbitmq, caps::aurionchat);
+        condElement(AurionChatProviderConfig::builder,
+                modules,
+                "aurionchat",
+                YmlConfigHelper::rabbitmq,
+                caps::aurionchat);
         condElement(DiscordProviderConfig::builder, modules, "discord", YmlConfigHelper::discord, caps::discord);
 
         return caps.build();
@@ -101,7 +109,9 @@ public class ChatMod$Spigot extends SubMod$Spigot implements ChatMod, ModuleCont
     @Override
     public String applyPlaceholderApi(UUID playerId, String input) {
         var player = getServer().getOfflinePlayer(playerId);
-        return hasPlaceholderApi ? PlaceholderAPI.setPlaceholders(player, input) : ChatMod.super.applyPlaceholderApi(playerId, input);
+        return lib.isPlaceholderApiPresent()
+               ? PlaceholderAPI.setPlaceholders(player, input)
+               : ChatMod.super.applyPlaceholderApi(playerId, input);
     }
 
     @Override
@@ -115,8 +125,6 @@ public class ChatMod$Spigot extends SubMod$Spigot implements ChatMod, ModuleCont
         cmdr.register(this);
 
         super.onLoad();
-
-        hasPlaceholderApi = getServer().getPluginManager().getPlugin("PlaceholderAPI") != null;
     }
 
     @Override
@@ -130,7 +138,8 @@ public class ChatMod$Spigot extends SubMod$Spigot implements ChatMod, ModuleCont
     public @NotNull TextComponent reload() {
         reloadConfig();
 
-        this.formatter = ChatMessageFormatter.of(Polyfill.<MemorySection>uncheckedCast(getConfig().get("formatting")).getValues(true));
+        this.formatter = ChatMessageFormatter.of(Polyfill.<MemorySection>uncheckedCast(getConfig().get("formatting"))
+                .getValues(true));
 
         // reload channels
         reloadChannels();
@@ -149,8 +158,12 @@ public class ChatMod$Spigot extends SubMod$Spigot implements ChatMod, ModuleCont
         if (channels != null) {
             // save user subscriptions
             channels.forEach(channel -> {
-                channel.getPlayerIDs().forEach(id -> players.computeIfAbsent(channel.getName(), ($0) -> new HashMap<>()).computeIfAbsent(id, $1 -> false));
-                channel.getSpyIDs().forEach(id -> players.computeIfAbsent(channel.getName(), ($0) -> new HashMap<>()).computeIfAbsent(id, $1 -> true));
+                channel.getPlayerIDs()
+                        .forEach(id -> players.computeIfAbsent(channel.getName(), ($0) -> new HashMap<>())
+                                .computeIfAbsent(id, $1 -> false));
+                channel.getSpyIDs()
+                        .forEach(id -> players.computeIfAbsent(channel.getName(), ($0) -> new HashMap<>())
+                                .computeIfAbsent(id, $1 -> true));
             });
 
             channels.clear();
@@ -184,7 +197,11 @@ public class ChatMod$Spigot extends SubMod$Spigot implements ChatMod, ModuleCont
 
         var channels = new ArrayList<Channel>();
         for (var channelName : config.getKeys(false))
-            condElement(Channel::builder, config, channelName, YmlConfigHelper::channel, it -> channels.add((Channel) it));
+            condElement(Channel::builder,
+                    config,
+                    channelName,
+                    YmlConfigHelper::channel,
+                    it -> channels.add((Channel) it));
 
         return channels;
     }
