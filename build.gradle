@@ -9,5 +9,5 @@ evaluationDependsOnChildren()
 
 subprojects { p ->
     if (!p.path.endsWith('AurionChat:api'))
-        p.dependencies.compileOnly project(':ChatMod:AurionChat:api')
+        p.dependencies.implementation project(':ChatMod:AurionChat:api')
 }
