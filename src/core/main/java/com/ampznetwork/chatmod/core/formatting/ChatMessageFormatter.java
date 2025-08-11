@@ -79,7 +79,7 @@ public class ChatMessageFormatter implements MessageFormatter {
     public static final  String                                  RESERVED_PLACEHOLDER    = "§reserved§";
     public static final  boolean                                 DEFAULT_CASE_INSENSITIVE = true;
 
-    public static ChatMessageFormatter of(Map<String, ?> config) {
+    public static ChatMessageFormatter of(ChatMod mod, Map<String, ?> config) {
         var builder = builder();
         if (config.get("scheme") instanceof String s) builder.format(s);
         if (config.get("markdown.verbatim_to_obfuscated") instanceof Boolean b) builder.verbatimToObfuscated(b);
@@ -94,6 +94,8 @@ public class ChatMessageFormatter implements MessageFormatter {
         if (config.get("regex.patterns") instanceof List<?> ls) for (var s : ls)
             builder.pattern(Pattern.compile((caseInsensitive ? "(?i)" : "") + s,
                     caseInsensitive ? Pattern.CASE_INSENSITIVE : 0));
+        if (config.get("regex.punish-by") instanceof String s && mod.sub(BanMod.class) instanceof BanMod banMod) builder.punishment(
+                Infraction.Factory.parse(banMod, s));
         return builder.build();
     }
 
@@ -136,7 +138,7 @@ public class ChatMessageFormatter implements MessageFormatter {
         var banMod = mod.sub(BanMod.class);
         if (any && punishment != null && banMod != null) banMod.getEntityAccessor(Infraction.TYPE)
                 .create()
-                .complete(builder -> punishment.apply(banMod, builder, player).reason("Bad Word Usage").build());
+                .complete(builder -> punishment.apply(builder, player).reason("Bad Word Usage").build());
 
         // parse markdown, formatting and urls
         final char[] chars = message.toCharArray();

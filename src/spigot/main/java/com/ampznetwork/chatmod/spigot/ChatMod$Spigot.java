@@ -138,8 +138,8 @@ public class ChatMod$Spigot extends SubMod$Spigot implements ChatMod, ModuleCont
     public @NotNull TextComponent reload() {
         reloadConfig();
 
-        this.formatter = ChatMessageFormatter.of(Polyfill.<MemorySection>uncheckedCast(getConfig().get("formatting"))
-                .getValues(true));
+        this.formatter = ChatMessageFormatter.of(this,
+                Polyfill.<MemorySection>uncheckedCast(getConfig().get("formatting")).getValues(true));
 
         // reload channels
         reloadChannels();
