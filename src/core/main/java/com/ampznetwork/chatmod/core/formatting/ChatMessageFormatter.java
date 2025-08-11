@@ -138,7 +138,8 @@ public class ChatMessageFormatter implements MessageFormatter {
         var banMod = mod.sub(BanMod.class);
         if (any && punishment != null && banMod != null) banMod.getEntityAccessor(Infraction.TYPE)
                 .create()
-                .complete(builder -> punishment.apply(builder, player).reason("Bad Word Usage").build());
+                .complete(builder -> punishment.apply(builder, player).reason("Bad Word Usage").build(),
+                        banMod::realize);
 
         // parse markdown, formatting and urls
         final char[] chars = message.toCharArray();
