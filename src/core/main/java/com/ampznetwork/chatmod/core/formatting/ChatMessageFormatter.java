@@ -1,5 +1,7 @@
 package com.ampznetwork.chatmod.core.formatting;
 
+import com.ampznetwork.banmod.api.BanMod;
+import com.ampznetwork.banmod.api.entity.Infraction;
 import com.ampznetwork.chatmod.api.ChatMod;
 import com.ampznetwork.chatmod.api.formatting.MessageFormatter;
 import com.ampznetwork.chatmod.api.model.protocol.ChatMessage;
@@ -37,8 +39,8 @@ import static net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializ
 @Value
 @Builder
 public class ChatMessageFormatter implements MessageFormatter {
-    private static final Map<@NotNull Character, NamedTextColor> McColorCodes            = Map.ofEntries(
-            Map.entry('0', NamedTextColor.BLACK),
+    private static final Map<@NotNull Character, NamedTextColor> McColorCodes            = Map.ofEntries(Map.entry('0',
+                    NamedTextColor.BLACK),
             Map.entry('1', NamedTextColor.DARK_BLUE),
             Map.entry('2', NamedTextColor.DARK_GREEN),
             Map.entry('3', NamedTextColor.DARK_AQUA),
@@ -54,20 +56,27 @@ public class ChatMessageFormatter implements MessageFormatter {
             Map.entry('d', NamedTextColor.LIGHT_PURPLE),
             Map.entry('e', NamedTextColor.YELLOW),
             Map.entry('f', NamedTextColor.WHITE));
+    private static final Map<@NotNull Character, TextDecoration> McFormatCodes           = Map.of('k',
+            TextDecoration.OBFUSCATED,
+            'l',
+            TextDecoration.BOLD,
+            'm',
+            TextDecoration.STRIKETHROUGH,
+            'n',
+            TextDecoration.UNDERLINED,
+            'o',
+            TextDecoration.ITALIC);
+    private static final Map<@NotNull String, MarkdownFeature>   MdLetterCodes           = Map.of("_",
+            MarkdownFeature.ITALIC,
+            "*",
+            MarkdownFeature.BOLD,
+            "~",
+            MarkdownFeature.STRIKETHROUGH,
+            "__",
+            MarkdownFeature.UNDERLINE);
     public static final  String                                  MESSAGE_PLACEHOLDER     = "%message%";
     public static final  String                                  PLAYER_NAME_PLACEHOLDER = "%player_name%";
     public static final  String                                  RESERVED_PLACEHOLDER    = "§reserved§";
-    private static final Map<@NotNull Character, TextDecoration> McFormatCodes            = Map.of(
-            'k', TextDecoration.OBFUSCATED,
-            'l', TextDecoration.BOLD,
-            'm', TextDecoration.STRIKETHROUGH,
-            'n', TextDecoration.UNDERLINED,
-            'o', TextDecoration.ITALIC);
-    private static final Map<@NotNull String, MarkdownFeature>   MdLetterCodes            = Map.of(
-            "_", MarkdownFeature.ITALIC,
-            "*", MarkdownFeature.BOLD,
-            "~", MarkdownFeature.STRIKETHROUGH,
-            "__", MarkdownFeature.UNDERLINE);
     public static final  boolean                                 DEFAULT_CASE_INSENSITIVE = true;
 
     public static ChatMessageFormatter of(Map<String, ?> config) {
@@ -82,20 +91,22 @@ public class ChatMessageFormatter implements MessageFormatter {
         if (config.get("urls.decorate") instanceof String s) builder.decorate(TextDecoration.valueOf(s.toUpperCase()));
         if (config.get("markdown.disable") instanceof List<?> ls)
             for (var s : ls) builder.disableMarkdownFeature(MarkdownFeature.valueOf(s.toString().toUpperCase()));
-        if (config.get("regex.patterns") instanceof List<?> ls)
-            for (var s : ls) builder.pattern(Pattern.compile((caseInsensitive ? "(?i)" : "") + s, caseInsensitive ? Pattern.CASE_INSENSITIVE : 0));
+        if (config.get("regex.patterns") instanceof List<?> ls) for (var s : ls)
+            builder.pattern(Pattern.compile((caseInsensitive ? "(?i)" : "") + s,
+                    caseInsensitive ? Pattern.CASE_INSENSITIVE : 0));
         return builder.build();
     }
 
-    @lombok.Builder.Default String format = "&7[%server_name%&7] &f%player_name%&f: %message%";
-    @lombok.Builder.Default boolean               verbatimToObfuscated = false;
-    @lombok.Builder.Default boolean               caseInsensitive      = DEFAULT_CASE_INSENSITIVE;
-    @lombok.Builder.Default String                replace              = "***";
-    @lombok.Builder.Default boolean               forceHttps           = false;
-    @lombok.Builder.Default boolean               showDomainOnly       = false;
-    @lombok.Builder.Default TextDecoration        decorate             = TextDecoration.UNDERLINED;
-    @Singular               List<MarkdownFeature> disableMarkdownFeatures;
-    @Singular               List<Pattern>         patterns;
+    @lombok.Builder.Default           String                format               = "&7[%server_name%&7] &f%player_name%&f: %message%";
+    @lombok.Builder.Default           boolean               verbatimToObfuscated = false;
+    @lombok.Builder.Default           boolean               caseInsensitive      = DEFAULT_CASE_INSENSITIVE;
+    @lombok.Builder.Default           String                replace              = "***";
+    @lombok.Builder.Default           boolean               forceHttps           = false;
+    @lombok.Builder.Default           boolean               showDomainOnly       = false;
+    @lombok.Builder.Default           TextDecoration        decorate             = TextDecoration.UNDERLINED;
+    @lombok.Builder.Default @Nullable Infraction.Factory    punishment           = null;
+    @Singular                         List<MarkdownFeature> disableMarkdownFeatures;
+    @Singular                         List<Pattern>         patterns;
 
     @Override
     public void accept(ChatMod mod, ChatMessage chatMessage) {
@@ -107,16 +118,25 @@ public class ChatMessageFormatter implements MessageFormatter {
 
         chatMessage.setPrepend(legacyAmpersand().deserialize(split[0]));
         chatMessage.setText(convertMessage(mod, sender, chatMessage.getMessageString()));
-        if (split.length > 1)
-            chatMessage.setAppend(legacyAmpersand().deserialize(split[1]));
+        if (split.length > 1) chatMessage.setAppend(legacyAmpersand().deserialize(split[1]));
     }
 
     private @NotNull TextComponent convertMessage(ChatMod mod, Player player, String message) {
         var text = text();
 
         // apply regex
-        for (var pattern : patterns)
-            message = message.replaceAll(pattern.pattern(), replace);
+        var any = false;
+        for (var pattern : patterns) {
+            var matcher = pattern.matcher(message);
+            if (matcher.find()) {
+                message = matcher.replaceAll(replace);
+                any     = true;
+            }
+        }
+        var banMod = mod.sub(BanMod.class);
+        if (any && punishment != null && banMod != null) banMod.getEntityAccessor(Infraction.TYPE)
+                .create()
+                .complete(builder -> punishment.apply(banMod, builder, player).reason("Bad Word Usage").build());
 
         // parse markdown, formatting and urls
         final char[] chars = message.toCharArray();
@@ -147,18 +167,18 @@ public class ChatMessageFormatter implements MessageFormatter {
                         // base filter
                         filter.test(key)
                         // permission check
-                        && mod.getLib().getPlayerAdapter().checkPermission(player.getId(),
-                                "chatmod.format." + key.name().toLowerCase()).toBooleanOrElse(false)
+                        && mod.getLib()
+                                .getPlayerAdapter()
+                                .checkPermission(player.getId(), "chatmod.format." + key.name().toLowerCase())
+                                .toBooleanOrElse(false)
                         // toggle
                         && Boolean.FALSE.equals(prevState);
-                if (prevState && !newState)
-                    flush(false);
+                if (prevState && !newState) flush(false);
                 map.put(key, newState);
             }
 
             void flush(boolean clearFeatures) {
-                if (buffer.isEmpty() && url == null)
-                    return;
+                if (buffer.isEmpty() && url == null) return;
 
                 Stream.concat(
                                 // apply MD features
@@ -171,32 +191,28 @@ public class ChatMessageFormatter implements MessageFormatter {
                                             case STRIKETHROUGH -> TextDecoration.STRIKETHROUGH;
                                             case HIDDEN_LINKS -> null;
                                             case VERBATIM -> {
-                                                if (verbatimToObfuscated)
-                                                    yield TextDecoration.OBFUSCATED;
+                                                if (verbatimToObfuscated) yield TextDecoration.OBFUSCATED;
                                                 activeFont = Key.key("minecraft", "uniform");
                                                 yield null;
                                             }
-                                        }).flatMap(Stream::ofNullable),
+                                        })
+                                        .flatMap(Stream::ofNullable),
                                 // apply TD features
-                                Arrays.stream(TextDecoration.values())
-                                        .filter(td -> activeDecor.getOrDefault(td, false)))
+                                Arrays.stream(TextDecoration.values()).filter(td -> activeDecor.getOrDefault(td, false)))
                         .forEach(builder::decorate);
 
                 // apply color
-                if (activeColor != null)
-                    builder.color(activeColor);
+                if (activeColor != null) builder.color(activeColor);
 
                 // apply font
-                if (activeFont != null)
-                    builder.font(activeFont);
+                if (activeFont != null) builder.font(activeFont);
 
                 // apply url
                 if (url != null) {
-                    if (forceHttps)
-                        url = url.replaceAll("http://", "https://");
-                    else if (buffer.isBlank())
-                        buffer = showDomainOnly ? Polyfill.url(url).getHost() : url;
-                    builder.clickEvent(ClickEvent.openUrl(url)).hoverEvent(HoverEvent.showText(text("Open Link in Browser...")));
+                    if (forceHttps) url = url.replaceAll("http://", "https://");
+                    else if (buffer.isBlank()) buffer = showDomainOnly ? Polyfill.url(url).getHost() : url;
+                    builder.clickEvent(ClickEvent.openUrl(url))
+                            .hoverEvent(HoverEvent.showText(text("Open Link in Browser...")));
                 }
 
                 // text content
@@ -204,8 +220,7 @@ public class ChatMessageFormatter implements MessageFormatter {
 
                 text.append(builder.build());
 
-                if (clearFeatures)
-                    clearFeatures();
+                if (clearFeatures) clearFeatures();
                 builder = text();
                 buffer  = "";
                 url     = null;
@@ -226,21 +241,25 @@ public class ChatMessageFormatter implements MessageFormatter {
                     .matches("https?://\\w?");
             char c = chars[i], n = last ? 0 : chars[i + 1];
             if (c == '_') {
-                if (helper.activeDecor.values().stream().anyMatch(Boolean::booleanValue) || helper.activeColor != null)
-                    helper.flush(true);
+                if (helper.activeDecor.values()
+                            .stream()
+                            .anyMatch(Boolean::booleanValue) || helper.activeColor != null) helper.flush(true);
                 if (helper.onceOrTwice('_' == n, MarkdownFeature.ITALIC, MarkdownFeature.UNDERLINE)) i += 1;
             } else if (c == '*') {
-                if (helper.activeDecor.values().stream().anyMatch(Boolean::booleanValue) || helper.activeColor != null)
-                    helper.flush(true);
+                if (helper.activeDecor.values()
+                            .stream()
+                            .anyMatch(Boolean::booleanValue) || helper.activeColor != null) helper.flush(true);
                 if (helper.onceOrTwice('*' == n, MarkdownFeature.ITALIC, MarkdownFeature.BOLD)) i += 1;
             } else if (c == '~') {
-                if (helper.activeDecor.values().stream().anyMatch(Boolean::booleanValue) || helper.activeColor != null)
-                    helper.flush(true);
+                if (helper.activeDecor.values()
+                            .stream()
+                            .anyMatch(Boolean::booleanValue) || helper.activeColor != null) helper.flush(true);
                 helper.toggle(MarkdownFeature.STRIKETHROUGH);
             } else if (c == '[') {
                 helper.flush(false);
                 helper.toggle(MarkdownFeature.HIDDEN_LINKS);
-            } else if ((urlStart || helper.activeMd.getOrDefault(MarkdownFeature.HIDDEN_LINKS, false)) && helper.url == null) {
+            } else if ((urlStart || helper.activeMd.getOrDefault(MarkdownFeature.HIDDEN_LINKS,
+                    false)) && helper.url == null) {
                 // delimit display string
                 // append to display string
                 if (c == ']') {
@@ -274,10 +293,8 @@ public class ChatMessageFormatter implements MessageFormatter {
                 helper.flush(false);
                 helper.activeMd.remove(MarkdownFeature.HIDDEN_LINKS);
             } else if (c == '&') {
-                if (i <= 1 || chars[i - 2] != '&')
-                    helper.flush(false);
-                if (n == 'r')
-                    helper.flush(true);
+                if (i <= 1 || chars[i - 2] != '&') helper.flush(false);
+                if (n == 'r') helper.flush(true);
                 else if (McColorCodes.containsKey(n)) {
                     helper.activeColor = McColorCodes.get(n);
                 } else if (McFormatCodes.containsKey(n)) {
