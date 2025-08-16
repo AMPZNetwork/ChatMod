@@ -52,13 +52,23 @@ public enum PacketType implements Named {
         public TextComponent createDefaultText(Player player, @Nullable String $) {
             return text(player.getName()).append(text(" left the game")).color(NamedTextColor.YELLOW);
         }
+    }, OTHER(null) {
+        @Override
+        public String getFormat(Formats format) {
+            return format.getMessageContent();
+        }
+
+        @Override
+        public TextComponent createDefaultText(Player player, String detail) {
+            return text(detail);
+        }
     };
 
     public static PacketType of(AurionPacket.Type type) {
         return Arrays.stream(values()).filter(any -> any.aurionPacketType == type).findAny().orElseThrow();
     }
 
-    AurionPacket.Type aurionPacketType;
+    @Nullable AurionPacket.Type aurionPacketType;
 
     @Contract("null -> null; !null -> !null")
     public abstract String getFormat(Formats format);

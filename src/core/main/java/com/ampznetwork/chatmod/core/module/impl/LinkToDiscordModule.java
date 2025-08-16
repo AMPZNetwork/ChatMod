@@ -153,6 +153,7 @@ public class LinkToDiscordModule extends IdentityModule<ChatModules.DiscordProvi
                                 case JOIN, LEAVE -> Util.Kyori.sanitizePlain(DEFAULT_CONTEXT.apply(mod,
                                         packet,
                                         packet.getPacketType().getFormat(format)));
+                                default -> packet.getMessage().getMessageString();
                             }).apply(mod, packet, format.getMessageContent()))
                             .setAvatarUrl(DEFAULT_CONTEXT.apply(mod, packet, format.getMessageUserAvatar()))
                             .build();
