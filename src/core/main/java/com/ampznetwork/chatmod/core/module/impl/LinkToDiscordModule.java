@@ -147,7 +147,8 @@ public class LinkToDiscordModule extends IdentityModule<ChatModules.DiscordProvi
                             .setContent(override(DefaultPlaceholder.MESSAGE, switch (packet.getPacketType()) {
                                 case CHAT -> {
                                     var sb = new StringBuilder();
-                                    COMPONENT_TO_MARKDOWN.flatten(packet.getMessage().getText(), sb::append);
+                                    COMPONENT_TO_MARKDOWN.flatten(text(packet.getMessage().getMessageString()),
+                                            sb::append);
                                     yield sb.toString();
                                 }
                                 case JOIN, LEAVE -> Util.Kyori.sanitizePlain(DEFAULT_CONTEXT.apply(mod,
