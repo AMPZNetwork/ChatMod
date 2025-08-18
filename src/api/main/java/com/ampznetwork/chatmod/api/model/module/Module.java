@@ -37,7 +37,7 @@ public interface Module<P extends ChatMessagePacket> extends Container, Bidirect
     boolean isAvailable();
 
     default String getEndpointName() {
-        return getMod().getServerName() + '.' + getClass().getSimpleName();
+        return getMod().getLib().getServerName() + '.' + getClass().getSimpleName();
     }
 
     int priority();

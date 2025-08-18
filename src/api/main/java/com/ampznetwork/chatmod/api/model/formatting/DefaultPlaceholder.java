@@ -23,7 +23,7 @@ public enum DefaultPlaceholder implements FormatPlaceholder.Pair, Named {
     SERVER_NAME {
         @Override
         public Stream<String> streamValues(ModuleContainer mod, ChatMessagePacket packet) {
-            return Stream.ofNullable(mod.getServerName());
+            return Stream.ofNullable(mod.getLib().getServerName());
         }
     }, CHANNEL_NAME {
         @Override

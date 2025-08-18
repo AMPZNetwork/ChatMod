@@ -1,7 +1,6 @@
 package com.ampznetwork.chatmod.api.model.protocol;
 
 import com.ampznetwork.chatmod.api.model.module.Module;
-import com.ampznetwork.chatmod.api.model.module.ModuleContainer;
 import com.ampznetwork.chatmod.api.model.protocol.internal.PacketType;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -11,7 +10,7 @@ public interface ChatMessagePacket {
 
     /**
      * @return name of the source server of this packet
-     * @see ModuleContainer#getServerName()
+     * @see com.ampznetwork.libmod.api.LibMod#getServerName()
      */
     @JsonProperty
     String getSource();

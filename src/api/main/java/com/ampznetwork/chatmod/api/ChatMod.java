@@ -32,7 +32,7 @@ public interface ChatMod extends SubMod, ModuleContainer {
     TextResourceProvider text();
 
     default String applyPlaceholderApi(UUID playerId, String input) {
-        return input.replace("%server_name%", getServerName())
+        return input.replace("%server_name%", getLib().getServerName())
                 .replace("%player_name%", getLib().getPlayerAdapter().getDisplayName(playerId));
     }
 
