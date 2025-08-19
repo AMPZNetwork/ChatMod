@@ -1,8 +1,8 @@
 package com.ampznetwork.chatmod.core;
 
 import com.ampznetwork.chatmod.api.ChatMod;
+import com.ampznetwork.chatmod.api.model.AutoFillProvider;
 import com.ampznetwork.chatmod.api.model.module.Module;
-import com.ampznetwork.chatmod.core.util.AutoFill;
 import com.ampznetwork.chatmod.generated.PluginYml.Permission.chatmod;
 import net.kyori.adventure.text.Component;
 import org.comroid.annotations.Alias;
@@ -23,7 +23,10 @@ import static net.kyori.adventure.text.format.TextDecoration.*;
 
 public class ChatModCommands {
     @Command(permission = chatmod.STATUS)
-    public static Component status(ChatMod mod, @Command.Arg(required = false, autoFillProvider = AutoFill.Modules.class) @Nullable String module) {
+    public static Component status(
+            ChatMod mod, @Command.Arg(required = false,
+                                      autoFillProvider = AutoFillProvider.ModuleNames.class) @Nullable String module
+    ) {
         Stream<Module<?>>                      source = mod.children(Module.class);
         Function<Stream<Module<?>>, Component> target;
 
@@ -47,7 +50,7 @@ public class ChatModCommands {
     @Alias("sh")
     @Command(permission = chatmod.SHOUT)
     public static Component shout(
-            ChatMod mod, @Command.Arg(autoFillProvider = AutoFill.ChannelNames.class) String channelName,
+            ChatMod mod, @Command.Arg(autoFillProvider = AutoFillProvider.ChannelNames.class) String channelName,
             @Command.Arg(stringMode = StringMode.GREEDY) String message, UUID playerId
     ) {
         var player = mod.getLib().getPlayerAdapter().getPlayer(playerId).orElseThrow();
@@ -85,7 +88,8 @@ public class ChatModCommands {
         }
 
         @Command(permission = chatmod.channel.INFO)
-        public static Component info(ChatMod mod, @Command.Arg(autoFillProvider = AutoFill.ChannelNames.class) String channelName) {
+        public static Component info(
+                ChatMod mod, @Command.Arg(autoFillProvider = AutoFillProvider.ChannelNames.class) String channelName) {
             var channel = mod.getChannels()
                     .stream()
                     .filter(it -> Arrays.asList(it.getName(), it.getAlias()).contains(channelName))
@@ -106,7 +110,10 @@ public class ChatModCommands {
         }
 
         @Command(permission = chatmod.channel.JOIN)
-        public static Component join(ChatMod mod, @Command.Arg(autoFillProvider = AutoFill.ChannelNames.class) String channelName, UUID playerId) {
+        public static Component join(
+                ChatMod mod, @Command.Arg(autoFillProvider = AutoFillProvider.ChannelNames.class) String channelName,
+                UUID playerId
+        ) {
             var channels = mod.getChannels();
             var currentChannel = channels.stream().filter(it -> it.getPlayerIDs().contains(playerId)).findAny().orElse(null);
             var targetChannel = channels.stream()
@@ -120,7 +127,8 @@ public class ChatModCommands {
 
         @Command(permission = chatmod.channel.SPY)
         public static Component spy(
-                ChatMod mod, @Command.Arg(autoFillProvider = AutoFill.ChannelNames.class, autoFill = { "*" }) String channelName,
+                ChatMod mod, @Command.Arg(autoFillProvider = AutoFillProvider.ChannelNames.class,
+                                          autoFill = { "*" }) String channelName,
                 UUID playerId
         ) {
             var channels = mod.getChannels();
