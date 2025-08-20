@@ -6,8 +6,9 @@ import com.ampznetwork.chatmod.api.model.module.Module;
 import com.ampznetwork.chatmod.generated.PluginYml.Permission.chatmod;
 import net.kyori.adventure.text.Component;
 import org.comroid.annotations.Alias;
-import org.comroid.api.func.util.Command;
 import org.comroid.api.text.StringMode;
+import org.comroid.commands.Command;
+import org.comroid.commands.model.CommandError;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
@@ -63,7 +64,7 @@ public class ChatModCommands {
                     mod.sendChat(channelName, msg);
                     return msg.getFullText();
                 })
-                .orElseThrow(() -> new Command.Error("Could not shout to channel " + channelName));
+                .orElseThrow(() -> new CommandError("Could not shout to channel " + channelName));
     }
 
     @Alias("ch")
@@ -94,7 +95,7 @@ public class ChatModCommands {
                     .stream()
                     .filter(it -> Arrays.asList(it.getName(), it.getAlias()).contains(channelName))
                     .findAny()
-                    .orElseThrow(() -> new Command.Error("No such channel: " + channelName));
+                    .orElseThrow(() -> new CommandError("No such channel: " + channelName));
             return text().append(text("Chat Channel ").decorate(UNDERLINED))
                     .append(text(channel.getName()).color(AQUA).decorate(UNDERLINED))
                     .append(text("\n"))
@@ -119,7 +120,7 @@ public class ChatModCommands {
             var targetChannel = channels.stream()
                     .filter(it -> Arrays.asList(it.getName(), it.getAlias()).contains(channelName))
                     .findAny()
-                    .orElseThrow(() -> new Command.Error("No such channel: " + channelName));
+                    .orElseThrow(() -> new CommandError("No such channel: " + channelName));
             if (currentChannel != null) currentChannel.getPlayerIDs().remove(playerId);
             targetChannel.getPlayerIDs().add(playerId);
             return text("Successfully joined channel ").append(text(targetChannel.getName()).color(AQUA));
@@ -139,7 +140,7 @@ public class ChatModCommands {
                 var targetChannel = channels.stream()
                         .filter(it -> Arrays.asList(it.getName(), it.getAlias()).contains(channelName))
                         .findAny()
-                        .orElseThrow(() -> new Command.Error("No such channel: " + channelName));
+                        .orElseThrow(() -> new CommandError("No such channel: " + channelName));
                 var ids = targetChannel.getSpyIDs();
                 if (ids.contains(playerId)) {
                     ids.remove(playerId);

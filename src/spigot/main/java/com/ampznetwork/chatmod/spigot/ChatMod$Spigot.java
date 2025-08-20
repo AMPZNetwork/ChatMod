@@ -19,9 +19,9 @@ import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.configuration.MemorySection;
 import org.comroid.api.Polyfill;
-import org.comroid.api.func.util.Command;
 import org.comroid.api.info.Log;
 import org.comroid.api.tree.Container;
+import org.comroid.commands.Command;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;

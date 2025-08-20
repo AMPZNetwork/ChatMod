@@ -17,10 +17,10 @@ import lombok.EqualsAndHashCode;
 import lombok.SneakyThrows;
 import lombok.Value;
 import lombok.experimental.NonFinal;
-import org.comroid.api.func.util.Command;
 import org.comroid.api.info.Log;
 import org.comroid.api.io.FileHandle;
 import org.comroid.api.tree.Container;
+import org.comroid.commands.Command;
 import org.comroid.exception.ReloadException;
 
 import java.io.InputStreamReader;
