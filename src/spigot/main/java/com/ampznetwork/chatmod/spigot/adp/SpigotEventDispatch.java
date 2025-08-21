@@ -18,6 +18,8 @@ import org.bukkit.event.player.PlayerKickEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.comroid.api.func.ext.Accessor;
 
+import java.util.logging.Level;
+
 import static net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.*;
 
 @Value
@@ -28,14 +30,11 @@ public class SpigotEventDispatch extends EventDispatchBase<ChatMod$Spigot> imple
 
     static {
         try {
-            DELEGATE_PROPERTY_JOIN = new Accessor.GetSetMethods<>(
-                    PlayerJoinEvent.class.getMethod("getJoinMessage"),
+            DELEGATE_PROPERTY_JOIN = new Accessor.GetSetMethods<>(PlayerJoinEvent.class.getMethod("getJoinMessage"),
                     PlayerJoinEvent.class.getMethod("setJoinMessage", String.class));
-            DELEGATE_PROPERTY_QUIT = new Accessor.GetSetMethods<>(
-                    PlayerQuitEvent.class.getMethod("getQuitMessage"),
+            DELEGATE_PROPERTY_QUIT = new Accessor.GetSetMethods<>(PlayerQuitEvent.class.getMethod("getQuitMessage"),
                     PlayerQuitEvent.class.getMethod("setQuitMessage", String.class));
-            DELEGATE_PROPERTY_KICK = new Accessor.GetSetMethods<>(
-                    PlayerKickEvent.class.getMethod("getLeaveMessage"),
+            DELEGATE_PROPERTY_KICK = new Accessor.GetSetMethods<>(PlayerKickEvent.class.getMethod("getLeaveMessage"),
                     PlayerKickEvent.class.getMethod("setLeaveMessage", String.class));
         } catch (NoSuchMethodException e) {
             throw new RuntimeException(e);
@@ -48,35 +47,52 @@ public class SpigotEventDispatch extends EventDispatchBase<ChatMod$Spigot> imple
 
     @EventHandler(priority = EventPriority.HIGH)
     public void dispatch(AsyncPlayerChatEvent event) {
-        if (event.isCancelled())
-            return;
+        try {
+            if (event.isCancelled()) return;
 
-        var player = mod.getLib().getPlayerAdapter()
-                .getPlayer(event.getPlayer().getUniqueId())
-                .orElseThrow();
-        var message = new ChatMessage(player, mod.getPlayerAdapter().getDisplayName(player.getId()), event.getMessage(), Component.text(event.getMessage()));
-        mod.getFormatter().accept(mod, message);
+            var player = mod.getLib().getPlayerAdapter().getPlayer(event.getPlayer().getUniqueId()).orElseThrow();
+            var message = new ChatMessage(player,
+                    mod.getPlayerAdapter().getDisplayName(player.getId()),
+                    event.getMessage(),
+                    Component.text(event.getMessage()));
+            mod.getFormatter().accept(mod, message);
 
-        if (mod.isListenerCompatibilityMode()) {
-            event.setFormat(legacySection().serialize(message.getPrepend()) + "%2$s" + legacySection().serialize(message.getAppend()));
-            event.setMessage(legacySection().serialize(message.getText()));
-        } else event.setCancelled(true);
-        dispatch(message);
+            if (mod.isListenerCompatibilityMode()) {
+                event.setFormat(legacySection().serialize(message.getPrepend()) + "%2$s" + legacySection().serialize(
+                        message.getAppend()));
+                event.setMessage(legacySection().serialize(message.getText()));
+            } else event.setCancelled(true);
+            dispatch(message);
+        } catch (Throwable t) {
+            mod.getLogger().log(Level.WARNING, "Error in event handler", t);
+        }
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void dispatch(PlayerJoinEvent event) {
-        playerJoin(event.getPlayer().getUniqueId(), createEventDelegate(event, DELEGATE_PROPERTY_JOIN));
+        try {
+            playerJoin(event.getPlayer().getUniqueId(), createEventDelegate(event, DELEGATE_PROPERTY_JOIN));
+        } catch (Throwable t) {
+            mod.getLogger().log(Level.WARNING, "Error in event handler", t);
+        }
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void dispatch(PlayerQuitEvent event) {
-        playerLeave(event.getPlayer().getUniqueId(), createEventDelegate(event, DELEGATE_PROPERTY_QUIT));
+        try {
+            playerLeave(event.getPlayer().getUniqueId(), createEventDelegate(event, DELEGATE_PROPERTY_QUIT));
+        } catch (Throwable t) {
+            mod.getLogger().log(Level.WARNING, "Error in event handler", t);
+        }
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void dispatch(PlayerKickEvent event) {
-        playerLeave(event.getPlayer().getUniqueId(), createEventDelegate(event, DELEGATE_PROPERTY_KICK));
+        try {
+            playerLeave(event.getPlayer().getUniqueId(), createEventDelegate(event, DELEGATE_PROPERTY_KICK));
+        } catch (Throwable t) {
+            mod.getLogger().log(Level.WARNING, "Error in event handler", t);
+        }
     }
 
     private <E> EventDelegate<TextComponent> createEventDelegate(E event, Accessor<E, String> property) {
