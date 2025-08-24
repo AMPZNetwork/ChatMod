@@ -12,11 +12,13 @@ repositories {
 }
 
 dependencies {
-    implementation project(':ChatMod:core')
+    api project(':ChatMod:core')
 
-    implementation 'net.dv8tion:JDA:+'
-    implementation 'club.minnced:discord-webhooks:+'
+    api 'net.dv8tion:JDA:+'
+    api 'club.minnced:discord-webhooks:+'
+    api 'com.kcthota:emoji4j:+'
+
     implementation 'com.rabbitmq:amqp-client:+'
-    implementation 'com.kcthota:emoji4j:+'
-    implementation "ch.qos.logback:logback-classic:1.5.6"
+
+    runtimeOnly "ch.qos.logback:logback-classic:1.5.6"
 }
