@@ -20,15 +20,3 @@ dependencies {
     implementation 'com.kcthota:emoji4j:+'
     implementation "ch.qos.logback:logback-classic:1.5.6"
 }
-
-tasks.register('simplifyArtifactName', Copy).configure {
-    from shadowJar.outputs.files.singleFile
-    into "${layout.buildDirectory.get().asFile.absolutePath}/libs/"
-    rename { 'chatmod-discord.jar' }
-}
-
-tasks.shadowJar {
-    archiveBaseName = 'chatmod-discord'
-    archiveClassifier = ''
-    it.finalizedBy tasks.simplifyArtifactName
-}
