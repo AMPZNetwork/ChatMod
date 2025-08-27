@@ -18,7 +18,7 @@ apply plugin: 'application'
 apply plugin: 'com.github.johnrengelman.shadow'
 
 group 'com.ampznetwork.chatmod'
-version = "0.1.${getCommitTimestampSeconds()}"
+version = "0.1.${getCommitTimestampMinutes()}"
 mainClassName = 'com.ampznetwork.chatmod.discord.DiscordBot'
 
 repositories {
