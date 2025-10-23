@@ -21,6 +21,7 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.comroid.api.Polyfill;
+import org.comroid.api.java.SoftDepend;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -39,7 +40,7 @@ import static net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializ
 @Value
 @Builder
 public class ChatMessageFormatter implements MessageFormatter {
-    private static final Map<@NotNull Character, NamedTextColor> McColorCodes            = Map.ofEntries(Map.entry('0',
+    private static final Map<@NotNull Character, NamedTextColor> McColorCodes             = Map.ofEntries(Map.entry('0',
                     NamedTextColor.BLACK),
             Map.entry('1', NamedTextColor.DARK_BLUE),
             Map.entry('2', NamedTextColor.DARK_GREEN),
@@ -56,7 +57,7 @@ public class ChatMessageFormatter implements MessageFormatter {
             Map.entry('d', NamedTextColor.LIGHT_PURPLE),
             Map.entry('e', NamedTextColor.YELLOW),
             Map.entry('f', NamedTextColor.WHITE));
-    private static final Map<@NotNull Character, TextDecoration> McFormatCodes           = Map.of('k',
+    private static final Map<@NotNull Character, TextDecoration> McFormatCodes            = Map.of('k',
             TextDecoration.OBFUSCATED,
             'l',
             TextDecoration.BOLD,
@@ -66,7 +67,7 @@ public class ChatMessageFormatter implements MessageFormatter {
             TextDecoration.UNDERLINED,
             'o',
             TextDecoration.ITALIC);
-    private static final Map<@NotNull String, MarkdownFeature>   MdLetterCodes           = Map.of("_",
+    private static final Map<@NotNull String, MarkdownFeature>   MdLetterCodes            = Map.of("_",
             MarkdownFeature.ITALIC,
             "*",
             MarkdownFeature.BOLD,
@@ -74,9 +75,9 @@ public class ChatMessageFormatter implements MessageFormatter {
             MarkdownFeature.STRIKETHROUGH,
             "__",
             MarkdownFeature.UNDERLINE);
-    public static final  String                                  MESSAGE_PLACEHOLDER     = "%message%";
-    public static final  String                                  PLAYER_NAME_PLACEHOLDER = "%player_name%";
-    public static final  String                                  RESERVED_PLACEHOLDER    = "§reserved§";
+    public static final  String                                  MESSAGE_PLACEHOLDER      = "%message%";
+    public static final  String                                  PLAYER_NAME_PLACEHOLDER  = "%player_name%";
+    public static final  String                                  RESERVED_PLACEHOLDER     = "§reserved§";
     public static final  boolean                                 DEFAULT_CASE_INSENSITIVE = true;
 
     public static ChatMessageFormatter of(ChatMod mod, Map<String, ?> config) {
@@ -94,8 +95,10 @@ public class ChatMessageFormatter implements MessageFormatter {
         if (config.get("regex.patterns") instanceof List<?> ls) for (var s : ls)
             builder.pattern(Pattern.compile((caseInsensitive ? "(?i)" : "") + s,
                     caseInsensitive ? Pattern.CASE_INSENSITIVE : 0));
-        if (config.get("regex.punish-by") instanceof String s && mod.sub(BanMod.class) instanceof BanMod banMod) builder.punishment(
-                Infraction.Factory.parse(banMod, s));
+        SoftDepend.type("com.ampznetwork.banmod.api.BanMod").ifPresent($ -> {
+            if (config.get("regex.punish-by") instanceof String s && mod.sub(BanMod.class) instanceof BanMod banMod) builder.punishment(
+                    Infraction.Factory.parse(banMod, s));
+        });
         return builder.build();
     }
 
@@ -116,7 +119,7 @@ public class ChatMessageFormatter implements MessageFormatter {
         assert sender != null : "Outbound from Minecraft should always have a Sender";
 
         var format = mod.applyPlaceholderApi(sender.getId(), this.format);
-        var split = format.split(MESSAGE_PLACEHOLDER);
+        var split  = format.split(MESSAGE_PLACEHOLDER);
 
         chatMessage.setPrepend(legacyAmpersand().deserialize(split[0]));
         chatMessage.setText(convertMessage(mod, sender, chatMessage.getMessageString()));
@@ -135,11 +138,15 @@ public class ChatMessageFormatter implements MessageFormatter {
                 any     = true;
             }
         }
-        var banMod = mod.sub(BanMod.class);
-        if (any && punishment != null && banMod != null) banMod.getEntityAccessor(Infraction.TYPE)
-                .create()
-                .complete(builder -> punishment.apply(builder, player).reason("Bad Word Usage").build(),
-                        banMod::realize);
+
+        final boolean finalAny = any;
+        SoftDepend.run("com.ampznetwork.banmod.api.BanMod").ifPresent($ -> {
+            var banMod = mod.sub(BanMod.class);
+            if (finalAny && punishment != null && banMod != null) banMod.getEntityAccessor(Infraction.TYPE)
+                    .create()
+                    .complete(builder -> punishment.apply(builder, player).reason("Bad Word Usage").build(),
+                            banMod::realize);
+        });
 
         // parse markdown, formatting and urls
         final char[] chars = message.toCharArray();
@@ -287,7 +294,7 @@ public class ChatMessageFormatter implements MessageFormatter {
                 if (c == ' ') {
                     // invalid format
                     helper.buffer = '[' + helper.buffer + "](" + c;
-                    helper.url = null;
+                    helper.url    = null;
                 } else if (c == ')') {
                     // delimit url
                     helper.flush(false);
