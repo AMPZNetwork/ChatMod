@@ -11,7 +11,11 @@ import lombok.Getter;
 import lombok.Value;
 import lombok.experimental.SuperBuilder;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.ComponentLike;
+import net.kyori.adventure.text.TextComponent;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.comroid.api.attr.Aliased;
+import org.comroid.api.text.minecraft.ComponentSupplier;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -24,7 +28,7 @@ import java.util.stream.Stream;
 
 @Value
 @SuperBuilder
-public class Channel extends ChatModules.NamedBaseConfig implements Aliased {
+public class Channel extends ChatModules.NamedBaseConfig implements Aliased, ComponentSupplier.PlayerFocused {
     @Nullable @Default                             String         alias      = null;
     @Nullable @Default                             String         permission = null;
     @Nullable @Default                             DiscordChannel discord    = null;
@@ -34,7 +38,9 @@ public class Channel extends ChatModules.NamedBaseConfig implements Aliased {
 
     @ConstructorProperties({ "enabled", "name", "alias", "permission", "discord", "publish" })
     public Channel(
-            boolean enabled, @NotNull String name, @Nullable String alias, @Nullable String permission, @Nullable DiscordChannel discord, boolean publish) {
+            boolean enabled, @NotNull String name, @Nullable String alias, @Nullable String permission,
+            @Nullable DiscordChannel discord, boolean publish
+    ) {
         super(enabled, name);
 
         this.alias      = alias;
@@ -43,6 +49,12 @@ public class Channel extends ChatModules.NamedBaseConfig implements Aliased {
         this.publish    = publish;
         this.playerIDs  = new HashSet<>();
         this.spyIDs     = new HashSet<>();
+    }
+
+    public ChannelState getState(UUID playerId) {
+        if (playerIDs.contains(playerId)) return ChannelState.Joined;
+        if (spyIDs.contains(playerId)) return ChannelState.Spying;
+        return ChannelState.Idle;
     }
 
     public Stream<UUID> allPlayerIDs() {
@@ -55,12 +67,28 @@ public class Channel extends ChatModules.NamedBaseConfig implements Aliased {
     }
 
     public ChatMessage formatMessage(ChatMod mod, Player sender, String message) {
-        var msg = new ChatMessage(sender, mod.getPlayerAdapter().getDisplayName(sender.getId()), message, Component.text(message));
+        var msg = new ChatMessage(sender,
+                mod.getPlayerAdapter().getDisplayName(sender.getId()),
+                message,
+                Component.text(message));
         mod.getFormatter().accept(mod, msg);
         return msg;
     }
 
     public void send(ChatMod mod, ChatMessage message) {
         allPlayerIDs().forEach(id -> mod.getPlayerAdapter().send(id, message.getFullText()));
+    }
+
+    @Override
+    public TextComponent toComponent() {
+        return Component.text(getName(), NamedTextColor.AQUA);
+    }
+
+    @Override
+    public ComponentLike specifyComponent(TextComponent component, @Nullable UUID playerId) {
+        var state  = getState(playerId);
+        var result = component.toBuilder().color(state.toColor());
+        if (state != ChannelState.Idle) result.hoverEvent(state.toHoverEvent());
+        return result;
     }
 }
