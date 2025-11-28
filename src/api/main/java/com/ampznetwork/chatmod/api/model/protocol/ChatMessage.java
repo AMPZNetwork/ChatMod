@@ -28,6 +28,7 @@ import static net.kyori.adventure.text.serializer.plain.PlainTextComponentSerial
 @NoArgsConstructor
 public class ChatMessage {
     public static final                                                             ObjectMapper MAPPER = new ObjectMapper();
+
     @JsonProperty @JsonIncludeProperties({ "id", "name", "displayName" }) @Nullable Player       sender;
     @JsonProperty                                                                   String       senderName;
     @JsonProperty                                                                   String       messageString;
