@@ -15,7 +15,7 @@ static int getCommitTimestampMinutes() {
 
 plugins {
     id 'java-library'
-    id 'org.comroid.codegen.spigot' version '+'
+//    id 'org.comroid.codegen.spigot' version '+'
 }
 apply from: "$projectDir/../../gradle/scripts/java-lib.gradle"
 
@@ -24,6 +24,7 @@ version = "0.1.${getCommitTimestampMinutes()}"
 
 dependencies {
     api project(":LibMod:api")
+    api project(':ChatMod:AurionChat:api')
 
     // json
     api 'com.fasterxml.jackson.core:jackson-databind:2.+'
