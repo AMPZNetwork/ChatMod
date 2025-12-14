@@ -7,6 +7,7 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder.Default;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.Singular;
 import lombok.experimental.SuperBuilder;
@@ -31,11 +32,17 @@ public final class ChatModules {
 
     @Data
     @SuperBuilder
+    @EqualsAndHashCode(of = { "name" })
     @AllArgsConstructor(access = AccessLevel.PROTECTED)
     @NoArgsConstructor(force = true, access = AccessLevel.PRIVATE)
     public static abstract class NamedBaseConfig implements Named {
         protected @Default boolean enable = true;
         protected @NotNull String  name;
+
+        @Override
+        public String toString() {
+            return getClass().getSimpleName() + ' ' + name;
+        }
     }
 
     @Data

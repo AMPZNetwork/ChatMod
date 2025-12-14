@@ -7,6 +7,7 @@ import com.ampznetwork.chatmod.api.model.protocol.ChatMessage;
 import com.ampznetwork.libmod.api.entity.Player;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Builder.Default;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Value;
 import lombok.experimental.SuperBuilder;
@@ -28,6 +29,7 @@ import java.util.stream.Stream;
 
 @Value
 @SuperBuilder
+@EqualsAndHashCode(callSuper = true)
 public class Channel extends ChatModules.NamedBaseConfig implements Aliased, ComponentSupplier.PlayerFocused {
     @Nullable @Default                             String         alias      = null;
     @Nullable @Default                             String         permission = null;
