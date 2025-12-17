@@ -99,14 +99,14 @@ public final class ChatModules {
     public static abstract class RabbitMqProviderConfig extends ProviderConfig {
         protected @NotNull  String rabbitUri;
         protected @Nullable String exchange;
-        protected @Default  String exchangeType = "fanout";
+        protected @Default String exchangeType = "topic";
     }
 
     @Data
     @SuperBuilder
     @NoArgsConstructor(force = true, access = AccessLevel.PRIVATE)
     public static class NativeProviderConfig extends RabbitMqProviderConfig {
-        protected @NotNull @Default String exchange = "minecraft.chat";
+        protected @NotNull @Default String exchange = "minecraft";
 
         @Override
         public final String providerType() {

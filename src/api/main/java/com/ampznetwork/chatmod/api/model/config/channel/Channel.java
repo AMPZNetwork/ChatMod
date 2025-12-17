@@ -32,25 +32,41 @@ import java.util.stream.Stream;
 @EqualsAndHashCode(callSuper = true)
 public class Channel extends ChatModules.NamedBaseConfig implements Aliased, ComponentSupplier.PlayerFocused {
     @Nullable @Default                             String         alias      = null;
+    @Nullable @Default String display = null;
     @Nullable @Default                             String         permission = null;
     @Nullable @Default                             DiscordChannel discord    = null;
     @Default                                       boolean        publish    = true;
     @Getter(onMethod_ = @__(@JsonIgnore)) @Default Set<UUID>      playerIDs  = new HashSet<>();
     @Getter(onMethod_ = @__(@JsonIgnore)) @Default Set<UUID>      spyIDs     = new HashSet<>();
 
+    @Deprecated(forRemoval = true)
     @ConstructorProperties({ "enabled", "name", "alias", "permission", "discord", "publish" })
     public Channel(
             boolean enabled, @NotNull String name, @Nullable String alias, @Nullable String permission,
             @Nullable DiscordChannel discord, boolean publish
     ) {
+        this(enabled, name, alias, null, permission, discord, publish);
+    }
+
+    @ConstructorProperties({ "enabled", "name", "alias", "display", "permission", "discord", "publish" })
+    public Channel(
+            boolean enabled, @NotNull String name, @Nullable String alias, @Nullable String display,
+            @Nullable String permission, @Nullable DiscordChannel discord, boolean publish
+    ) {
         super(enabled, name);
 
         this.alias      = alias;
+        this.display = display;
         this.permission = permission;
         this.discord    = discord;
         this.publish    = publish;
         this.playerIDs  = new HashSet<>();
         this.spyIDs     = new HashSet<>();
+    }
+
+    @Override
+    public String getAlternateName() {
+        return Objects.requireNonNullElse(display, getName());
     }
 
     public ChannelState getState(UUID playerId) {
