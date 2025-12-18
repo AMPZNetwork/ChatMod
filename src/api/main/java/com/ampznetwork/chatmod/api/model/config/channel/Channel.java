@@ -41,7 +41,6 @@ public class Channel extends ChatModules.NamedBaseConfig implements Aliased, Com
 
     @JsonIgnore
     @Deprecated(forRemoval = true)
-    @ConstructorProperties({ "enabled", "name", "alias", "permission", "discord", "publish" })
     public Channel(
             boolean enabled, @NotNull String name, @Nullable String alias, @Nullable String permission,
             @Nullable DiscordChannel discord, boolean publish
