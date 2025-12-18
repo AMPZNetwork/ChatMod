@@ -39,6 +39,7 @@ public class Channel extends ChatModules.NamedBaseConfig implements Aliased, Com
     @Getter(onMethod_ = @__(@JsonIgnore)) @Default Set<UUID>      playerIDs  = new HashSet<>();
     @Getter(onMethod_ = @__(@JsonIgnore)) @Default Set<UUID>      spyIDs     = new HashSet<>();
 
+    @JsonIgnore
     @Deprecated(forRemoval = true)
     @ConstructorProperties({ "enabled", "name", "alias", "permission", "discord", "publish" })
     public Channel(
