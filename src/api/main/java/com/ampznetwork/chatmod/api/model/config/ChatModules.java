@@ -122,6 +122,10 @@ public final class ChatModules {
         protected @NotNull @Default
         @Language("RegExp")         String contentPattern = "\\[[\\w&§]+]\\s[\\w&§]+\\s[\\w-_&§]+:\\s(.*)";
 
+        public AurionChatProviderConfig() {
+            exchangeType = "fanout";
+        }
+
         @Override
         public final String providerType() {
             return "aurionchat";
