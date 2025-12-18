@@ -104,9 +104,10 @@ public final class ChatModules {
 
     @Data
     @SuperBuilder
-    @NoArgsConstructor(force = true, access = AccessLevel.PRIVATE)
     public static class NativeProviderConfig extends RabbitMqProviderConfig {
-        protected @NotNull @Default String exchange = "minecraft";
+        private NativeProviderConfig() {
+            exchange = "minecraft";
+        }
 
         @Override
         public final String providerType() {
@@ -117,11 +118,11 @@ public final class ChatModules {
     @Data
     @SuperBuilder
     public static class AurionChatProviderConfig extends RabbitMqProviderConfig {
-        protected @NotNull @Default String exchange       = "aurion.chat";
         protected @NotNull @Default
-        @Language("RegExp")         String contentPattern = "\\[[\\w&§]+]\\s[\\w&§]+\\s[\\w-_&§]+:\\s(.*)";
+        @Language("RegExp") String contentPattern = "\\[[\\w&§]+]\\s[\\w&§]+\\s[\\w-_&§]+:\\s(.*)";
 
         private AurionChatProviderConfig() {
+            exchange = "aurion.chat";
             exchangeType = "fanout";
         }
 
