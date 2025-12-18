@@ -19,9 +19,15 @@ group = 'com.ampznetwork.chatmod'
 version = "0.1.${getCommitTimestampMinutes()}"
 
 dependencies {
+    api project(":ChatMod:api")
+    api project(":LibMod:core")
+
     // discord
     implementation 'net.dv8tion:JDA:+'
     implementation 'club.minnced:discord-webhooks:+'
+
+    // rabbitmq
+    implementation 'com.rabbitmq:amqp-client:5.+'
 
     // serialization
     implementation 'net.kyori:adventure-api:4.24.0'

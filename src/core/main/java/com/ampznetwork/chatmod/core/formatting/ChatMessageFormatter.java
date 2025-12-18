@@ -1,7 +1,5 @@
 package com.ampznetwork.chatmod.core.formatting;
 
-import com.ampznetwork.banmod.api.BanMod;
-import com.ampznetwork.banmod.api.entity.Infraction;
 import com.ampznetwork.chatmod.api.ChatMod;
 import com.ampznetwork.chatmod.api.formatting.MessageFormatter;
 import com.ampznetwork.chatmod.api.model.protocol.ChatMessage;
@@ -21,7 +19,6 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.comroid.api.Polyfill;
-import org.comroid.api.java.SoftDepend;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -95,10 +92,10 @@ public class ChatMessageFormatter implements MessageFormatter {
         if (config.get("regex.patterns") instanceof List<?> ls) for (var s : ls)
             builder.pattern(Pattern.compile((caseInsensitive ? "(?i)" : "") + s,
                     caseInsensitive ? Pattern.CASE_INSENSITIVE : 0));
-        SoftDepend.type("com.ampznetwork.banmod.api.BanMod").ifPresent($ -> {
+        /*SoftDepend.type("com.ampznetwork.banmod.api.BanMod").ifPresent($ -> {
             if (config.get("regex.punish-by") instanceof String s && mod.sub(BanMod.class) instanceof BanMod banMod) builder.punishment(
                     Infraction.Factory.parse(banMod, s));
-        });
+        });*/
         return builder.build();
     }
 
@@ -109,7 +106,7 @@ public class ChatMessageFormatter implements MessageFormatter {
     @lombok.Builder.Default           boolean               forceHttps           = false;
     @lombok.Builder.Default           boolean               showDomainOnly       = false;
     @lombok.Builder.Default           TextDecoration        decorate             = TextDecoration.UNDERLINED;
-    @lombok.Builder.Default @Nullable Infraction.Factory    punishment           = null;
+    //@lombok.Builder.Default @Nullable Infraction.Factory    punishment           = null;
     @Singular                         List<MarkdownFeature> disableMarkdownFeatures;
     @Singular                         List<Pattern>         patterns;
 
@@ -140,13 +137,13 @@ public class ChatMessageFormatter implements MessageFormatter {
         }
 
         final boolean finalAny = any;
-        SoftDepend.run("com.ampznetwork.banmod.api.BanMod").ifPresent($ -> {
+        /*SoftDepend.run("com.ampznetwork.banmod.api.BanMod").ifPresent($ -> {
             var banMod = mod.sub(BanMod.class);
             if (finalAny && punishment != null && banMod != null) banMod.getEntityAccessor(Infraction.TYPE)
                     .create()
                     .complete(builder -> punishment.apply(builder, player).reason("Bad Word Usage").build(),
                             banMod::realize);
-        });
+        });*/
 
         // parse markdown, formatting and urls
         final char[] chars = message.toCharArray();
