@@ -116,13 +116,12 @@ public final class ChatModules {
 
     @Data
     @SuperBuilder
-    @NoArgsConstructor(force = true, access = AccessLevel.PRIVATE)
     public static class AurionChatProviderConfig extends RabbitMqProviderConfig {
         protected @NotNull @Default String exchange       = "aurion.chat";
         protected @NotNull @Default
         @Language("RegExp")         String contentPattern = "\\[[\\w&§]+]\\s[\\w&§]+\\s[\\w-_&§]+:\\s(.*)";
 
-        public AurionChatProviderConfig() {
+        private AurionChatProviderConfig() {
             exchangeType = "fanout";
         }
 
