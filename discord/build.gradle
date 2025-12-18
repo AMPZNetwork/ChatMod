@@ -13,9 +13,12 @@ static int getCommitTimestampMinutes() {
     return (int) seconds / 600
 }
 
-apply from: "$rootProject.projectDir/gradle/scripts/java-lib.gradle"
-apply plugin: 'application'
-apply plugin: 'com.github.johnrengelman.shadow'
+plugins {
+    id 'application'
+    id 'de.undercouch.download' version '5.5.+'
+}
+
+apply from: "$projectDir/../../gradle/scripts/java-lib.gradle"
 
 group 'com.ampznetwork.chatmod'
 version = "0.1.${getCommitTimestampMinutes()}"
