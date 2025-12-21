@@ -20,7 +20,8 @@ import java.util.stream.Stream;
 @Value
 @NonFinal
 @ToString(callSuper = true)
-public abstract class AbstractRabbitMqModule<C extends ChatModules.RabbitMqProviderConfig, P extends ChatMessagePacket> extends AbstractModule<C, P> {
+public abstract class AbstractRabbitMqModule<C extends ChatModules.RabbitMqProviderConfig, P extends ChatMessagePacket>
+        extends AbstractModule<C, P> {
     @NonFinal Rabbit                   rabbit = null;
     @NonFinal Rabbit.Exchange.Route<P> route  = null;
 
@@ -56,17 +57,24 @@ public abstract class AbstractRabbitMqModule<C extends ChatModules.RabbitMqProvi
 
         var uri        = config.getRabbitUri();
         var rabbitName = "ChatMod@" + getEndpointName();
-        this.rabbit = "inherit".equalsIgnoreCase(uri) ? mod.children(AbstractRabbitMqModule.class)
-                .flatMap(rabbit -> Stream.of(rabbit.config)
-                        .flatMap(Streams.cast(ChatModules.RabbitMqProviderConfig.class))
-                        .map(ChatModules.RabbitMqProviderConfig::getRabbitUri)
-                        .filter(Predicate.not("inherit"::equalsIgnoreCase))
-                        .map($ -> rabbit.getRabbit()))
-                .findAny()
-                .orElseThrow(() -> new NoSuchElementException("No RabbitMQ URI found to inherit from")) : Rabbit.of(rabbitName, uri).get();
-        this.route  = Optional.ofNullable(rabbit)
-                .map(rabbit -> rabbit.bind(rabbitName, config.getExchange(), config.getExchangeType(), "", createByteConverter()))
-                .orElse(null);
+        this.rabbit = "inherit".equalsIgnoreCase(uri)
+                      ? mod.children(AbstractRabbitMqModule.class)
+                              .flatMap(rabbit -> Stream.of(rabbit.config)
+                                      .flatMap(Streams.cast(ChatModules.RabbitMqProviderConfig.class))
+                                      .map(ChatModules.RabbitMqProviderConfig::getRabbitUri)
+                                      .filter(Predicate.not("inherit"::equalsIgnoreCase))
+                                      .map($ -> rabbit.getRabbit()))
+                              .findAny()
+                              .orElseThrow(() -> new NoSuchElementException("No RabbitMQ URI found to inherit from"))
+                      : Rabbit.of(rabbitName, uri).get();
+        this.route  = Optional.ofNullable(rabbit).map(rabbit -> {
+            var exchangeType = config.getExchangeType();
+            return rabbit.bind(rabbitName,
+                    config.getExchange(),
+                    exchangeType,
+                    "fanout".equals(exchangeType) ? "" : "chat.#",
+                    createByteConverter());
+        }).orElse(null);
         addChildren(rabbit, route);
 
         if (route != null) addChild(route.filterData(this::acceptOutbound)

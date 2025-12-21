@@ -63,6 +63,8 @@ public class LinkToAurionChatModule extends IdentityRabbitMqModule<ChatModules.A
 
                 String content;
                 var    contentPattern = config.getContentPattern();
+                if (contentPattern == null)
+                    return null;
                 var    matcher        = Pattern.compile(contentPattern).matcher(aurion.getDisplayString());
                 if (matcher.matches()) content = matcher.group(1);
                 else content = aurion.getDisplayString();

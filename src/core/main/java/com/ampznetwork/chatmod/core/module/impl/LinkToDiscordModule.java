@@ -27,17 +27,13 @@ import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
-import net.kyori.adventure.text.flattener.ComponentFlattener;
 import net.kyori.adventure.text.format.TextColor;
-import net.kyori.adventure.text.format.TextDecoration;
 import org.comroid.api.func.util.Debug;
 import org.comroid.api.func.util.DelegateStream;
 import org.comroid.api.java.ResourceLoader;
-import org.comroid.api.text.Markdown;
 import org.comroid.api.tree.UncheckedCloseable;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -51,29 +47,6 @@ import static net.kyori.adventure.text.format.NamedTextColor.*;
 @NonFinal
 @ToString(callSuper = true)
 public class LinkToDiscordModule extends IdentityModule<ChatModules.DiscordProviderConfig> {
-    public static final ComponentFlattener COMPONENT_TO_MARKDOWN = ComponentFlattener.basic()
-            .toBuilder()
-            .mapper(TextComponent.class, text -> {
-                var feats = text.decorations()
-                        .entrySet()
-                        .stream()
-                        .filter(e -> e.getValue() == TextDecoration.State.TRUE)
-                        .map(Map.Entry::getKey)
-                        .map(decor -> switch (decor) {
-                            case OBFUSCATED -> Markdown.Code;
-                            case BOLD -> Markdown.Bold;
-                            case STRIKETHROUGH -> Markdown.Strikethrough;
-                            case UNDERLINED -> Markdown.Underline;
-                            case ITALIC -> Markdown.Italic;
-                        })
-                        .toList();
-                var str = text.content();
-                for (var feat : feats)
-                    str = feat.apply(str);
-                return str;
-            })
-            .build();
-    public static final String             WEBHOOK_NAME          = "Minecraft Chat Link";
     JDA jda;
 
     public LinkToDiscordModule(ModuleContainer mod, ChatModules.DiscordProviderConfig config, JDA jda) {
@@ -147,7 +120,8 @@ public class LinkToDiscordModule extends IdentityModule<ChatModules.DiscordProvi
                             .setContent(override(DefaultPlaceholder.MESSAGE, switch (packet.getPacketType()) {
                                 case CHAT -> {
                                     var sb = new StringBuilder();
-                                    COMPONENT_TO_MARKDOWN.flatten(text(packet.getMessage().getMessageString()),
+                                    Util.Kyori.COMPONENT_TO_MARKDOWN.flatten(text(packet.getMessage()
+                                                    .getMessageString()),
                                             sb::append);
                                     yield sb.toString();
                                 }
@@ -171,10 +145,11 @@ public class LinkToDiscordModule extends IdentityModule<ChatModules.DiscordProvi
                 .exceptionallyCompose(ignored -> channel.retrieveWebhooks()
                         .submit()
                         .thenCompose(webhooks -> webhooks.stream()
-                                .filter(webhook -> WEBHOOK_NAME.equals(webhook.getName()))
+                                .filter(webhook -> ChatModules.DiscordProviderConfig.WEBHOOK_NAME.equals(webhook.getName()))
                                 .findAny()
                                 .map(CompletableFuture::completedFuture)
-                                .orElseGet(() -> channel.createWebhook(WEBHOOK_NAME).submit()))
+                                .orElseGet(() -> channel.createWebhook(ChatModules.DiscordProviderConfig.WEBHOOK_NAME)
+                                        .submit()))
                         .thenApply(webhook -> WebhookClientBuilder.fromJDA(webhook).build()))
                 .exceptionally(Debug.exceptionLogger("Internal Exception when obtaining Webhook"));
     }

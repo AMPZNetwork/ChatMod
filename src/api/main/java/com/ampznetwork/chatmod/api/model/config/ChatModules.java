@@ -136,6 +136,7 @@ public final class ChatModules {
     @SuperBuilder
     @NoArgsConstructor(force = true, access = AccessLevel.PRIVATE)
     public static class DiscordProviderConfig extends FormatProviderConfig implements DiscordBot {
+        public static final String WEBHOOK_NAME = "Minecraft Chat Link";
         protected @NotNull String token;
 
         @Override

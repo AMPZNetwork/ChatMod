@@ -1,8 +1,14 @@
 package com.ampznetwork.chatmod.api.model.protocol;
 
 import com.ampznetwork.chatmod.api.model.module.Module;
+import com.ampznetwork.chatmod.api.model.protocol.internal.ChatMessagePacketImpl;
 import com.ampznetwork.chatmod.api.model.protocol.internal.PacketType;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.SneakyThrows;
+import lombok.Value;
+
+import java.io.ByteArrayInputStream;
 
 public interface ChatMessagePacket {
     @JsonProperty
@@ -27,4 +33,23 @@ public interface ChatMessagePacket {
      */
     @JsonProperty
     java.util.List<String> getRoute();
+
+    interface ByteConverter extends org.comroid.api.ByteConverter<ChatMessagePacket> {}
+
+    @Value
+    class JacksonByteConverter implements ByteConverter {
+        ObjectMapper mapper;
+
+        @Override
+        @SneakyThrows
+        public byte[] toBytes(ChatMessagePacket packet) {
+            return mapper.writeValueAsBytes(packet);
+        }
+
+        @Override
+        @SneakyThrows
+        public ChatMessagePacket fromBytes(byte[] bytes) {
+            return mapper.readValue(new ByteArrayInputStream(bytes), ChatMessagePacketImpl.class);
+        }
+    }
 }
