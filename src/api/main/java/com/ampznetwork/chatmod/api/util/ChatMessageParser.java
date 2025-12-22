@@ -68,6 +68,8 @@ public class ChatMessageParser {
                             continue;
                         } else activeMd.add(Markdown.Underline);
                         break;
+                    default:
+                        buf.append(c);
                 }
             } else if (c == '_' || c == '*') {
                 // italic
