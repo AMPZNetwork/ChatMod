@@ -19,36 +19,43 @@ import lombok.Value;
 import lombok.experimental.NonFinal;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
+import net.kyori.adventure.text.serializer.gson.impl.JSONComponentSerializerProviderImpl;
 import org.jetbrains.annotations.Nullable;
 
-import static net.kyori.adventure.text.serializer.json.JSONComponentSerializer.*;
 import static net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.*;
 
 @Data
 @NoArgsConstructor
 public class ChatMessage {
-    public static final                                                             ObjectMapper MAPPER = new ObjectMapper();
+    public static final ObjectMapper MAPPER = new ObjectMapper();
 
-    @JsonProperty @JsonIncludeProperties({ "id", "name", "displayName" }) @Nullable Player       sender;
-    @JsonProperty                                                                   String       senderName;
-    @JsonProperty                                                                   String       messageString;
-    @JsonRawValue @JsonSerialize(converter = KyoriToRawConverter.class) @JsonDeserialize(converter = RawToKyoriConverter.class) @JsonProperty @NonFinal
+    @JsonProperty @JsonIncludeProperties({ "id", "name", "displayName" }) @Nullable Player sender;
+    @JsonProperty                                                                   String senderName;
+    @JsonProperty                                                                   String messageString;
+    @JsonRawValue @JsonSerialize(converter = KyoriToRawConverter.class)
+    @JsonDeserialize(converter = RawToKyoriConverter.class) @JsonProperty @NonFinal
     TextComponent text;
-    @JsonRawValue @JsonSerialize(converter = KyoriToRawConverter.class) @JsonDeserialize(converter = RawToKyoriConverter.class) @JsonProperty @NonFinal
+    @JsonRawValue @JsonSerialize(converter = KyoriToRawConverter.class)
+    @JsonDeserialize(converter = RawToKyoriConverter.class) @JsonProperty @NonFinal
     @Nullable TextComponent prepend;
-    @JsonRawValue @JsonSerialize(converter = KyoriToRawConverter.class) @JsonDeserialize(converter = RawToKyoriConverter.class) @JsonProperty @NonFinal
+    @JsonRawValue @JsonSerialize(converter = KyoriToRawConverter.class)
+    @JsonDeserialize(converter = RawToKyoriConverter.class) @JsonProperty @NonFinal
     @Nullable TextComponent append;
 
     public ChatMessage(@Nullable Player sender, String senderName, String messageString, TextComponent text) {
         this(sender, senderName, messageString, null, text);
     }
 
-    public ChatMessage(@Nullable Player sender, String senderName, String messageString, TextComponent prepend, TextComponent text) {
+    public ChatMessage(
+            @Nullable Player sender, String senderName, String messageString, TextComponent prepend,
+            TextComponent text
+    ) {
         this(sender, senderName, messageString, prepend, text, null);
     }
 
     public ChatMessage(
-            @Nullable Player sender, String senderName, String messageString, @Nullable TextComponent prepend, TextComponent text,
+            @Nullable Player sender, String senderName, String messageString, @Nullable TextComponent prepend,
+            TextComponent text,
             @Nullable TextComponent append
     ) {
         this.sender        = sender;
@@ -75,15 +82,18 @@ public class ChatMessage {
     }
 
     public void validateMutualExclusivity() {
-        if ((sender == null) == (senderName == null)) throw new IllegalArgumentException("Sender and SenderName cannot both be set or null");
+        if ((sender == null) == (senderName == null))
+            throw new IllegalArgumentException("Sender and SenderName cannot both be set or null");
     }
 
     @Value
     public static class KyoriToRawConverter implements Converter<TextComponent, String> {
+        JSONComponentSerializerProviderImpl provider = new JSONComponentSerializerProviderImpl();
+
         @Override
         @SneakyThrows
         public String convert(TextComponent component) {
-            return json().serialize(component);
+            return provider.instance().serialize(component);
         }
 
         @Override
@@ -99,9 +109,11 @@ public class ChatMessage {
 
     @Value
     public static class RawToKyoriConverter implements Converter<JsonNode, TextComponent> {
+        JSONComponentSerializerProviderImpl provider = new JSONComponentSerializerProviderImpl();
+
         @Override
         public TextComponent convert(JsonNode json) {
-            return (TextComponent) json().deserialize(json.toString());
+            return (TextComponent) provider.instance().deserialize(json.toString());
         }
 
         @Override
