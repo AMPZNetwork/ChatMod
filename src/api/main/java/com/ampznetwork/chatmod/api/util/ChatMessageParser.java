@@ -4,7 +4,6 @@ import lombok.NoArgsConstructor;
 import lombok.Value;
 import lombok.experimental.NonFinal;
 import lombok.extern.java.Log;
-import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
@@ -28,7 +27,7 @@ public class ChatMessageParser {
     @NonFinal           StringBuilder buf   = new StringBuilder();
 
     @SuppressWarnings("UnnecessaryContinue")
-    public Component parse(String plaintext) {
+    public TextComponent parse(String plaintext) {
         char c, n;
 
         for (var i = 0; i < plaintext.length(); i++) {
