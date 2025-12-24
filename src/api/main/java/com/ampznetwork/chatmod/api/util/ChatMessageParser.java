@@ -5,14 +5,19 @@ import lombok.Value;
 import lombok.experimental.NonFinal;
 import lombok.extern.java.Log;
 import net.kyori.adventure.text.TextComponent;
+import net.kyori.adventure.text.event.ClickEvent;
+import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.comroid.api.text.Markdown;
 import org.jetbrains.annotations.Nullable;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.logging.Level;
 
 import static net.kyori.adventure.text.Component.*;
 
@@ -114,7 +119,36 @@ public class ChatMessageParser {
                         default -> throw new IllegalStateException("Unexpected value: " + code);
                     });
                 }
-            } else buf.append(c);
+            } else {
+                urls:
+                if (c == ' ') {
+                    // terminate url if applicable
+                    var index = buf.indexOf("https://");
+                    if (index != -1) {
+                        var url = buf.substring(index);
+                        URI wrapper;
+                        try {
+                            wrapper = new URI(url);
+                        } catch (URISyntaxException e) {
+                            log.log(Level.FINE, "Invalid URI", e);
+                            break urls;
+                        }
+
+                        buf.delete(index, buf.length());
+                        push(null);
+
+                        var urlComponent = text(wrapper.getHost()).decoration(TextDecoration.UNDERLINED, true)
+                                .hoverEvent(HoverEvent.showText(text("Open URL:").appendNewline().append(text(url))))
+                                .clickEvent(ClickEvent.openUrl(url));
+                        component.append(urlComponent);
+
+                        reset();
+                        continue;
+                    }
+                }
+
+                buf.append(c);
+            }
         }
         if (!buf.isEmpty()) push(null);
 
@@ -131,9 +165,13 @@ public class ChatMessageParser {
             component.append(text);
         }
 
+        reset();
+        if (closeMarkdown != null && !activeMd.remove(closeMarkdown)) log.fine("Could not remove closed markdown: " + closeMarkdown);
+    }
+
+    private void reset() {
         buf = new StringBuilder();
         activeDecor.clear();
-        if (closeMarkdown != null && !activeMd.remove(closeMarkdown)) log.fine("Could not remove closed markdown: " + closeMarkdown);
     }
 
     private void applyMcDecor(TextComponent.Builder text) {
