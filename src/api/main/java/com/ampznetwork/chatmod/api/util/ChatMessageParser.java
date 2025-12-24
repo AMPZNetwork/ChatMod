@@ -18,6 +18,7 @@ import java.net.URISyntaxException;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.logging.Level;
+import java.util.regex.Pattern;
 
 import static net.kyori.adventure.text.Component.*;
 
@@ -25,6 +26,7 @@ import static net.kyori.adventure.text.Component.*;
 @Value
 @NoArgsConstructor
 public class ChatMessageParser {
+    private static final Pattern URLS = Pattern.compile("https?://[^ ]+");
     Set<Markdown>         activeMd    = new HashSet<>();
     Set<TextDecoration>   activeDecor = new HashSet<>();
     TextComponent.Builder component   = text();
@@ -83,7 +85,7 @@ public class ChatMessageParser {
                     continue;
                 } else activeMd.add(Markdown.Italic);
             } else if ((c == '&' || c == '§') && n != 0) {
-                push(null);
+                push((Markdown) null);
 
                 // start new mc format code
                 var code = Character.toLowerCase(n);
@@ -119,54 +121,56 @@ public class ChatMessageParser {
                         default -> throw new IllegalStateException("Unexpected value: " + code);
                     });
                 }
-            } else {
-                urls:
-                if (c == ' ') {
-                    // terminate url if applicable
-                    var index = buf.indexOf("https://");
-                    if (index != -1) {
-                        var url = buf.substring(index);
-                        URI wrapper;
-                        try {
-                            wrapper = new URI(url);
-                        } catch (URISyntaxException e) {
-                            log.log(Level.FINE, "Invalid URI", e);
-                            break urls;
-                        }
-
-                        buf.delete(index, buf.length());
-                        push(null);
-
-                        var urlComponent = text(wrapper.getHost()).decoration(TextDecoration.UNDERLINED, true)
-                                .hoverEvent(HoverEvent.showText(text("Open URL:").appendNewline().append(text(url))))
-                                .clickEvent(ClickEvent.openUrl(url));
-                        component.append(urlComponent);
-
-                        reset();
-                        continue;
-                    }
-                }
-
-                buf.append(c);
-            }
+            } else buf.append(c);
         }
-        if (!buf.isEmpty()) push(null);
+        if (!buf.isEmpty()) push((Markdown) null);
 
         return component.build();
     }
 
     private void push(@Nullable Markdown closeMarkdown) {
         var str = buf.toString();
-        if (!str.isBlank()) {
-            var text = text().content(str);
 
-            applyMcDecor(text);
-            applyMd(text);
-            component.append(text);
+        // scan for urls
+        var matcher = URLS.matcher(str);
+        int lastEnd = -1;
+        while (matcher.find()) {
+            var buf = str.substring(0, matcher.start());
+            if (!buf.isBlank()) push(buf);
+
+            URI url;
+            var urlText = matcher.group();
+            try {
+                url = new URI(urlText);
+            } catch (URISyntaxException e) {
+                log.log(Level.FINE, "Invalid URI", e);
+                push(urlText);
+                continue;
+            }
+
+            var urlComponent = text().content(url.getHost())
+                    .decoration(TextDecoration.UNDERLINED, true)
+                    .hoverEvent(HoverEvent.showText(text("Open URL:").appendNewline().append(text(urlText))))
+                    .clickEvent(ClickEvent.openUrl(urlText));
+            component.append(urlComponent.build());
+            lastEnd = matcher.end();
         }
+        if (lastEnd != -1) {
+            str = str.substring(lastEnd);
+        }
+        // apply text decorations
+        if (!str.isBlank()) push(str);
 
         reset();
         if (closeMarkdown != null && !activeMd.remove(closeMarkdown)) log.fine("Could not remove closed markdown: " + closeMarkdown);
+    }
+
+    private void push(String str) {
+        var text = text().content(str);
+
+        applyMcDecor(text);
+        applyMd(text);
+        component.append(text);
     }
 
     private void reset() {
