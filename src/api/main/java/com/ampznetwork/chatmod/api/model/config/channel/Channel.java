@@ -15,6 +15,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.ComponentLike;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.comroid.api.attr.Aliased;
 import org.comroid.api.text.minecraft.ComponentSupplier;
 import org.jetbrains.annotations.NotNull;
@@ -99,7 +100,10 @@ public class Channel extends ChatModules.NamedBaseConfig implements Aliased, Com
 
     @Override
     public TextComponent toComponent() {
-        return Component.text(getName(), NamedTextColor.AQUA);
+        var display = getDisplay();
+        return display != null
+               ? LegacyComponentSerializer.legacyAmpersand().deserialize(display)
+               : Component.text(getName(), NamedTextColor.GOLD);
     }
 
     @Override
