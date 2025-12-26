@@ -33,7 +33,6 @@ public class ChatMessageParser {
     @NonFinal @Nullable TextColor     color = null;
     @NonFinal           StringBuilder buf   = new StringBuilder();
 
-    @SuppressWarnings("UnnecessaryContinue")
     public TextComponent parse(String plaintext) {
         char c, n;
 
@@ -49,10 +48,7 @@ public class ChatMessageParser {
                     // advance to second symbol
                     i++;
 
-                if (activeMd.contains(Markdown.Strikethrough)) {
-                    push(Markdown.Strikethrough);
-                    continue;
-                } else activeMd.add(Markdown.Strikethrough);
+                toggle(Markdown.Strikethrough);
             } else if (c == n) {
                 // doubles
                 switch (c) {
@@ -60,19 +56,13 @@ public class ChatMessageParser {
                         // bold
 
                         i++; // advance to second char
-                        if (activeMd.contains(Markdown.Bold)) {
-                            push(Markdown.Bold);
-                            continue;
-                        } else activeMd.add(Markdown.Bold);
+                        toggle(Markdown.Bold);
                         break;
                     case '_':
                         // underline
 
                         i++; // advance to second char
-                        if (activeMd.contains(Markdown.Underline)) {
-                            push(Markdown.Underline);
-                            continue;
-                        } else activeMd.add(Markdown.Underline);
+                        toggle(Markdown.Underline);
                         break;
                     default:
                         buf.append(c);
@@ -80,10 +70,7 @@ public class ChatMessageParser {
             } else if (c == '_' || c == '*') {
                 // italic
 
-                if (activeMd.contains(Markdown.Italic)) {
-                    push(Markdown.Italic);
-                    continue;
-                } else activeMd.add(Markdown.Italic);
+                toggle(Markdown.Italic);
             } else if ((c == '&' || c == '§') && n != 0) {
                 push((Markdown) null);
 
@@ -126,6 +113,15 @@ public class ChatMessageParser {
         if (!buf.isEmpty()) push((Markdown) null);
 
         return component.build();
+    }
+
+    private void toggle(Markdown markdown) {
+        if (activeMd.contains(markdown)) {
+            push(markdown);
+        } else {
+            push((Markdown) null);
+            activeMd.add(markdown);
+        }
     }
 
     private void push(@Nullable Markdown closeMarkdown) {
