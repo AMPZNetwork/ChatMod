@@ -4,6 +4,7 @@ import com.ampznetwork.chatmod.api.ChatMod;
 import com.ampznetwork.chatmod.api.model.config.ChatModules;
 import com.ampznetwork.chatmod.api.model.config.discord.DiscordChannel;
 import com.ampznetwork.chatmod.api.model.protocol.ChatMessage;
+import com.ampznetwork.libmod.api.entity.Player;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Builder.Default;
 import lombok.EqualsAndHashCode;
@@ -31,6 +32,10 @@ import java.util.stream.Stream;
 @SuperBuilder
 @EqualsAndHashCode(callSuper = true)
 public class Channel extends ChatModules.NamedBaseConfig implements Aliased, ComponentSupplier.PlayerFocused {
+    public static Channel direct(Player player) {
+        return new Channel(true, "@" + player.getUuid(), null, null, null, null, true);
+    }
+
     @Nullable @Default                             String         alias      = null;
     @Nullable @Default String display = null;
     @Nullable @Default                             String         permission = null;
