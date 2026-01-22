@@ -25,6 +25,8 @@ import net.kyori.adventure.text.serializer.gson.impl.JSONComponentSerializerProv
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Objects;
+
 import static net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.*;
 
 @Data
@@ -70,9 +72,9 @@ public class ChatMessage {
     public ChatMessage(@Nullable Player sender, String senderName, ChatMessageParser.MessageBundle bundle) {
         this.sender     = sender;
         this.senderName = senderName;
-        this.prepend    = bundle.prefix();
-        this.text       = bundle.text();
-        this.append     = bundle.suffix();
+        this.prepend = Objects.requireNonNullElseGet(bundle.prefix(), () -> Component.text(""));
+        this.text    = Objects.requireNonNullElseGet(bundle.text(), () -> Component.text(""));
+        this.append  = Objects.requireNonNullElseGet(bundle.suffix(), () -> Component.text(""));
     }
 
     @JsonIgnore
