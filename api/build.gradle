@@ -23,6 +23,8 @@ group = 'com.ampznetwork.chatmod'
 version = "0.1.${getCommitTimestampMinutes()}"
 
 dependencies {
+    compileOnly 'org.spigotmc:spigot-api:1.21.1-R0.1-SNAPSHOT'
+
     api project(":LibMod:api")
     api project(':ChatMod:AurionChat:api')
 
@@ -33,6 +35,9 @@ dependencies {
     // kyori
     api 'net.kyori:adventure-text-serializer-json:4.24.0'
     api 'net.kyori:adventure-text-serializer-gson:4.24.0'
+
+    // placeholderapi
+    compileOnly 'me.clip:placeholderapi:2.+'
 
     // utility
     compileOnly 'org.projectlombok:lombok:+'

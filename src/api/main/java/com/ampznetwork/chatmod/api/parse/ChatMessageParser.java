@@ -1,5 +1,10 @@
-package com.ampznetwork.chatmod.api.util;
+package com.ampznetwork.chatmod.api.parse;
 
+import com.ampznetwork.chatmod.api.model.config.channel.Channel;
+import com.ampznetwork.chatmod.lite.model.abstr.ChatModConfig;
+import com.ampznetwork.chatmod.lite.model.abstr.PlaceholderAdapter;
+import com.ampznetwork.libmod.api.entity.Player;
+import com.ampznetwork.libmod.api.util.Util;
 import lombok.NoArgsConstructor;
 import lombok.Value;
 import lombok.experimental.NonFinal;
@@ -10,6 +15,7 @@ import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.format.TextDecoration;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.comroid.api.text.Markdown;
 import org.jetbrains.annotations.Nullable;
 
@@ -27,6 +33,37 @@ import static net.kyori.adventure.text.Component.*;
 @NoArgsConstructor
 public class ChatMessageParser {
     private static final Pattern URLS = Pattern.compile("https?://[^ ]+");
+
+    public static MessageBundle parse(
+            String plaintext, ChatModConfig config, Channel channel, @Nullable Player player,
+            String senderName
+    ) {
+        var text = new ChatMessageParser().parse(plaintext);
+
+        var split      = config.getFormattingScheme().split("%message%");
+        var serverName = config.getServerName();
+        var prefix = PlaceholderAdapter.Native.applyPlaceholders(serverName,
+                channel.getDisplay(),
+                senderName,
+                player,
+                split[0]);
+        var suffix = split.length < 2
+                     ? ""
+                     : PlaceholderAdapter.Native.applyPlaceholders(serverName,
+                             channel.getDisplay(),
+                             senderName,
+                             player,
+                             split[1]);
+
+        prefix = Util.Kyori.sanitize(prefix, LegacyComponentSerializer.legacyAmpersand());
+        suffix = Util.Kyori.sanitize(suffix, LegacyComponentSerializer.legacyAmpersand());
+
+        var prefixComponent = LegacyComponentSerializer.legacyAmpersand().deserialize(prefix);
+        var suffixComponent = LegacyComponentSerializer.legacyAmpersand().deserialize(suffix);
+
+        return new MessageBundle(text, prefixComponent, suffixComponent);
+    }
+
     Set<Markdown>         activeMd    = new HashSet<>();
     Set<TextDecoration>   activeDecor = new HashSet<>();
     TextComponent.Builder component   = text();
@@ -189,4 +226,6 @@ public class ChatMessageParser {
                 default -> log.fine("Skipping unsupported markdown formatter: " + markdown);
             }
     }
+
+    public record MessageBundle(TextComponent text, TextComponent prefix, TextComponent suffix) {}
 }

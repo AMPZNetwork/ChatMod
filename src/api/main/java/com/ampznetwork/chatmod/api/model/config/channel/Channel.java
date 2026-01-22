@@ -4,7 +4,6 @@ import com.ampznetwork.chatmod.api.ChatMod;
 import com.ampznetwork.chatmod.api.model.config.ChatModules;
 import com.ampznetwork.chatmod.api.model.config.discord.DiscordChannel;
 import com.ampznetwork.chatmod.api.model.protocol.ChatMessage;
-import com.ampznetwork.libmod.api.entity.Player;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Builder.Default;
 import lombok.EqualsAndHashCode;
@@ -83,15 +82,6 @@ public class Channel extends ChatModules.NamedBaseConfig implements Aliased, Com
     @Override
     public Stream<String> aliases() {
         return Stream.of(name, alias).filter(Objects::nonNull);
-    }
-
-    public ChatMessage formatMessage(ChatMod mod, Player sender, String message) {
-        var msg = new ChatMessage(sender,
-                mod.getPlayerAdapter().getDisplayName(sender.getId()),
-                message,
-                Component.text(message));
-        mod.getFormatter().accept(mod, msg);
-        return msg;
     }
 
     public void send(ChatMod mod, ChatMessage message) {

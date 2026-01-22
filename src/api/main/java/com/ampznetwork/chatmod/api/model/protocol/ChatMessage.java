@@ -42,10 +42,12 @@ public class ChatMessage {
     @JsonRawValue @JsonSerialize(converter = KyoriToRawConverter.class)
     @JsonDeserialize(converter = RawToKyoriConverter.class) @JsonProperty @NonFinal @Nullable TextComponent append;
 
+    @Deprecated(forRemoval = true)
     public ChatMessage(@Nullable Player sender, String senderName, String contentPlaintext, TextComponent text) {
-        this(sender, senderName, contentPlaintext, null, text);
+        this(sender, senderName, contentPlaintext, null, text, null);
     }
 
+    @Deprecated(forRemoval = true)
     public ChatMessage(
             @Nullable Player sender, String senderName, String contentPlaintext, TextComponent prepend,
             TextComponent text
