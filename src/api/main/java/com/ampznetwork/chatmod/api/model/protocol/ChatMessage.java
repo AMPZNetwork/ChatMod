@@ -1,7 +1,7 @@
 package com.ampznetwork.chatmod.api.model.protocol;
 
+import com.ampznetwork.chatmod.api.parse.ChatMessageParser;
 import com.ampznetwork.libmod.api.entity.Player;
-import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonIncludeProperties;
@@ -22,19 +22,19 @@ import lombok.experimental.NonFinal;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.serializer.gson.impl.JSONComponentSerializerProviderImpl;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.jetbrains.annotations.Nullable;
 
 import static net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.*;
 
 @Data
 @NoArgsConstructor
-@JsonIgnoreProperties({ "messageString" })
+@JsonIgnoreProperties({ "messageString", "contentPlaintext" })
 public class ChatMessage {
     public static final ObjectMapper MAPPER = new ObjectMapper();
 
     @JsonProperty @JsonIncludeProperties({ "id", "name" }) @Nullable                          Player        sender;
     @JsonProperty                                                                             String        senderName;
-    @JsonProperty @JsonAlias("messageString") String contentPlaintext;
     @JsonRawValue @JsonSerialize(converter = KyoriToRawConverter.class)
     @JsonDeserialize(converter = RawToKyoriConverter.class) @JsonProperty @NonFinal           TextComponent text;
     @JsonRawValue @JsonSerialize(converter = KyoriToRawConverter.class)
@@ -44,7 +44,7 @@ public class ChatMessage {
 
     @Deprecated(forRemoval = true)
     public ChatMessage(@Nullable Player sender, String senderName, String contentPlaintext, TextComponent text) {
-        this(sender, senderName, contentPlaintext, null, text, null);
+        this(sender, senderName, new ChatMessageParser.MessageBundle(null, text, null));
     }
 
     @Deprecated(forRemoval = true)
@@ -52,19 +52,26 @@ public class ChatMessage {
             @Nullable Player sender, String senderName, String contentPlaintext, TextComponent prepend,
             TextComponent text
     ) {
-        this(sender, senderName, contentPlaintext, prepend, text, null);
+        this(sender, senderName, new ChatMessageParser.MessageBundle(prepend, text, null));
     }
 
+    @Deprecated(forRemoval = true)
     public ChatMessage(
             @Nullable Player sender, String senderName, String contentPlaintext, @Nullable TextComponent prepend,
             TextComponent text, @Nullable TextComponent append
     ) {
-        this.sender = sender;
-        this.senderName       = senderName;
-        this.contentPlaintext = contentPlaintext;
-        this.prepend          = prepend != null ? prepend : Component.text("");
-        this.text   = text;
-        this.append = append != null ? append : Component.text("");
+        this(sender, senderName, new ChatMessageParser.MessageBundle(prepend, text, append));
+    }
+
+    public ChatMessage(
+            @Nullable Player sender, String senderName,
+            ChatMessageParser.MessageBundle bundle
+    ) {
+        this.sender     = sender;
+        this.senderName = senderName;
+        this.prepend    = bundle.prefix();
+        this.text       = bundle.text();
+        this.append     = bundle.suffix();
     }
 
     @JsonIgnore
@@ -81,12 +88,7 @@ public class ChatMessage {
     @JsonIgnore
     @Deprecated(forRemoval = true)
     public String getMessageString() {
-        return getContentPlaintext();
-    }
-
-    @Override
-    public String toString() {
-        return getContentPlaintext();
+        return PlainTextComponentSerializer.plainText().serialize(text);
     }
 
     @Value

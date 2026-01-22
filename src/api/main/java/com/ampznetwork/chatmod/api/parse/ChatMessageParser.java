@@ -7,6 +7,7 @@ import com.ampznetwork.libmod.api.entity.Player;
 import com.ampznetwork.libmod.api.util.Util;
 import lombok.NoArgsConstructor;
 import lombok.Value;
+import lombok.With;
 import lombok.experimental.NonFinal;
 import lombok.extern.java.Log;
 import net.kyori.adventure.text.TextComponent;
@@ -227,5 +228,6 @@ public class ChatMessageParser {
             }
     }
 
+    @With
     public record MessageBundle(TextComponent text, TextComponent prefix, TextComponent suffix) {}
 }
