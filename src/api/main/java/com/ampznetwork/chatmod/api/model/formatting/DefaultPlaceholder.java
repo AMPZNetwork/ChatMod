@@ -48,7 +48,7 @@ public enum DefaultPlaceholder implements FormatPlaceholder.Pair, Named {
     }, MESSAGE {
         @Override
         public Stream<String> streamValues(ModuleContainer mod, ChatMessagePacket packet) {
-            return Stream.ofNullable(packet.getMessage().getMessageString());
+            return Stream.ofNullable(packet.getMessage().getContentPlaintext());
         }
     };
 

@@ -1,7 +1,9 @@
 package com.ampznetwork.chatmod.api.model.protocol;
 
 import com.ampznetwork.libmod.api.entity.Player;
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonIncludeProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRawValue;
@@ -26,44 +28,41 @@ import static net.kyori.adventure.text.serializer.plain.PlainTextComponentSerial
 
 @Data
 @NoArgsConstructor
+@JsonIgnoreProperties({ "messageString" })
 public class ChatMessage {
     public static final ObjectMapper MAPPER = new ObjectMapper();
 
-    @JsonProperty @JsonIncludeProperties({ "id", "name", "displayName" }) @Nullable Player sender;
-    @JsonProperty                                                                   String senderName;
-    @JsonProperty                                                                   String messageString;
+    @JsonProperty @JsonIncludeProperties({ "id", "name" }) @Nullable                          Player        sender;
+    @JsonProperty                                                                             String        senderName;
+    @JsonProperty @JsonAlias("messageString") String contentPlaintext;
     @JsonRawValue @JsonSerialize(converter = KyoriToRawConverter.class)
-    @JsonDeserialize(converter = RawToKyoriConverter.class) @JsonProperty @NonFinal
-    TextComponent text;
+    @JsonDeserialize(converter = RawToKyoriConverter.class) @JsonProperty @NonFinal           TextComponent text;
     @JsonRawValue @JsonSerialize(converter = KyoriToRawConverter.class)
-    @JsonDeserialize(converter = RawToKyoriConverter.class) @JsonProperty @NonFinal
-    @Nullable TextComponent prepend;
+    @JsonDeserialize(converter = RawToKyoriConverter.class) @JsonProperty @NonFinal @Nullable TextComponent prepend;
     @JsonRawValue @JsonSerialize(converter = KyoriToRawConverter.class)
-    @JsonDeserialize(converter = RawToKyoriConverter.class) @JsonProperty @NonFinal
-    @Nullable TextComponent append;
+    @JsonDeserialize(converter = RawToKyoriConverter.class) @JsonProperty @NonFinal @Nullable TextComponent append;
 
-    public ChatMessage(@Nullable Player sender, String senderName, String messageString, TextComponent text) {
-        this(sender, senderName, messageString, null, text);
+    public ChatMessage(@Nullable Player sender, String senderName, String contentPlaintext, TextComponent text) {
+        this(sender, senderName, contentPlaintext, null, text);
     }
 
     public ChatMessage(
-            @Nullable Player sender, String senderName, String messageString, TextComponent prepend,
+            @Nullable Player sender, String senderName, String contentPlaintext, TextComponent prepend,
             TextComponent text
     ) {
-        this(sender, senderName, messageString, prepend, text, null);
+        this(sender, senderName, contentPlaintext, prepend, text, null);
     }
 
     public ChatMessage(
-            @Nullable Player sender, String senderName, String messageString, @Nullable TextComponent prepend,
-            TextComponent text,
-            @Nullable TextComponent append
+            @Nullable Player sender, String senderName, String contentPlaintext, @Nullable TextComponent prepend,
+            TextComponent text, @Nullable TextComponent append
     ) {
-        this.sender        = sender;
-        this.senderName    = senderName;
-        this.messageString = messageString;
-        this.prepend = prepend != null ? prepend : Component.text("");
-        this.text          = text;
-        this.append  = append != null ? append : Component.text("");
+        this.sender = sender;
+        this.senderName       = senderName;
+        this.contentPlaintext = contentPlaintext;
+        this.prepend          = prepend != null ? prepend : Component.text("");
+        this.text   = text;
+        this.append = append != null ? append : Component.text("");
     }
 
     @JsonIgnore
@@ -72,18 +71,20 @@ public class ChatMessage {
     }
 
     @JsonIgnore
+    @Deprecated(forRemoval = true)
     public String getPlaintext() {
         return plainText().serialize(getFullText());
     }
 
-    @Override
-    public String toString() {
-        return getPlaintext();
+    @JsonIgnore
+    @Deprecated(forRemoval = true)
+    public String getMessageString() {
+        return getContentPlaintext();
     }
 
-    public void validateMutualExclusivity() {
-        if ((sender == null) == (senderName == null))
-            throw new IllegalArgumentException("Sender and SenderName cannot both be set or null");
+    @Override
+    public String toString() {
+        return getContentPlaintext();
     }
 
     @Value
