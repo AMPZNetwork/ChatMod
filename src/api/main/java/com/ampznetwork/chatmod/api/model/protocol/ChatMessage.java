@@ -103,7 +103,7 @@ public class ChatMessage {
         @Override
         @SneakyThrows
         public String convert(TextComponent component) {
-            return provider.instance().serialize(component);
+            return component == null ? "" : provider.instance().serialize(component);
         }
 
         @Override
@@ -123,7 +123,9 @@ public class ChatMessage {
 
         @Override
         public TextComponent convert(JsonNode json) {
-            return (TextComponent) provider.instance().deserialize(json.toString());
+            return json == null || json.isNull()
+                   ? Component.text("")
+                   : (TextComponent) provider.instance().deserialize(json.toString());
         }
 
         @Override

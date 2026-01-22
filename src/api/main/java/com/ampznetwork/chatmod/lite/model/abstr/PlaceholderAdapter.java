@@ -14,9 +14,10 @@ public enum PlaceholderAdapter {
                 String serverName, String channelName, @Nullable String senderName, Player player,
                 String text
         ) {
+            //noinspection Convert2MethodRef
             return text.replaceAll("%server_name%", serverName)
                     .replaceAll("%channel_name%", channelName)
-                    .replaceAll("%player_name%", Objects.requireNonNullElseGet(senderName, player::getName));
+                    .replaceAll("%player_name%", Objects.requireNonNullElseGet(senderName, () -> player.getName()));
         }
     }, Hook {
         @Override
