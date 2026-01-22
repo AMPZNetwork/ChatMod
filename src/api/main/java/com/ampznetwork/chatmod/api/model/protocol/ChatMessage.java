@@ -63,10 +63,11 @@ public class ChatMessage {
         this(sender, senderName, new ChatMessageParser.MessageBundle(prepend, text, append));
     }
 
-    public ChatMessage(
-            @Nullable Player sender, String senderName,
-            ChatMessageParser.MessageBundle bundle
-    ) {
+    public ChatMessage(@Nullable Player sender, String senderName, TextComponent text) {
+        this(sender, senderName, new ChatMessageParser.MessageBundle(null, text, null));
+    }
+
+    public ChatMessage(@Nullable Player sender, String senderName, ChatMessageParser.MessageBundle bundle) {
         this.sender     = sender;
         this.senderName = senderName;
         this.prepend    = bundle.prefix();
@@ -76,7 +77,11 @@ public class ChatMessage {
 
     @JsonIgnore
     public TextComponent getFullText() {
-        return Component.text().append(prepend).append(text).append(append).build();
+        var text = Component.text();
+        if (prepend != null) text.append(prepend);
+        text.append(this.text);
+        if (append != null) text.append(append);
+        return text.build();
     }
 
     @JsonIgnore
