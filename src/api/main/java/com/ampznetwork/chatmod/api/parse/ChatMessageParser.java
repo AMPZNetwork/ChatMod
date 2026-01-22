@@ -39,18 +39,19 @@ public class ChatMessageParser {
             String plaintext, ChatModConfig config, Channel channel, @Nullable Player player,
             String senderName
     ) {
+        var adapter = PlaceholderAdapter.detect();
         var text = new ChatMessageParser().parse(plaintext);
 
         var split      = config.getFormattingScheme().split("%message%");
         var serverName = config.getServerName();
-        var prefix = PlaceholderAdapter.Native.applyPlaceholders(serverName,
+        var prefix = adapter.applyPlaceholders(serverName,
                 channel.getDisplay(),
                 senderName,
                 player,
                 split[0]);
         var suffix = split.length < 2
                      ? ""
-                     : PlaceholderAdapter.Native.applyPlaceholders(serverName,
+                     : adapter.applyPlaceholders(serverName,
                              channel.getDisplay(),
                              senderName,
                              player,
