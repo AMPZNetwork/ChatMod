@@ -1,4 +1,4 @@
-package com.ampznetwork.chatmod.api.model.protocol.internal;
+package com.ampznetwork.chatmod.api.model.protocol;
 
 import com.ampznetwork.chatmod.api.model.config.format.Formats;
 import com.ampznetwork.libmod.api.entity.Player;

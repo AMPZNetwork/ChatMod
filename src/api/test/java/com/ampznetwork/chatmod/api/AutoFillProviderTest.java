@@ -4,7 +4,6 @@ import com.ampznetwork.chatmod.api.model.AutoFillProvider;
 import com.ampznetwork.chatmod.api.model.config.channel.Channel;
 import com.ampznetwork.chatmod.api.model.module.Module;
 import com.ampznetwork.chatmod.api.model.module.ModuleContainer;
-import com.ampznetwork.chatmod.api.model.protocol.ChatMessagePacket;
 import org.comroid.util.TestUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
