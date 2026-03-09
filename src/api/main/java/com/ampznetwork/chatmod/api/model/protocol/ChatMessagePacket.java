@@ -1,6 +1,7 @@
 package com.ampznetwork.chatmod.api.model.protocol;
 
 import com.ampznetwork.chatmod.lite.model.abstr.ChatModConfig;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -35,6 +36,7 @@ public final class ChatMessagePacket {
         this.route      = route == null ? new ArrayList<>() : route;
     }
 
+    @JsonIgnore
     public boolean isSystem() {
         return ChatModConfig.SYSTEM_CHANNEL_NAME.equals(channel);
     }
