@@ -1,5 +1,6 @@
 package com.ampznetwork.chatmod.api.model.protocol;
 
+import com.ampznetwork.chatmod.lite.model.abstr.ChatModConfig;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -32,5 +33,9 @@ public final class ChatMessagePacket {
         this.channel    = channel;
         this.message    = message;
         this.route      = route == null ? new ArrayList<>() : route;
+    }
+
+    public boolean isSystem() {
+        return ChatModConfig.SYSTEM_CHANNEL_NAME.equals(channel);
     }
 }
