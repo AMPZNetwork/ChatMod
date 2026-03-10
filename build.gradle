@@ -1,5 +1,6 @@
 plugins {
     id 'java-library'
+    id 'org.comroid.codegen.spigot' version '+'
     id 'xyz.jpenilla.run-paper' version '2.3.1'
     id 'com.github.johnrengelman.shadow' version '8.1.1'
     id 'de.undercouch.download' version '5.5.+' apply false
@@ -8,11 +9,7 @@ plugins {
 group = 'com.ampznetwork'
 version = '1'
 
-[project(':LibMod:api'), project(':ChatMod:api')].each {
-    apply from: 'ModSuite/gradle/scripts/setup/global.gradle'
-}
-
-allprojects*.repositories {
+repositories {
     maven {
         name = 'comroid'
         url = 'https://maven.comroid.org'
@@ -33,8 +30,6 @@ dependencies {
     compileOnly 'org.spigotmc:spigot-api:1.21.1-R0.1-SNAPSHOT'
 
     api project(':japi')
-    api project(':LibMod:api')
-    api project(':ChatMod:api')
 
     implementation 'net.kyori:adventure-platform-bungeecord:4.3.4'
     implementation 'net.kyori:adventure-text-serializer-plain:4.24.0'
@@ -48,6 +43,11 @@ dependencies {
 
     compileOnly 'me.clip:placeholderapi:2.+'
 
+    generatedCompileOnly project(':japi')
+    generatedCompileOnly 'org.projectlombok:lombok:+'
+    generatedAnnotationProcessor 'org.projectlombok:lombok:+'
+    implementation(sourceSets.generated.output)
+
     compileOnly 'org.projectlombok:lombok:+'
     annotationProcessor 'org.projectlombok:lombok:+'
 }
@@ -55,6 +55,9 @@ dependencies {
 tasks {
     runServer {
         minecraftVersion("1.21")
+    }
+    generateSpigotResourceClasses {
+        pluginYml = file("$projectDir/src/main/resources/plugin.yml")
     }
 }
 
@@ -104,7 +107,3 @@ tasks.create('hytaleTest', Copy) {
     into "$rootDir/run/hytale/mods"
     rename { 'ChatModLite.jar' }
 }
-
-apply from: 'ModSuite/gradle/scripts/setup/requirements.gradle'
-apply from: 'ModSuite/gradle/scripts/setup/artifacts.gradle'
-apply from: 'ModSuite/gradle/scripts/setup/intellij.gradle'

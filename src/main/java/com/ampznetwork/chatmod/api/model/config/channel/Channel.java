@@ -1,0 +1,105 @@
+package com.ampznetwork.chatmod.api.model.config.channel;
+
+import com.ampznetwork.chatmod.api.model.Player;
+import com.ampznetwork.chatmod.api.model.config.ChatModules;
+import com.ampznetwork.chatmod.api.model.config.discord.DiscordChannel;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.Builder.Default;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Value;
+import lombok.experimental.SuperBuilder;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.ComponentLike;
+import net.kyori.adventure.text.TextComponent;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+import org.comroid.api.attr.Aliased;
+import org.comroid.api.text.minecraft.ComponentSupplier;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.beans.ConstructorProperties;
+import java.util.HashSet;
+import java.util.Objects;
+import java.util.Set;
+import java.util.UUID;
+import java.util.stream.Stream;
+
+@Value
+@SuperBuilder
+@EqualsAndHashCode(callSuper = true)
+public class Channel extends ChatModules.NamedBaseConfig implements Aliased, ComponentSupplier.PlayerFocused {
+    public static Channel direct(Player player) {
+        return new Channel(true, "@" + player.getUuid(), null, null, null, null, true);
+    }
+
+    @Nullable @Default                             String         alias      = null;
+    @Nullable @Default                             String         display    = null;
+    @Nullable @Default                             String         permission = null;
+    @Nullable @Default                             DiscordChannel discord    = null;
+    @Default                                       boolean        publish    = true;
+    @Getter(onMethod_ = @__(@JsonIgnore)) @Default Set<UUID>      playerIDs  = new HashSet<>();
+    @Getter(onMethod_ = @__(@JsonIgnore)) @Default Set<UUID>      spyIDs     = new HashSet<>();
+
+    @JsonIgnore
+    @Deprecated(forRemoval = true)
+    public Channel(
+            boolean enabled, @NotNull String name, @Nullable String alias, @Nullable String permission,
+            @Nullable DiscordChannel discord, boolean publish
+    ) {
+        this(enabled, name, alias, null, permission, discord, publish);
+    }
+
+    @ConstructorProperties({ "enabled", "name", "alias", "display", "permission", "discord", "publish" })
+    public Channel(
+            boolean enabled, @NotNull String name, @Nullable String alias, @Nullable String display,
+            @Nullable String permission, @Nullable DiscordChannel discord, boolean publish
+    ) {
+        super(enabled, name);
+
+        this.alias      = alias;
+        this.display    = display;
+        this.permission = permission;
+        this.discord    = discord;
+        this.publish    = publish;
+        this.playerIDs  = new HashSet<>();
+        this.spyIDs     = new HashSet<>();
+    }
+
+    @Override
+    public String getAlternateName() {
+        return Objects.requireNonNullElse(display, getName());
+    }
+
+    public ChannelState getState(UUID playerId) {
+        if (playerIDs.contains(playerId)) return ChannelState.Joined;
+        if (spyIDs.contains(playerId)) return ChannelState.Spying;
+        return ChannelState.Idle;
+    }
+
+    public Stream<UUID> allPlayerIDs() {
+        return Stream.concat(playerIDs.stream(), spyIDs.stream());
+    }
+
+    @Override
+    public Stream<String> aliases() {
+        return Stream.of(name, alias).filter(Objects::nonNull);
+    }
+
+    @Override
+    public TextComponent toComponent() {
+        var display = getDisplay();
+        return display != null
+               ? LegacyComponentSerializer.legacyAmpersand().deserialize(display)
+               : Component.text(getName(), NamedTextColor.GOLD);
+    }
+
+    @Override
+    public ComponentLike specifyComponent(TextComponent component, @Nullable UUID playerId) {
+        var state  = getState(playerId);
+        var result = component.toBuilder().color(state.toColor());
+        if (state != ChannelState.Idle) result.hoverEvent(state.toHoverEvent());
+        return result;
+    }
+}
