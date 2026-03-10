@@ -7,6 +7,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Value;
 import lombok.experimental.FieldDefaults;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.comroid.api.attr.Named;
 import org.jetbrains.annotations.Nullable;
 
@@ -48,7 +49,7 @@ public enum DefaultPlaceholder implements FormatPlaceholder.Pair, Named {
     }, MESSAGE {
         @Override
         public Stream<String> streamValues(ModuleContainer mod, ChatMessagePacket packet) {
-            return Stream.ofNullable(packet.getMessage().getMessageString());
+            return Stream.ofNullable(PlainTextComponentSerializer.plainText().serialize(packet.getMessage().getText()));
         }
     };
 
