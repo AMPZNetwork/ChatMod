@@ -2,23 +2,28 @@ package com.ampznetwork.chatmod.api.model.protocol;
 
 import com.ampznetwork.chatmod.lite.model.abstr.ChatModConfig;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.Singular;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 @Data
+@Builder
 @NoArgsConstructor
+@AllArgsConstructor
 public final class ChatMessagePacket {
-    private PacketType          packetType;
-    private String              source;
-    private String              channel;
-    private ChatMessage         message;
-    private List<String>        route;
-    private List<String>        recipients;
-    private Map<String, String> context;
+    private                        PacketType          packetType;
+    private                        String              source;
+    private                        String              channel;
+    private                        ChatMessage         message;
+    private @Singular("route")     List<String>        route;
+    private @Singular("recipient") List<String>        recipients;
+    private @Singular("context")   Map<String, String> context;
 
     public ChatMessagePacket(PacketType packetType, String source, String channel, ChatMessage message) {
         this(packetType, source, channel, message, new ArrayList<>());
