@@ -1,5 +1,6 @@
 package com.ampznetwork.chatmod.api.model;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import lombok.Value;
 import org.comroid.api.attr.Named;
 import org.comroid.api.attr.UUIDContainer;
@@ -27,7 +28,7 @@ public class Player implements UUIDContainer, Named {
         return future;
     }
 
-    UUID   uuid;
+    @JsonAlias("id") UUID uuid;
     String name;
 
     private static String fillDashes(String uuid) {
